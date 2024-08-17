@@ -1,0 +1,2 @@
+# RogalunaServerByQt
+ 
