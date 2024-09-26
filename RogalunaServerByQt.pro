@@ -1,7 +1,14 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    QTagLib \
+    QJsonWebToken \
+    RogalunaConfigReader \
+    RogalunaStorageServer \
     RogalunaDatabaseServer \
-    RogalunaWebServer \
-    RogalunaMainServer \
-    RogalunaStorageServer
+    RogalunaAccountServer \
+    RogalunaCloudDriveServer \
+    RogalunaLibraryServer \
+    RogalunaMusicServer \
+    RogalunaHttpServer \
+    RogalunaMainServer

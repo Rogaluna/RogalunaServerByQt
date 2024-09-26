@@ -52,3 +52,8 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# 忽略的文件夹
+/storage/
+/temp/
+/build/
