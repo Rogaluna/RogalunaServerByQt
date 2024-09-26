@@ -15,14 +15,12 @@ SOURCES += \
     RequestHandlers/Account/LoginHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
     RequestHandlers/DefaultOptionsHandler.cpp \
-    RequestHandlers/DefaultOptionsHandler.cpp \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.cpp \
     RequestHandlers/FileStorage/GetFileHandler.cpp \
     RequestHandlers/FileStorage/GetFileListHandler.cpp \
     RequestHandlers/FileStorage/MergeFileHandler.cpp \
     RequestHandlers/FileStorage/PostFileHandler.cpp \
     RequestHandlers/GetWebFileHandler.cpp \
-    RequestHandlers/Library/GetBookCategories.cpp \
     RequestHandlers/Library/GetBookCategories.cpp \
     RogalunaHttpServer.cpp
 
@@ -32,14 +30,12 @@ HEADERS += \
     RequestHandlers/Account/LoginHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
     RequestHandlers/DefaultOptionsHandler.h \
-    RequestHandlers/DefaultOptionsHandler.h \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h \
     RequestHandlers/FileStorage/GetFileHandler.h \
     RequestHandlers/FileStorage/GetFileListHandler.h \
     RequestHandlers/FileStorage/MergeFileHandler.h \
     RequestHandlers/FileStorage/PostFileHandler.h \
     RequestHandlers/GetWebFileHandler.h \
-    RequestHandlers/Library/GetBookCategories.h \
     RequestHandlers/Library/GetBookCategories.h \
     RequestHandlers/TestHandler.h \
     RogalunaHttpConfig.h \
