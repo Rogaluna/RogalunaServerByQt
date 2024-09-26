@@ -11,15 +11,21 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    Database/testdao.cpp \
-    basedao.cpp \
-    rogalunadatabaseserver.cpp
+    BaseDAO.cpp \
+    Database/Account/UsersDAO.cpp \
+    Database/Library/CategoriesDAO.cpp \
+    Database/TestDAO.cpp \
+    RogalunaDatabaseServer.cpp
 
 HEADERS += \
-    Database/testdao.h \
-    RogalunaDatabaseServer_global.h \
-    basedao.h \
-    rogalunadatabaseserver.h
+    BaseDAO.h \
+    Database/Account/UsersDAO.h \
+    Database/Library/CategoriesDAO.h \
+    Database/TestDAO.h \
+    Interface/Account/IUsersDAO.h \
+    Interface/Library/ICategoriesDAO.h \
+    RogalunaDatabaseServer.h \
+    RogalunaDatabaseServer_Global.h
 
 # Default rules for deployment.
 unix {

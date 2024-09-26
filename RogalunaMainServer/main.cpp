@@ -1,10 +1,20 @@
 #include <QCoreApplication>
-#include <configfile.h>
-#include <rogalunadatabaseserver.h>
-#include <Database/testdao.h>
+#include <ConfigFile.h>
 #include <QSettings>
-#include <RogalunaWebServer.h>
-#include <rogalunastorageserver.h>
+
+
+#include <RogalunaStorageServer.h>
+#include <RogalunaDatabaseServer.h>
+
+
+#include <Database/TestDAO.h>
+
+
+#include <RogalunaCloudDriveServer.h>
+#include <RogalunaLibraryServer.h>
+
+
+#include <RogalunaHttpServer.h>
 
 
 int main(int argc, char *argv[])
@@ -13,42 +23,34 @@ int main(int argc, char *argv[])
 
     //========================================================================================//
 
-    // 初始化对象存储
+    // 初始化存储器
 
     configFile storageConfig("storage_config.ini");
     if (!storageConfig.isConfigFileValid()) {
         storageConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("Storage", {
-                {"root", "E:/Projects/Qt/RogalunaServerByQt/storage"}
+                {"root", "E:/Projects/Qt/RogalunaServerByQt/storage"},
+                {"temp", "E:/Projects/Qt/RogalunaServerByQt/temp"},
+                {"tempFilePrefix", "chunk_"}
             })
         }));
     }
     QList<ConfigGroup> storageConfigGroupsRead;
     storageConfig.readConfigFile(storageConfigGroupsRead);
-
-    RogalunaStorageServer rss(ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "root").toString());
-
-
-    // QObject::connect(&minio, &RogalunaObjectStorageServer::finished, [](const QByteArray &data){
-    //     qDebug() << "Buckets:" << data;
-    //     QCoreApplication::quit();
-    // });
-
-    // QObject::connect(&minio, &RogalunaObjectStorageServer::errorOccurred, [](const QString &error){
-    //     qDebug() << "Error:" << error;
-    //     QCoreApplication::quit();
-    // });
-
-    // minio.listBuckets();
+    RogalunaStorageServer rss = RogalunaStorageServer(ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "root").toString(),
+                                                      ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "temp").toString(),
+                                                      ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "tempFilePrefix").toString());
 
     //========================================================================================//
+
+    // 初始化数据库
 
     configFile dbConfig("db_config.ini");
     if (!dbConfig.isConfigFileValid()) {
         dbConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("Database", {
                {"hostname", "117.72.65.176"},
-               {"dbname", "test"},
+               {"dbname", "rogaluna_database"},
                {"username", "postgres"},
                {"password", "Lxzx546495"},
                {"port", 5432}
@@ -71,16 +73,41 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    QSqlDatabase& db = dbServer.getDatabase();
-    TestDAO testDAO(db);
+    //========================================================================================//
 
-    // 查询数据
-    QList<QPair<int, QString>> tests = testDAO.getAllTests();
+    // 初始化云盘服务
 
-    // 打印查询结果
-    for (const QPair<int, QString>& test : tests) {
-        qDebug() << "ID:" << test.first << "Name:" << test.second;
+    configFile cloudDriveConfig("cloud_drive_config.ini");
+    if (!cloudDriveConfig.isConfigFileValid()) {
+        cloudDriveConfig.writeConfigFile(ConfigGroup::createConfigGroups({
+            ConfigGroup("CloudDrive", {
+                {"root", "cloudDrive"},
+            })
+        }));
     }
+    QList<ConfigGroup> cloudDriveConfigGroupsRead;
+    cloudDriveConfig.readConfigFile(cloudDriveConfigGroupsRead);
+
+    RogalunaCloudDriveServer cloudDriveServer(&rss, ConfigGroup::getConfigValue(cloudDriveConfigGroupsRead, "CloudDrive", "root").toString());
+
+    // 初始化图书馆服务
+
+    configFile libraryConfig("library_config.ini");
+    if (!libraryConfig.isConfigFileValid()) {
+        libraryConfig.writeConfigFile(ConfigGroup::createConfigGroups({
+            ConfigGroup("Library", {
+               {"root", "library"},
+               {"categoryRootId", "1"},
+           })
+        }));
+    }
+    QList<ConfigGroup> libraryConfigGroupsRead;
+    libraryConfig.readConfigFile(libraryConfigGroupsRead);
+    RogalunaLibraryServer libraryServer(
+        &rss,
+        &dbServer,
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "root").toString(),
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "categoryRootId").toInt());
 
     //========================================================================================//
 
@@ -92,19 +119,25 @@ int main(int argc, char *argv[])
             ConfigGroup("HttpServer", {
                 {"dist", "E:\\Projects\\Web\\rogaluna-web\\dist"},
                 {"port", 8000},
+                {"algorithm", "HS256"},
+                {"secretKey", "rogaluna"}
             })
         }));
     }
     QList<ConfigGroup> httpConfigGroupsRead;
     httpConfig.readConfigFile(httpConfigGroupsRead);
 
-    RogalunaWebServer server(
+    RogalunaHttpServer server(
         ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "dist").toString(),
-        &rss);
+        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "algorithm").toString(),
+        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "secretKey").toString(),
+        &rss,
+        &dbServer,
+
+        &cloudDriveServer,
+        &libraryServer);
 
     server.start(ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "port").toInt());
-
-    qDebug() << "Success to start server";
 
     return a.exec();
 }

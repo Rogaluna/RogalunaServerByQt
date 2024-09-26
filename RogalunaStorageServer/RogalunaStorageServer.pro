@@ -26,11 +26,11 @@ unix {
 
 
 SOURCES += \
-    rogalunastorageserver.cpp
+    RogalunaStorageServer.cpp
 
 HEADERS += \
-    RogalunaStorageServer_global.h \
-    rogalunastorageserver.h
+    RogalunaStorageServer.h \
+    RogalunaStorageServer_global.h
 
 # Default rules for deployment.
 unix {

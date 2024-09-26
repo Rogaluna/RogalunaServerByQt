@@ -1,4 +1,4 @@
-#include "configfile.h"
+#include "ConfigFile.h"
 
 #include <QFileInfo>
 #include <QSettings>

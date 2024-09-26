@@ -1,4 +1,4 @@
-#include "Database/testdao.h"
+#include "Database/TestDAO.h"
 
 bool TestDAO::createTable() {
     QSqlQuery query(database);

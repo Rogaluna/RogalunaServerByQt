@@ -1,4 +1,4 @@
-#include "rogalunadatabaseserver.h"
+#include "RogalunaDatabaseServer.h"
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
 #include <QDebug>

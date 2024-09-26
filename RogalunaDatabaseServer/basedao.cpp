@@ -1,4 +1,4 @@
-#include "basedao.h"
+#include "BaseDAO.h"
 
 bool BaseDAO::executeQuery(QSqlQuery &query)
 {
@@ -16,7 +16,7 @@ QSqlQuery BaseDAO::createSchemaQuery(const QString &sql)
     return query;
 }
 
-QString BaseDAO::fullTableName(const QString &tableName) const
+QString BaseDAO::fullTableName() const
 {
-    return QString("%1.%2").arg(schema, tableName);
+    return QString("\"%1\".\"%2\"").arg(schema, tableName);
 }

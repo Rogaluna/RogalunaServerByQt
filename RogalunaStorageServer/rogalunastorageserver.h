@@ -27,12 +27,17 @@ struct FileReadResult {
 };
 
 
-class ROGALUNASTORAGESERVER_EXPORT RogalunaStorageServer : public QObject
+class ROGALUNASTORAGESERVER_EXPORT RogalunaStorageServer
 {
-    Q_OBJECT
 public:
-    RogalunaStorageServer(const QString &rootDir, QObject *parent = nullptr);
+    RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix);
 
+    // 删除拷贝构造函数和赋值操作符，防止实例被拷贝
+    RogalunaStorageServer(const RogalunaStorageServer&) = delete;
+    RogalunaStorageServer& operator=(const RogalunaStorageServer&) = delete;
+
+public:
+    // 获取文件的绝对路径
     QString absoluteFilePath(const QString &relativeFilePath) const;
 
     bool writeFile(QFile &file, const QByteArray &data, qint64 bufferSize = 4096);
@@ -40,12 +45,22 @@ public:
     FileReadResult readFile(QFile &file, qint64 bufferSize = 4096);
     QVector<FileInfoStruct> listFiles(const QString &directoryPath, bool includeDirs = true);
 
+    // 获取临时文件夹路径
+    QString getTempPath() const { return temp; };
+
+    bool writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
+    bool mergeTempFile(const QString &tempFileDirName, int totalChunks, const QString &targetDir, const QString &mergeFileName);
+
+    // 清理临时文件夹
+
 private:
     QString getFileType(const QFileInfo &fileInfo);
     QString formatFileSize(qint64 size) const;
 
 private:
     QString root;
+    QString temp;
+    QString tempFilePrefix;
 };
 
 #endif // ROGALUNASTORAGESERVER_H

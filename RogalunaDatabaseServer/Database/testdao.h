@@ -1,7 +1,7 @@
 #ifndef TESTDAO_H
 #define TESTDAO_H
 
-#include "basedao.h"
+#include "BaseDAO.h"
 #include <QList>
 #include <QPair>
 #include <QString>

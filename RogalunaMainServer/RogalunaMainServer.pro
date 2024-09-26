@@ -1,5 +1,6 @@
 QT = core
 QT += network
+QT += httpserver
 
 CONFIG += c++17 cmdline
 
@@ -7,9 +8,12 @@ CONFIG += c++17 cmdline
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+HEADERS += \
+    ConfigFile.h
+
 SOURCES += \
-        configfile.cpp \
-        main.cpp
+        ConfigFile.cpp \
+        Main.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -23,19 +27,6 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDataba
 INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
 DEPENDPATH += $$PWD/../RogalunaDatabaseServer
 
-INCLUDEPATH += \
-    configs
-DISTFILES +=
-
-HEADERS += \
-    configfile.h
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaWebServer/release/ -lRogalunaWebServer
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaWebServer/debug/ -lRogalunaWebServer
-else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaWebServer/ -lRogalunaWebServer
-
-INCLUDEPATH += $$PWD/../RogalunaWebServer
-DEPENDPATH += $$PWD/../RogalunaWebServer
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/release/ -lRogalunaStorageServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/debug/ -lRogalunaStorageServer
@@ -43,3 +34,31 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaStorageServer/ -lRogalunaStorage
 
 INCLUDEPATH += $$PWD/../RogalunaStorageServer
 DEPENDPATH += $$PWD/../RogalunaStorageServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaHttpServer/release/ -lRogalunaHttpServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaHttpServer/debug/ -lRogalunaHttpServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaHttpServer/ -lRogalunaHttpServer
+
+INCLUDEPATH += $$PWD/../RogalunaHttpServer
+DEPENDPATH += $$PWD/../RogalunaHttpServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/release/ -lQJsonWebToken
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/debug/ -lQJsonWebToken
+else:unix:!macx: LIBS += -L$$OUT_PWD/../QJsonWebToken/ -lQJsonWebToken
+
+INCLUDEPATH += $$PWD/../QJsonWebToken
+DEPENDPATH += $$PWD/../QJsonWebToken
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/release/ -lRogalunaCloudDriveServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/debug/ -lRogalunaCloudDriveServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/ -lRogalunaCloudDriveServer
+
+INCLUDEPATH += $$PWD/../RogalunaCloudDriveServer
+DEPENDPATH += $$PWD/../RogalunaCloudDriveServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaLibraryServer/release/ -lRogalunaLibraryServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaLibraryServer/debug/ -lRogalunaLibraryServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaLibraryServer/ -lRogalunaLibraryServer
+
+INCLUDEPATH += $$PWD/../RogalunaLibraryServer
+DEPENDPATH += $$PWD/../RogalunaLibraryServer

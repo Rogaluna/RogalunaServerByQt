@@ -1,7 +1,15 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    RogalunaConfigReader \
     RogalunaDatabaseServer \
-    RogalunaWebServer \
+    RogalunaHttpServer \
+    QJsonWebToken \
+    RogalunaCloudDriveServer \
+    RogalunaConfigReader \
+    RogalunaDatabaseServer \
+    RogalunaHttpServer \
+    RogalunaLibraryServer \
     RogalunaMainServer \
+    RogalunaMusicServer \
     RogalunaStorageServer

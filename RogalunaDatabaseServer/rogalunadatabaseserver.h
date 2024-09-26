@@ -1,7 +1,7 @@
 #ifndef ROGALUNADATABASESERVER_H
 #define ROGALUNADATABASESERVER_H
 
-#include "RogalunaDatabaseServer_global.h"
+#include "RogalunaDatabaseServer_Global.h"
 #include <QtSql/QSqlDatabase>
 
 class ROGALUNADATABASESERVER_EXPORT RogalunaDatabaseServer
