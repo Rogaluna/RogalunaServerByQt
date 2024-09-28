@@ -28,3 +28,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaStorageServer/ -lRogalunaStorage
 
 INCLUDEPATH += $$PWD/../RogalunaStorageServer
 DEPENDPATH += $$PWD/../RogalunaStorageServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/release/ -lRogalunaDatabaseServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/debug/ -lRogalunaDatabaseServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDatabaseServer
+
+INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
+DEPENDPATH += $$PWD/../RogalunaDatabaseServer

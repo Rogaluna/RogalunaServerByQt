@@ -13,6 +13,8 @@ CONFIG += c++17
 SOURCES += \
     BaseDAO.cpp \
     Database/Account/UsersDAO.cpp \
+    Database/CloudDrive/ContentDAO.cpp \
+    Database/CloudDrive/MetadataDAO.cpp \
     Database/Library/CategoriesDAO.cpp \
     Database/TestDAO.cpp \
     RogalunaDatabaseServer.cpp
@@ -20,9 +22,13 @@ SOURCES += \
 HEADERS += \
     BaseDAO.h \
     Database/Account/UsersDAO.h \
+    Database/CloudDrive/ContentDAO.h \
+    Database/CloudDrive/MetadataDAO.h \
     Database/Library/CategoriesDAO.h \
     Database/TestDAO.h \
     Interface/Account/IUsersDAO.h \
+    Interface/CloudDrive/IContentDAO.h \
+    Interface/CloudDrive/IMetadataDAO.h \
     Interface/Library/ICategoriesDAO.h \
     RogalunaDatabaseServer.h \
     RogalunaDatabaseServer_Global.h

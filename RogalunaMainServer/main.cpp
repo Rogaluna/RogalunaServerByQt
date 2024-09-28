@@ -88,7 +88,10 @@ int main(int argc, char *argv[])
     QList<ConfigGroup> cloudDriveConfigGroupsRead;
     cloudDriveConfig.readConfigFile(cloudDriveConfigGroupsRead);
 
-    RogalunaCloudDriveServer cloudDriveServer(&rss, ConfigGroup::getConfigValue(cloudDriveConfigGroupsRead, "CloudDrive", "root").toString());
+    RogalunaCloudDriveServer cloudDriveServer(
+        &rss,
+        &dbServer,
+        ConfigGroup::getConfigValue(cloudDriveConfigGroupsRead, "CloudDrive", "root").toString());
 
     // 初始化图书馆服务
 

@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaStorageServer.h>
+#include <RogalunaCloudDriveServer.h>
 
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
@@ -83,7 +84,7 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
 
     // 解析表单数据
     QString uid;
-    QString targetPath;
+    QString parentUid;
     QString fileName;
     qint64 totalChunks = -1;
 
@@ -93,8 +94,8 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
     for (const MultipartPart &part : formParts) {
         if (part.name == "uid") {
             uid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "targetPath") {
-            targetPath = QUrl::fromPercentEncoding(part.data).trimmed();
+        } else if (part.name == "parentUid") {
+            parentUid = QString::fromUtf8(part.data).trimmed();
         } else if (part.name == "fileName") {
             fileName = QUrl::fromPercentEncoding(part.data).trimmed();
         } else if (part.name == "totalChunks") {
@@ -109,14 +110,8 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
         return response;
     }
 
-    QString targetFilePath = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(targetPath) + "/" + fileName;
-    // 获取临时目录路径
-    QString tempDirPath = RogalunaHttpConfig::getInstance().getStorageServer()->getTempPath() + uid;
-    QDir tempDir(tempDirPath);
-
-    bool mergeResult = RogalunaHttpConfig::getInstance().getStorageServer()->mergeTempFile(uid, totalChunks, targetPath, fileName);
-    if (!mergeResult) {
-        QHttpServerResponse response("Failed Merge file!", QHttpServerResponse::StatusCode::BadRequest);
+    if(!RogalunaHttpConfig::getInstance().getCloudDriveServer()->mergeChunks(uid, fileName, totalChunks, userId.toInt(), parentUid)) {
+        QHttpServerResponse response("merge chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;
     }

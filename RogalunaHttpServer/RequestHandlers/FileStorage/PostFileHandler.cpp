@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaStorageServer.h>
+#include <RogalunaCloudDriveServer.h>
 
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
@@ -113,15 +114,11 @@ QHttpServerResponse PostFileHandler::handleRequest(const QHttpServerRequest &req
         return response;
     }
 
-    // if (calculatedMd5 != chunkMd5) {
-    //     if (QFile::exists(tempFileChunkPath)) {
-    //         QFile::remove(tempFileChunkPath);  // 删除文件块
-    //     }
-
-    //     QHttpServerResponse response("MD5 checksum mismatch", QHttpServerResponse::StatusCode::BadRequest);
-    //     response.setHeader("Access-Control-Allow-Origin", "*");
-    //     return response;
-    // }
+    if(!RogalunaHttpConfig::getInstance().getCloudDriveServer()->uploadChunk(chunkData, chunkMd5, chunkIndex)) {
+        QHttpServerResponse response("upload chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
 
     // 返回 JSON 响应，表示该块上传成功
     QJsonObject jsonResponse;
