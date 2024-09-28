@@ -56,5 +56,5 @@ compile_commands.json
 # 忽略的文件夹
 storage/
 temp/
-build/
+/build/
 !deprecated/
