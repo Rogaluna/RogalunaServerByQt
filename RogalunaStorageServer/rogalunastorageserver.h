@@ -48,7 +48,9 @@ public:
     // 获取临时文件夹路径
     QString getTempPath() const { return temp; };
 
+    // 写临时块，如果有校验码，校验，否则不进行校验
     bool writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
+    // 合并临时文件夹内的块，参数 targetDir 指示了相对 storage 基础路径下的目录，因此不能传入完整路径
     bool mergeTempFile(const QString &tempFileDirName, int totalChunks, const QString &targetDir, const QString &mergeFileName);
 
     // 清理临时文件夹

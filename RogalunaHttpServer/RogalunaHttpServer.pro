@@ -15,6 +15,7 @@ SOURCES += \
     RequestHandlers/Account/LoginHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
     RequestHandlers/DefaultOptionsHandler.cpp \
+    RequestHandlers/FileStorage/CreateFolderHandler.cpp \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.cpp \
     RequestHandlers/FileStorage/GetFileHandler.cpp \
     RequestHandlers/FileStorage/GetFileListHandler.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     RequestHandlers/Account/LoginHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
     RequestHandlers/DefaultOptionsHandler.h \
+    RequestHandlers/FileStorage/CreateFolderHandler.h \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h \
     RequestHandlers/FileStorage/GetFileHandler.h \
     RequestHandlers/FileStorage/GetFileListHandler.h \

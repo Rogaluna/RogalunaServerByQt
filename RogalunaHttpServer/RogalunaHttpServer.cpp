@@ -10,6 +10,7 @@
 #include <RequestHandlers/GetWebFileHandler.h>
 #include <RequestHandlers/TestHandler.h>
 
+#include <RequestHandlers/FileStorage/CreateFolderHandler.h>
 #include <RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h>
 #include <RequestHandlers/FileStorage/GetFileHandler.h>
 #include <RequestHandlers/FileStorage/GetFileListHandler.h>
@@ -72,6 +73,7 @@ bool RogalunaHttpServer::start(quint16 port)
     REGISTER_ROUTE(server, "/api/fileStorage/mergeFile", QHttpServerRequest::Method::Post, MergeFileHandler);
     REGISTER_ROUTE(server, "/api/fileStorage/fetchFileDirectLink", QHttpServerRequest::Method::Post, FetchFileDirectLinkHandler);
     REGISTER_ROUTE(server, "/api/fileStorage/getFile", QHttpServerRequest::Method::Get, GetFileHandler);
+    REGISTER_ROUTE(server, "/api/fileStorage/createFolder", QHttpServerRequest::Method::Post, CreateFolderHandler);
 
     qDebug() << "||||||||||||||||||||       Account       ||||||||||||||||||||";
 

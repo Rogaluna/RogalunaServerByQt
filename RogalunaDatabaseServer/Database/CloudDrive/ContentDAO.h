@@ -11,7 +11,7 @@ public:
         : BaseDAO(db, schema, "content") {}
 
     // 实现 IContentDAO 接口的方法
-    bool insertContent(const QString& contentMd5, qint64 size, const QString& fileType, const QString& path) override;
+    bool insertContent(const QString& contentMd5, qint64 size) override;
 
     QString getContentPath(const QString& contentMd5) override;
 

@@ -1,18 +1,16 @@
-#include "MergeFileHandler.h"
+
+
+#include "CreateFolderHandler.h"
 
 #include <QHttpServerRequest>
-#include <QJsonObject>
-#include <QJsonDocument>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaStorageServer.h>
 #include <RogalunaCloudDriveServer.h>
 
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
 
-QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse CreateFolderHandler::handleRequest(const QHttpServerRequest &request)
 {
-    // 遍历头部列表，查找 "Authorization" 头
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
     QByteArray authorizationValue;
     for (const auto &header : headers) {
@@ -79,48 +77,36 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
         return response;
     }
 
-    // 解析请求体（FormData）
-    QByteArray bodyParts = request.body();
-
-    // 解析表单数据
-    QString uid;
+    // 获取请求头中的元数据（如文件名、块索引、总块数等）
     QString parentUid;
-    QString fileName;
-    qint64 totalChunks = -1;
+    QString folderName;
+
+    // 获取请求体（FormData）中的数据
+    QByteArray bodyParts = request.body();
 
     PARSE_MULTIPART_FORM_DATA(bodyParts, contentType, formParts);
 
     // 从解析的 formParts 中提取必要的字段
     for (const MultipartPart &part : formParts) {
-        if (part.name == "uid") {
-            uid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "parentUid") {
+        if (part.name == "parent_uid") {
             parentUid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "fileName") {
-            fileName = QUrl::fromPercentEncoding(part.data).trimmed();
-        } else if (part.name == "totalChunks") {
-            totalChunks = part.data.toLongLong();
+        } else if (part.name == "folder_name") {
+            folderName = QString::fromUtf8(part.data).trimmed();
         }
     }
 
-    // 检查是否收到了必须的参数
-    if (uid.isEmpty() || fileName.isEmpty() || totalChunks == -1) {
-        QHttpServerResponse response("Missing merge metadata", QHttpServerResponse::StatusCode::BadRequest);
+    QString insertedUid = RogalunaHttpConfig::getInstance().getCloudDriveServer()->createFolder(userId.toInt(), parentUid, folderName);
+
+    if (insertedUid.isEmpty()) {
+        QHttpServerResponse response("Failed create folder!", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
 
-    QString fileUid = RogalunaHttpConfig::getInstance().getCloudDriveServer()->mergeChunks(uid, fileName, totalChunks, userId.toInt(), parentUid);
-    if(fileUid.isEmpty()) {
-        QHttpServerResponse response("merge chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
-
-    // 合并成功，返回响应
+    // 返回 JSON 响应，表示该块上传成功
     QJsonObject jsonResponse;
     jsonResponse["status"] = "success";
-    jsonResponse["insUid"] = fileUid;
+    jsonResponse["insUid"] = insertedUid;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

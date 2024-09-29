@@ -95,7 +95,7 @@ QHttpServerResponse PostFileHandler::handleRequest(const QHttpServerRequest &req
     // 从解析的 formParts 中提取必要的字段
     for (const MultipartPart &part : formParts) {
         if (part.name == "uid") {
-            uid = QString::fromUtf8(part.data).trimmed();
+            uid = QString::fromUtf8(part.data).trimmed(); // 这获取的 uid 即是上传的文件的 Md5 值
         } else if (part.name == "chunkIndex") {
             chunkIndex = part.data.toLongLong();
         } else if (part.name == "totalChunks") {
@@ -114,7 +114,7 @@ QHttpServerResponse PostFileHandler::handleRequest(const QHttpServerRequest &req
         return response;
     }
 
-    if(!RogalunaHttpConfig::getInstance().getCloudDriveServer()->uploadChunk(chunkData, chunkMd5, chunkIndex)) {
+    if(!RogalunaHttpConfig::getInstance().getCloudDriveServer()->uploadChunk(uid, chunkIndex, chunkData, chunkMd5)) {
         QHttpServerResponse response("upload chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;

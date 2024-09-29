@@ -45,6 +45,17 @@ void RogalunaDatabaseServer::disconnect()
 
 QSqlDatabase& RogalunaDatabaseServer::getDatabase()
 {
+    // 检查数据库是否打开且有效
+    if (!db.isOpen() || !db.isValid()) {
+        // 如果数据库没有打开，尝试重新打开
+        if (!db.open()) {
+            // 如果打开失败，记录错误并抛出异常或返回错误状态
+            qWarning() << "Database connection failed to reopen: " << db.lastError().text();
+            // 你可以根据需求处理错误，例如抛出异常或返回特殊值
+            throw std::runtime_error("Failed to open database connection.");
+        }
+    }
+
     return db;
 }
 

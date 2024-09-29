@@ -1,16 +1,14 @@
 #include "ContentDAO.h"
 
-bool ContentDAO::insertContent(const QString &contentMd5, qint64 size, const QString &fileType, const QString &path)
+bool ContentDAO::insertContent(const QString &contentMd5, qint64 size)
 {
     QSqlQuery query(database);
-    QString sql = QString("INSERT INTO %1 (content_md5, size, file_type, path, created_at) "
-                          "VALUES (:content_md5, :size, :file_type, :path, NOW())")
+    QString sql = QString("INSERT INTO %1 (content_md5, size, created_at) "
+                          "VALUES (:content_md5, :size, NOW())")
                       .arg(fullTableName());
     query.prepare(sql);
     query.bindValue(":content_md5", contentMd5);
     query.bindValue(":size", size);
-    query.bindValue(":file_type", fileType);
-    query.bindValue(":path", path);
     return executeQuery(query);
 }
 

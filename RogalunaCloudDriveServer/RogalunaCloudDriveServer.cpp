@@ -18,62 +18,55 @@ RogalunaCloudDriveServer::RogalunaCloudDriveServer(RogalunaStorageServer* storag
     }
 }
 
-QVector<FileInfoStruct> RogalunaCloudDriveServer::getDirFiles(const QString &driveName, const QString &targetPath)
+bool RogalunaCloudDriveServer::uploadChunk(const QString tempDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5)
 {
-    QString dirPath = root \
-                      + (driveName.startsWith('/') ? "" : "/") + driveName \
-                      + (targetPath.startsWith('/') ? "" : "/") + targetPath;
-
-    return storageServer->listFiles(dirPath);
+    // 将块数据写入临时文件夹
+    return storageServer->writeTempFile(tempDirName, chunkIndex, chunkData, chunkMd5);
 }
 
-bool RogalunaCloudDriveServer::uploadChunk(const QByteArray &chunkData, const QString &targetMd5, int chunkIndex)
+QString RogalunaCloudDriveServer::createFolder(int userId, const QString &parentUid, const QString &folderName)
 {
-    // 计算块的 MD5
-    QString chunkMd5 = calculateMd5(chunkData);
-
-    // 将块数据写入临时文件夹，无需数据库操作
-    if (!storageServer->writeTempFile(targetMd5, chunkIndex, chunkData, chunkMd5)) {
-        qWarning() << "Failed to write chunk to temp folder";
-        return false;
-    }
-
-    return true;
+    MetadataDAO metadataDao(databaseServer->getDatabase());
+    return metadataDao.insertFolder(userId, parentUid, folderName);
 }
 
-bool RogalunaCloudDriveServer::mergeChunks(const QString &targetMd5, const QString &fileName, int totalChunks, int userId, const QString &parentUid)
+QString RogalunaCloudDriveServer::mergeChunks(const QString &tempDirName, const QString &fileName, int totalChunks, int userId, const QString &parentUid)
 {
+    // 需要进行合并的文件夹名称即是文件的 MD5 值
+    const QString& targetMd5 = tempDirName;
+
     // 目标文件存储路径
-    QString targetDir = root + "/" + targetMd5;
+    QString targetName = root + "/" + targetMd5;
 
     // 合并临时文件夹中的文件块
-    if (!storageServer->mergeTempFile(targetMd5, totalChunks, targetDir, fileName)) {
+    if (!storageServer->mergeTempFile(tempDirName, totalChunks, root, targetMd5)) {
         qWarning() << "Failed to merge chunks";
-        return false;
+        return QString();
     }
 
-    QFile mergedFile(targetDir + "/" + fileName);
+    QFile mergedFile(storageServer->absoluteFilePath(targetName));
     if (!mergedFile.exists()) {
         qWarning() << "Merged file not found";
-        return false;
+        return QString();
     }
 
     MetadataDAO metadataDao(databaseServer->getDatabase());
     ContentDAO contentDao(databaseServer->getDatabase());
 
     // 插入文件内容记录
-    if (!contentDao.insertContent(targetMd5, mergedFile.size(), QFileInfo(mergedFile).suffix(), mergedFile.fileName())) {
+    if (!contentDao.insertContent(targetMd5, mergedFile.size())) {
         qWarning() << "Failed to insert file content into database";
-        return false;
+        return QString();
     }
 
-    // 插入文件元数据记录
-    if (!metadataDao.insertMetadata(targetMd5, userId, fileName, false, parentUid)) {
+    // 插入文件元数据记录, uuid 由数据库自动生成
+    QString uuid = metadataDao.insertMetadata(userId, fileName, targetMd5, false, parentUid);
+    if (uuid.isEmpty()) {
         qWarning() << "Failed to insert file metadata into database";
-        return false;
+        return QString();
     }
 
-    return true;
+    return uuid;
 }
 
 FileReadResult RogalunaCloudDriveServer::downloadFile(const QString &contentMd5)
@@ -125,9 +118,33 @@ bool RogalunaCloudDriveServer::deleteFile(const QString &contentMd5)
     return true;
 }
 
-QString RogalunaCloudDriveServer::calculateMd5(const QByteArray &fileData)
+std::optional<QVector<FileMetadata>> RogalunaCloudDriveServer::getFiles(const QString &query, const EGetFileOpterator &Operator)
 {
-    return QCryptographicHash::hash(fileData, QCryptographicHash::Md5).toHex();
+    MetadataDAO metadataDao(databaseServer->getDatabase());
+    switch (Operator) {
+    case EGetFileOpterator::E_UID: // 通过 uid 查询
+    {
+        return metadataDao.getUidFile(query);
+    }
+        break;
+    case EGetFileOpterator::E_USERID: // 通过 userId 查询
+    {
+        return metadataDao.getUserFiles(query.toInt());
+    }
+        break;
+    case EGetFileOpterator::E_FOLDER: // 通过 文件夹uid 查询
+    {
+        return metadataDao.getFolderFiles(query);
+    }
+        break;
+    default:
+        return std::nullopt;
+    }
 }
 
+QString RogalunaCloudDriveServer::getUserRootDirUid(int userId)
+{
+    MetadataDAO metadataDao(databaseServer->getDatabase());
+    return metadataDao.getUserRootDirUid(userId);
+}
 

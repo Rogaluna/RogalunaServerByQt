@@ -54,7 +54,6 @@ compile_commands.json
 *_qmlcache.qrc
 
 # 忽略的文件夹
-storage/
-temp/
+/storage/
+/temp/
 /build/
-!deprecated/

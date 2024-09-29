@@ -6,19 +6,29 @@
 #include <RogalunaStorageServer.h>
 #include <RogalunaDatabaseServer.h>
 
+#include <Interface/CloudDrive/IMetadataDAO.h>
+
 class ROGALUNACLOUDDRIVESERVER_EXPORT RogalunaCloudDriveServer
 {
 public:
     RogalunaCloudDriveServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root);
 
 public:
-    QVector<FileInfoStruct> getDirFiles(const QString &driveName, const QString &targetPath);
+    enum class EGetFileOpterator : char {
+        E_UID,
+        E_USERID,
+        E_FOLDER,
+    };
 
+public:
     // 上传文件块
-    bool uploadChunk(const QByteArray &chunkData, const QString &targetMd5, int chunkIndex);
+    bool uploadChunk(const QString tempDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
 
-    // 合并文件块
-    bool mergeChunks(const QString &targetMd5, const QString &fileName, int totalChunks, int userId, const QString &parentUid = QString());
+    // 插入文件夹，返回文件的 uid
+    QString createFolder(int userId, const QString &parentUid, const QString &folderName);
+
+    // 合并文件块，返回文件的 uid
+    QString mergeChunks(const QString &tempDirName, const QString &fileName, int totalChunks, int userId, const QString &parentUid = QString());
 
     // 下载文件，通过 MD5 获取文件数据
     FileReadResult downloadFile(const QString &contentMd5);
@@ -26,9 +36,9 @@ public:
     // 删除文件，通过 MD5 删除文件和数据库记录
     bool deleteFile(const QString &contentMd5);
 
-private:
-    // 计算文件的 MD5 值
-    QString calculateMd5(const QByteArray &fileData);
+    // 获取某个用户拥有的文件（选项：特定uid、特定userId、特定文件夹uid）
+    std::optional<QVector<FileMetadata>> getFiles(const QString &query, const EGetFileOpterator &Operator);
+    QString getUserRootDirUid(int userId);
 
 
 private:
