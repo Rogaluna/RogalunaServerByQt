@@ -38,8 +38,18 @@ public:
 
     // 获取某个用户拥有的文件（选项：特定uid、特定userId、特定文件夹uid）
     std::optional<QVector<FileMetadata>> getFiles(const QString &query, const EGetFileOpterator &Operator);
+
+    // 获取特定 uid 的路径全称
+    QString getPath(const QString &uid);
+
+    // 获取用户的根目录 uid
     QString getUserRootDirUid(int userId);
 
+    // 获取一个 uid 对象的父对象
+    std::optional<FileMetadata> getParent(const QString &uid);
+
+    // 根据路径获取 uid 对象
+    std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId);
 
 private:
     RogalunaStorageServer* storageServer;

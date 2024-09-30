@@ -22,18 +22,84 @@ class IMetadataDAO
 public:
     virtual ~IMetadataDAO() {}
 
+    /**
+     * @brief 插入一个新的文件或文件夹元数据。
+     *
+     * @param userId 文件或文件夹所属用户的 ID。
+     * @param fileName 文件或文件夹的名称。
+     * @param contentMd5 文件内容的 MD5 哈希值。对于文件夹应为空。
+     * @param isDirectory 布尔值，指示该元数据是否指代文件夹。
+     * @param parentUid 父文件夹的 UID。如果没有指定父文件夹，默认为空字符串（即根目录）。
+     * @param version 文件或文件夹的版本号，默认为 1。
+     * @return 新插入的文件或文件夹的 UID。
+     */
     virtual QString insertMetadata(int userId, const QString& fileName, const QString &contentMd5, bool isDirectory, const QString& parentUid = QString(), int version = 1) = 0;
+
+    /**
+     * @brief 删除文件或文件夹的元数据。
+     *
+     * @param uid 要删除的文件或文件夹的 UID。
+     * @return 如果删除成功返回 true，否则返回 false。
+     */
     virtual bool deleteMetadata(const QString& uid) = 0;
+
+    /**
+     * @brief 获取用户的根目录的 UID。
+     *
+     * @param userId 用户的 ID。
+     * @return 返回用户根目录的 UID。
+     */
     virtual QString getUserRootDirUid(int userId) = 0;
+
+    /**
+     * @brief 插入一个新的文件夹。
+     *
+     * @param userId 文件夹所属用户的 ID。
+     * @param parentUid 父文件夹的 UID。
+     * @param folderName 文件夹名称。
+     * @return 新插入的文件夹的 UID。
+     */
     virtual QString insertFolder(int userId, const QString &parentUid, const QString &folderName) = 0;
 
-    // 获取特定 user 拥有的文件/文件夹
+    /**
+     * @brief 获取指定 uid 对象的展平路径。
+     *
+     * @param 指定对象的 UID。
+     * @return 返回完整的展平路径，以字符串形式表示。
+     */
+    virtual QString getPath(const QString& uid) = 0;
+
+    /**
+     * @brief 根据展平路径和用户ID获取最终对象的 FileMetadata。
+     *
+     * @param path 以 '/' 分割的展平路径（如 "root/test"）。
+     * @param userId 指定用户的 ID。
+     * @return 返回路径对应的最终对象的 FileMetadata。如果路径无效或不属于该用户则返回 std::nullopt。
+     */
+    virtual std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId) = 0;
+
+    /**
+     * @brief 获取用户拥有的文件或文件夹。
+     *
+     * @param userId 用户的 ID。
+     * @return 包含文件或文件夹元数据的可选 QVector 数组，如果用户没有文件或文件夹，则为空。
+     */
     virtual std::optional<QVector<FileMetadata>> getUserFiles(int userId) = 0;
 
-    // 获取特定 uid 值的文件/文件夹 （只包含一个元素的数组）
+    /**
+     * @brief 根据 UID 获取文件或文件夹的元数据（只返回一个元素的数组）。
+     *
+     * @param uid 文件或文件夹的 UID。
+     * @return 包含该 UID 的文件或文件夹元数据的可选 QVector 数组，如果没有找到则为空。
+     */
     virtual std::optional<QVector<FileMetadata>> getUidFile(const QString &uid) = 0;
 
-    // 获取特定 folderUid（文件夹Uid） 所拥有的文件/文件夹
+    /**
+     * @brief 获取特定文件夹 UID 下的文件或文件夹。
+     *
+     * @param folderUid 文件夹的 UID。
+     * @return 包含该文件夹下的文件或文件夹元数据的可选 QVector 数组，如果文件夹为空则返回空。
+     */
     virtual std::optional<QVector<FileMetadata>> getFolderFiles(const QString &folderUid) = 0;
 
 };

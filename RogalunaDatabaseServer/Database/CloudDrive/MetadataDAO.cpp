@@ -86,6 +86,100 @@ QString MetadataDAO::insertFolder(int userId, const QString &parentUid, const QS
     return QString();
 }
 
+QString MetadataDAO::getPath(const QString &uid)
+{
+    QSqlQuery query(database);
+    QString path;
+    QString currentUid = uid;
+
+    // 循环获取每个父目录的文件名，构建完整的展平路径
+    while (!currentUid.isEmpty()) {
+        QString sql = QString("SELECT file_name, parent_uid FROM %1 WHERE uid = :uid").arg(fullTableName());
+        query.prepare(sql);
+        query.bindValue(":uid", currentUid);
+
+        if (query.exec() && query.next()) {
+            QString fileName = query.value("file_name").toString();
+            QString parentUid = query.value("parent_uid").toString();
+
+            // 构建路径：如果路径不为空，则追加分隔符
+            if (!path.isEmpty()) {
+                path = "/" + path;
+            }
+            path = fileName + path;
+
+            // 继续处理父级目录
+            currentUid = parentUid;
+        } else {
+            qWarning() << "Failed to retrieve path for UID:" << uid << query.lastError().text();
+            return QString();
+        }
+    }
+
+    return path;
+}
+
+std::optional<FileMetadata> MetadataDAO::getMetadataFromPath(const QString &path, int userId)
+{
+    // 将路径按 '/' 分割为各级目录或文件
+    QStringList pathParts = path.split("/", Qt::SkipEmptyParts);
+
+    // 初始化当前的 UID 为用户的根目录 UID
+    QString currentUid = getUserRootDirUid(userId); // 获取用户根目录 UID
+    if (currentUid.isEmpty()) {
+        qWarning() << "Failed to retrieve root directory for userId:" << userId;
+        return std::nullopt;
+    }
+
+    // 遍历路径的每一部分，从根向下逐级查找
+    for (const QString& part : pathParts) {
+        QSqlQuery query(database);
+        QString sql = QString("SELECT uid, file_name, is_directory, parent_uid, version, content_md5 "
+                              "FROM %1 WHERE file_name = :file_name AND parent_uid = :parent_uid AND user_id = :user_id")
+                          .arg(fullTableName());
+
+        query.prepare(sql);
+        query.bindValue(":file_name", part);
+        query.bindValue(":parent_uid", currentUid);  // 使用当前 UID 作为父级 UID
+        query.bindValue(":user_id", userId);  // 限定用户 ID
+
+        // 执行查询并获取当前部分的元数据
+        if (query.exec() && query.next()) {
+            currentUid = query.value("uid").toString();  // 更新当前 UID 为查询到的 UID
+        } else {
+            qWarning() << "Failed to retrieve metadata for path part:" << part << "with userId:" << userId << query.lastError().text();
+            return std::nullopt; // 如果某一级查询失败，返回 std::nullopt
+        }
+    }
+
+    // 在成功找到完整路径后，构建并返回最终的 FileMetadata 对象
+    QSqlQuery finalQuery(database);
+    QString finalSql = QString("SELECT uid, file_name, is_directory, parent_uid, version, content_md5 "
+                               "FROM %1 WHERE uid = :uid AND user_id = :user_id")
+                           .arg(fullTableName());
+
+    finalQuery.prepare(finalSql);
+    finalQuery.bindValue(":uid", currentUid);
+    finalQuery.bindValue(":user_id", userId);
+
+    // 执行最终查询以获取完整的元数据
+    if (finalQuery.exec() && finalQuery.next()) {
+        FileMetadata metadata;
+        metadata.uid = finalQuery.value("uid").toString();
+        metadata.fileName = finalQuery.value("file_name").toString();
+        metadata.isDirectory = finalQuery.value("is_directory").toBool();
+        metadata.parentUid = finalQuery.value("parent_uid").toString();
+        metadata.version = finalQuery.value("version").toInt();
+        metadata.contentMd5 = finalQuery.value("content_md5").toString();
+
+        return metadata;  // 返回元数据
+    }
+
+    // 如果查询失败，返回 std::nullopt
+    qWarning() << "Failed to retrieve final metadata for UID:" << currentUid << "with userId:" << userId << finalQuery.lastError().text();
+    return std::nullopt;
+}
+
 std::optional<QVector<FileMetadata>> MetadataDAO::getUserFiles(int userId)
 {
     QSqlQuery query(database);

@@ -15,6 +15,9 @@ public:
     bool deleteMetadata(const QString& uid) override;
     QString getUserRootDirUid(int userId) override;
     QString insertFolder(int userId, const QString &parentUid, const QString &folderName) override;
+    QString getPath(const QString& uid) override;
+
+    std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId) override;
 
     std::optional<QVector<FileMetadata>> getUserFiles(int userId) override;
 

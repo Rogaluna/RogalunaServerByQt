@@ -19,6 +19,7 @@ SOURCES += \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.cpp \
     RequestHandlers/FileStorage/GetFileHandler.cpp \
     RequestHandlers/FileStorage/GetFileListHandler.cpp \
+    RequestHandlers/FileStorage/GetParentFolderHandler.cpp \
     RequestHandlers/FileStorage/MergeFileHandler.cpp \
     RequestHandlers/FileStorage/PostFileHandler.cpp \
     RequestHandlers/GetWebFileHandler.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
     RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h \
     RequestHandlers/FileStorage/GetFileHandler.h \
     RequestHandlers/FileStorage/GetFileListHandler.h \
+    RequestHandlers/FileStorage/GetParentFolderHandler.h \
     RequestHandlers/FileStorage/MergeFileHandler.h \
     RequestHandlers/FileStorage/PostFileHandler.h \
     RequestHandlers/GetWebFileHandler.h \
