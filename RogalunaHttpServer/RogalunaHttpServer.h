@@ -5,6 +5,7 @@
 
 #include <QHttpServer>
 
+class RogalunaMusicServer;
 class RogalunaLibraryServer;
 class RogalunaCloudDriveServer;
 class RogalunaStorageServer;
@@ -23,13 +24,16 @@ public:
     RogalunaHttpServer(
         const QString &_webRootPath,
         const QString &_algorithm,
-        const QString &_secretKey,
-        RogalunaStorageServer *_storageServer,
-        RogalunaDatabaseServer* _databaseServer,
-        RogalunaCloudDriveServer* _cloudDriveServer,
-        RogalunaLibraryServer* _libraryServer);
+        const QString &_secretKey);
 
     bool start(quint16 port);
+
+public:
+    void setStorageServer(RogalunaStorageServer *_storageServer);
+    void setDatabaseServer(RogalunaDatabaseServer* _databaseServer);
+    void setCloudDriveServer(RogalunaCloudDriveServer* _cloudDriveServer);
+    void setLibraryServer(RogalunaLibraryServer* _libraryServer);
+    void setMusicServer(RogalunaMusicServer* _musicServer);
 
 private:
     QHttpServer *server;
@@ -37,8 +41,6 @@ private:
     QString webRootPath;
     QString algorithm;
     QString secretKey;
-    RogalunaStorageServer* storageServer;
-    RogalunaDatabaseServer* databaseServer;
 };
 
 #endif // ROGALUNAHTTPSERVER_H

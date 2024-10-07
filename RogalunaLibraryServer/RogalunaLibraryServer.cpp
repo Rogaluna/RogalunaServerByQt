@@ -13,15 +13,15 @@ RogalunaLibraryServer::RogalunaLibraryServer(RogalunaStorageServer *storageServe
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
     if (!rootDir.exists()) {
-        rootDir.mkpath(root);  // 创建根文件夹
+        rootDir.mkpath(".");  // 创建根文件夹
     }
 }
 
 QVector<FileInfoStruct> RogalunaLibraryServer::getDirFiles(const QString &driveName, const QString &targetPath)
 {
     QString dirPath = root \
-                      + (driveName.startsWith('/') ? "" : "/") + driveName \
-                      + (targetPath.startsWith('/') ? "" : "/") + targetPath;
+                      + (driveName.startsWith(QDir::separator()) ? "" : QDir::separator()) + driveName \
+                      + (targetPath.startsWith(QDir::separator()) ? "" : QDir::separator()) + targetPath;
 
     return storageServer->listFiles(dirPath);
 }

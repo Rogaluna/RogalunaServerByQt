@@ -104,7 +104,7 @@ QString MetadataDAO::getPath(const QString &uid)
 
             // 构建路径：如果路径不为空，则追加分隔符
             if (!path.isEmpty()) {
-                path = "/" + path;
+                path = QDir::separator() + path;
             }
             path = fileName + path;
 
@@ -119,10 +119,10 @@ QString MetadataDAO::getPath(const QString &uid)
     return path;
 }
 
-std::optional<FileMetadata> MetadataDAO::getMetadataFromPath(const QString &path, int userId)
+std::optional<FFileMetadata> MetadataDAO::getMetadataFromPath(const QString &path, int userId)
 {
     // 将路径按 '/' 分割为各级目录或文件
-    QStringList pathParts = path.split("/", Qt::SkipEmptyParts);
+    QStringList pathParts = path.split(QDir::separator(), Qt::SkipEmptyParts);
 
     // 初始化当前的 UID 为用户的根目录 UID
     QString currentUid = getUserRootDirUid(userId); // 获取用户根目录 UID
@@ -164,7 +164,7 @@ std::optional<FileMetadata> MetadataDAO::getMetadataFromPath(const QString &path
 
     // 执行最终查询以获取完整的元数据
     if (finalQuery.exec() && finalQuery.next()) {
-        FileMetadata metadata;
+        FFileMetadata metadata;
         metadata.uid = finalQuery.value("uid").toString();
         metadata.fileName = finalQuery.value("file_name").toString();
         metadata.isDirectory = finalQuery.value("is_directory").toBool();
@@ -180,7 +180,7 @@ std::optional<FileMetadata> MetadataDAO::getMetadataFromPath(const QString &path
     return std::nullopt;
 }
 
-std::optional<QVector<FileMetadata>> MetadataDAO::getUserFiles(int userId)
+std::optional<QVector<FFileMetadata>> MetadataDAO::getUserFiles(int userId)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -193,11 +193,11 @@ std::optional<QVector<FileMetadata>> MetadataDAO::getUserFiles(int userId)
         return std::nullopt;
     }
 
-    QVector<FileMetadata> files;
+    QVector<FFileMetadata> files;
 
     // 循环遍历查询结果集
     while (query.next()) {
-        FileMetadata metadata;
+        FFileMetadata metadata;
         metadata.uid = query.value("uid").toString();
         metadata.userId = query.value("user_id").toInt();
         metadata.fileName = query.value("file_name").toString();
@@ -220,7 +220,7 @@ std::optional<QVector<FileMetadata>> MetadataDAO::getUserFiles(int userId)
     return files;
 }
 
-std::optional<QVector<FileMetadata>> MetadataDAO::getUidFile(const QString &uid)
+std::optional<QVector<FFileMetadata>> MetadataDAO::getUidFile(const QString &uid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -233,11 +233,11 @@ std::optional<QVector<FileMetadata>> MetadataDAO::getUidFile(const QString &uid)
         return std::nullopt;
     }
 
-    QVector<FileMetadata> files;
+    QVector<FFileMetadata> files;
 
     // 循环遍历查询结果集
     while (query.next()) {
-        FileMetadata metadata;
+        FFileMetadata metadata;
         metadata.uid = query.value("uid").toString();
         metadata.userId = query.value("user_id").toInt();
         metadata.fileName = query.value("file_name").toString();
@@ -260,7 +260,7 @@ std::optional<QVector<FileMetadata>> MetadataDAO::getUidFile(const QString &uid)
     return files;
 }
 
-std::optional<QVector<FileMetadata>> MetadataDAO::getFolderFiles(const QString &folderUid)
+std::optional<QVector<FFileMetadata>> MetadataDAO::getFolderFiles(const QString &folderUid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -273,11 +273,11 @@ std::optional<QVector<FileMetadata>> MetadataDAO::getFolderFiles(const QString &
         return std::nullopt;
     }
 
-    QVector<FileMetadata> files;
+    QVector<FFileMetadata> files;
 
     // 循环遍历查询结果集
     while (query.next()) {
-        FileMetadata metadata;
+        FFileMetadata metadata;
         metadata.uid = query.value("uid").toString();
         metadata.userId = query.value("user_id").toInt();
         metadata.fileName = query.value("file_name").toString();

@@ -19,6 +19,7 @@ class RogalunaStorageServer;
 class RogalunaDatabaseServer;
 class RogalunaCloudDriveServer;
 class RogalunaLibraryServer;
+class RogalunaMusicServer;
 
 class RogalunaHttpConfig
 {
@@ -29,6 +30,7 @@ class RogalunaHttpConfig
     ADD_PROPERTY_PTR(RogalunaDatabaseServer, DatabaseServer)
     ADD_PROPERTY_PTR(RogalunaCloudDriveServer, CloudDriveServer)
     ADD_PROPERTY_PTR(RogalunaLibraryServer, LibraryServer)
+    ADD_PROPERTY_PTR(RogalunaMusicServer, MusicServer)
 
 public:
     static RogalunaHttpConfig& getInstance() {

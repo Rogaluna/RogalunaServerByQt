@@ -10,45 +10,37 @@
 #include <RequestHandlers/GetWebFileHandler.h>
 #include <RequestHandlers/TestHandler.h>
 
-#include <RequestHandlers/FileStorage/CreateFolderHandler.h>
-#include <RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h>
-#include <RequestHandlers/FileStorage/GetFileHandler.h>
-#include <RequestHandlers/FileStorage/GetFileListHandler.h>
-#include <RequestHandlers/FileStorage/GetParentFolderHandler.h>
-#include <RequestHandlers/FileStorage/MergeFileHandler.h>
-#include <RequestHandlers/FileStorage/PostFileHandler.h>
+#include <RequestHandlers/CloudDrive/GetUidFromPathHandler.h>
+#include <RequestHandlers/CloudDrive/CreateFolderHandler.h>
+#include <RequestHandlers/CloudDrive/FetchFileDirectLinkHandler.h>
+#include <RequestHandlers/CloudDrive/GetFileHandler.h>
+#include <RequestHandlers/CloudDrive/GetFileListHandler.h>
+#include <RequestHandlers/CloudDrive/GetParentFolderHandler.h>
+#include <RequestHandlers/CloudDrive/MergeFileHandler.h>
+#include <RequestHandlers/CloudDrive/PostFileHandler.h>
 
 #include <RequestHandlers/Account/LoginHandler.h>
 #include <RequestHandlers/Account/RegisterHandler.h>
 
-#include <RequestHandlers/Library/GetBookCategories.h>
+#include <RequestHandlers/Library/GetBookCategoriesHandler.h>
+
+#include <RequestHandlers/MusicStation/GetMusicListHandler.h>
 
 RogalunaHttpServer::RogalunaHttpServer(
     const QString &_webRootPath,
     const QString &_algorithm,
-    const QString &_secretKey,
-    RogalunaStorageServer *_storageServer,
-    RogalunaDatabaseServer* _databaseServer,
-    RogalunaCloudDriveServer* _cloudDriveServer,
-    RogalunaLibraryServer* _libraryServer)
+    const QString &_secretKey)
 
     : server(new QHttpServer())
     , webRootPath(_webRootPath)
     , algorithm(_algorithm)
     , secretKey(_secretKey)
-    , storageServer(_storageServer)
-    , databaseServer(_databaseServer)
 {
     QString localWebRootPath = webRootPath;
 
     RogalunaHttpConfig::getInstance().setWebRootPath(&webRootPath);
     RogalunaHttpConfig::getInstance().setAlgorithm(&algorithm);
     RogalunaHttpConfig::getInstance().setSecretKey(&secretKey);
-    RogalunaHttpConfig::getInstance().setStorageServer(storageServer);
-    RogalunaHttpConfig::getInstance().setDatabaseServer(databaseServer);
-
-    RogalunaHttpConfig::getInstance().setCloudDriveServer(_cloudDriveServer);
-    RogalunaHttpConfig::getInstance().setLibraryServer(_libraryServer);
 }
 
 bool RogalunaHttpServer::start(quint16 port)
@@ -67,15 +59,16 @@ bool RogalunaHttpServer::start(quint16 port)
 
     REGISTER_ROUTE(server, "/web/<arg>", QHttpServerRequest::Method::Get, GetWebFileHandler);
 
-    qDebug() << "||||||||||||||||||||     FileStorage     ||||||||||||||||||||";
+    qDebug() << "||||||||||||||||||||      CloudDrive     ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/fileStorage/getFileList", QHttpServerRequest::Method::Get, GetFileListHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/postFile", QHttpServerRequest::Method::Post, PostFileHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/mergeFile", QHttpServerRequest::Method::Post, MergeFileHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/fetchFileDirectLink", QHttpServerRequest::Method::Post, FetchFileDirectLinkHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/getFile", QHttpServerRequest::Method::Get, GetFileHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/createFolder", QHttpServerRequest::Method::Post, CreateFolderHandler);
-    REGISTER_ROUTE(server, "/api/fileStorage/getParentFolder", QHttpServerRequest::Method::Get, GetParentFolderHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getFileList", QHttpServerRequest::Method::Get, GetFileListHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/postFile", QHttpServerRequest::Method::Post, PostFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/mergeFile", QHttpServerRequest::Method::Post, MergeFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/fetchFileDirectLink", QHttpServerRequest::Method::Post, FetchFileDirectLinkHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getFile", QHttpServerRequest::Method::Get, GetFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/createFolder", QHttpServerRequest::Method::Post, CreateFolderHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getParentFolder", QHttpServerRequest::Method::Get, GetParentFolderHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getUidFromPath", QHttpServerRequest::Method::Get, GetUidFromPathHandler);
 
     qDebug() << "||||||||||||||||||||       Account       ||||||||||||||||||||";
 
@@ -84,7 +77,11 @@ bool RogalunaHttpServer::start(quint16 port)
 
     qDebug() << "||||||||||||||||||||       Library       ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategories);
+    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategoriesHandler);
+
+    qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
+
+    REGISTER_ROUTE(server, "/api/musicStation/getMusicList", QHttpServerRequest::Method::Get, GetMusicListHandler);
 
     qDebug() << "||||||||||||||||||||  ***ROUTERS END***  ||||||||||||||||||||";
 
@@ -100,4 +97,29 @@ bool RogalunaHttpServer::start(quint16 port)
         qDebug() << "Failed to listen on port" << port;
         return true;
     }
+}
+
+void RogalunaHttpServer::setStorageServer(RogalunaStorageServer *_storageServer)
+{
+    RogalunaHttpConfig::getInstance().setStorageServer(_storageServer);
+}
+
+void RogalunaHttpServer::setDatabaseServer(RogalunaDatabaseServer *_databaseServer)
+{
+    RogalunaHttpConfig::getInstance().setDatabaseServer(_databaseServer);
+}
+
+void RogalunaHttpServer::setCloudDriveServer(RogalunaCloudDriveServer *_cloudDriveServer)
+{
+    RogalunaHttpConfig::getInstance().setCloudDriveServer(_cloudDriveServer);
+}
+
+void RogalunaHttpServer::setLibraryServer(RogalunaLibraryServer *_libraryServer)
+{
+    RogalunaHttpConfig::getInstance().setLibraryServer(_libraryServer);
+}
+
+void RogalunaHttpServer::setMusicServer(RogalunaMusicServer *_musicServer)
+{
+    RogalunaHttpConfig::getInstance().setMusicServer(_musicServer);
 }

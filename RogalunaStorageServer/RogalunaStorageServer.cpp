@@ -8,24 +8,24 @@ RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QStri
     , temp(tempDir)
     , tempFilePrefix(tempFilePrefix)
 {
-    if (!root.endsWith('/'))
+    if (!root.endsWith(QDir::separator()))
     {
-        root += '/';
+        root += QDir::separator();
     }
 
     QDir targetRootDir(root);
     if (!targetRootDir.exists()) {
-        targetRootDir.mkpath(root);  // 创建根文件夹
+        targetRootDir.mkpath(".");  // 创建根文件夹
     }
 
-    if (!temp.endsWith('/'))
+    if (!temp.endsWith(QDir::separator()))
     {
-        temp += '/';
+        temp += QDir::separator();
     }
 
     QDir targetTempDir(temp);
     if (!targetTempDir.exists()) {
-        targetTempDir.mkpath(temp);  // 创建临时文件夹
+        targetTempDir.mkpath(".");  // 创建临时文件夹
     }
 }
 
@@ -34,7 +34,7 @@ QString RogalunaStorageServer::absoluteFilePath(const QString &relativeFilePath)
     QString result = root + relativeFilePath;
 
     // 如果 result 以 '/' 结尾，去掉它
-    if (result.endsWith('/')) {
+    if (result.endsWith(QDir::separator())) {
         result.chop(1);
     }
     return result;

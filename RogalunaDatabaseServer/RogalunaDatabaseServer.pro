@@ -16,6 +16,7 @@ SOURCES += \
     Database/CloudDrive/ContentDAO.cpp \
     Database/CloudDrive/MetadataDAO.cpp \
     Database/Library/CategoriesDAO.cpp \
+    Database/MusicStation/MetadataDAO.cpp \
     Database/TestDAO.cpp \
     RogalunaDatabaseServer.cpp
 
@@ -25,11 +26,14 @@ HEADERS += \
     Database/CloudDrive/ContentDAO.h \
     Database/CloudDrive/MetadataDAO.h \
     Database/Library/CategoriesDAO.h \
+    Database/MusicStation/MetadataDAO.h \
     Database/TestDAO.h \
     Interface/Account/IUsersDAO.h \
     Interface/CloudDrive/IContentDAO.h \
     Interface/CloudDrive/IMetadataDAO.h \
     Interface/Library/ICategoriesDAO.h \
+    Interface/MusicStation/IContentDAO.h \
+    Interface/MusicStation/IMetaDataDAO.h \
     RogalunaDatabaseServer.h \
     RogalunaDatabaseServer_Global.h
 

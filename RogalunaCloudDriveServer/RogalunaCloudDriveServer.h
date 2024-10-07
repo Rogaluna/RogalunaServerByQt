@@ -37,7 +37,7 @@ public:
     bool deleteFile(const QString &contentMd5);
 
     // 获取某个用户拥有的文件（选项：特定uid、特定userId、特定文件夹uid）
-    std::optional<QVector<FileMetadata>> getFiles(const QString &query, const EGetFileOpterator &Operator);
+    std::optional<QVector<FFileMetadata>> getFiles(const QString &query, const EGetFileOpterator &Operator);
 
     // 获取特定 uid 的路径全称
     QString getPath(const QString &uid);
@@ -46,10 +46,10 @@ public:
     QString getUserRootDirUid(int userId);
 
     // 获取一个 uid 对象的父对象
-    std::optional<FileMetadata> getParent(const QString &uid);
+    std::optional<FFileMetadata> getParent(const QString &uid);
 
     // 根据路径获取 uid 对象
-    std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId);
+    std::optional<FFileMetadata> getMetadataFromPath(const QString& path, int userId);
 
 private:
     RogalunaStorageServer* storageServer;

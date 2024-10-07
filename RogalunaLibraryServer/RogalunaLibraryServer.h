@@ -10,7 +10,7 @@ class CategoriesDAO;
 class ROGALUNALIBRARYSERVER_EXPORT RogalunaLibraryServer
 {
 public:
-    RogalunaLibraryServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root, int categoryRootId);
+    RogalunaLibraryServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root, int categoryRootId = 1);
 
 public:
     // Storage

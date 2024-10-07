@@ -62,3 +62,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaLibraryServer/ -lRogalunaLibrary
 
 INCLUDEPATH += $$PWD/../RogalunaLibraryServer
 DEPENDPATH += $$PWD/../RogalunaLibraryServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaMusicServer/release/ -lRogalunaMusicServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaMusicServer/debug/ -lRogalunaMusicServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaMusicServer/ -lRogalunaMusicServer
+
+INCLUDEPATH += $$PWD/../RogalunaMusicServer
+DEPENDPATH += $$PWD/../RogalunaMusicServer

@@ -14,16 +14,18 @@ CONFIG += c++17
 SOURCES += \
     RequestHandlers/Account/LoginHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
+    RequestHandlers/CloudDrive/GetUidFromPathHandler.cpp \
     RequestHandlers/DefaultOptionsHandler.cpp \
-    RequestHandlers/FileStorage/CreateFolderHandler.cpp \
-    RequestHandlers/FileStorage/FetchFileDirectLinkHandler.cpp \
-    RequestHandlers/FileStorage/GetFileHandler.cpp \
-    RequestHandlers/FileStorage/GetFileListHandler.cpp \
-    RequestHandlers/FileStorage/GetParentFolderHandler.cpp \
-    RequestHandlers/FileStorage/MergeFileHandler.cpp \
-    RequestHandlers/FileStorage/PostFileHandler.cpp \
+    RequestHandlers/CloudDrive/CreateFolderHandler.cpp \
+    RequestHandlers/CloudDrive/FetchFileDirectLinkHandler.cpp \
+    RequestHandlers/CloudDrive/GetFileHandler.cpp \
+    RequestHandlers/CloudDrive/GetFileListHandler.cpp \
+    RequestHandlers/CloudDrive/GetParentFolderHandler.cpp \
+    RequestHandlers/CloudDrive/MergeFileHandler.cpp \
+    RequestHandlers/CloudDrive/PostFileHandler.cpp \
     RequestHandlers/GetWebFileHandler.cpp \
-    RequestHandlers/Library/GetBookCategories.cpp \
+    RequestHandlers/Library/GetBookCategoriesHandler.cpp \
+    RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RogalunaHttpServer.cpp
 
 HEADERS += \
@@ -31,16 +33,18 @@ HEADERS += \
     Macro/TokenGV.h \
     RequestHandlers/Account/LoginHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
+    RequestHandlers/CloudDrive/GetUidFromPathHandler.h \
     RequestHandlers/DefaultOptionsHandler.h \
-    RequestHandlers/FileStorage/CreateFolderHandler.h \
-    RequestHandlers/FileStorage/FetchFileDirectLinkHandler.h \
-    RequestHandlers/FileStorage/GetFileHandler.h \
-    RequestHandlers/FileStorage/GetFileListHandler.h \
-    RequestHandlers/FileStorage/GetParentFolderHandler.h \
-    RequestHandlers/FileStorage/MergeFileHandler.h \
-    RequestHandlers/FileStorage/PostFileHandler.h \
+    RequestHandlers/CloudDrive/CreateFolderHandler.h \
+    RequestHandlers/CloudDrive/FetchFileDirectLinkHandler.h \
+    RequestHandlers/CloudDrive/GetFileHandler.h \
+    RequestHandlers/CloudDrive/GetFileListHandler.h \
+    RequestHandlers/CloudDrive/GetParentFolderHandler.h \
+    RequestHandlers/CloudDrive/MergeFileHandler.h \
+    RequestHandlers/CloudDrive/PostFileHandler.h \
     RequestHandlers/GetWebFileHandler.h \
-    RequestHandlers/Library/GetBookCategories.h \
+    RequestHandlers/Library/GetBookCategoriesHandler.h \
+    RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/TestHandler.h \
     RogalunaHttpConfig.h \
     RogalunaHttpServer.h \

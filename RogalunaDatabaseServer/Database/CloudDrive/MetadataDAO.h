@@ -17,13 +17,13 @@ public:
     QString insertFolder(int userId, const QString &parentUid, const QString &folderName) override;
     QString getPath(const QString& uid) override;
 
-    std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId) override;
+    std::optional<FFileMetadata> getMetadataFromPath(const QString& path, int userId) override;
 
-    std::optional<QVector<FileMetadata>> getUserFiles(int userId) override;
+    std::optional<QVector<FFileMetadata>> getUserFiles(int userId) override;
 
-    std::optional<QVector<FileMetadata>> getUidFile(const QString &uid) override;
+    std::optional<QVector<FFileMetadata>> getUidFile(const QString &uid) override;
 
-    std::optional<QVector<FileMetadata>> getFolderFiles(const QString &folderUid) override;
+    std::optional<QVector<FFileMetadata>> getFolderFiles(const QString &folderUid) override;
 };
 
 #endif // METADATADAO_H

@@ -14,7 +14,7 @@ RogalunaCloudDriveServer::RogalunaCloudDriveServer(RogalunaStorageServer* storag
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
     if (!rootDir.exists()) {
-        rootDir.mkpath(root);  // 创建根文件夹
+        rootDir.mkpath(".");  // 创建根文件夹
     }
 }
 
@@ -36,7 +36,7 @@ QString RogalunaCloudDriveServer::mergeChunks(const QString &tempDirName, const 
     const QString& targetMd5 = tempDirName;
 
     // 目标文件存储路径
-    QString targetName = root + "/" + targetMd5;
+    QString targetName = root + QDir::separator() + targetMd5;
 
     // 合并临时文件夹中的文件块
     if (!storageServer->mergeTempFile(tempDirName, totalChunks, root, targetMd5)) {
@@ -118,7 +118,7 @@ bool RogalunaCloudDriveServer::deleteFile(const QString &contentMd5)
     return true;
 }
 
-std::optional<QVector<FileMetadata>> RogalunaCloudDriveServer::getFiles(const QString &query, const EGetFileOpterator &Operator)
+std::optional<QVector<FFileMetadata>> RogalunaCloudDriveServer::getFiles(const QString &query, const EGetFileOpterator &Operator)
 {
     MetadataDAO metadataDao(databaseServer->getDatabase());
     switch (Operator) {
@@ -154,19 +154,19 @@ QString RogalunaCloudDriveServer::getUserRootDirUid(int userId)
     return metadataDao.getUserRootDirUid(userId);
 }
 
-std::optional<FileMetadata> RogalunaCloudDriveServer::getParent(const QString &uid)
+std::optional<FFileMetadata> RogalunaCloudDriveServer::getParent(const QString &uid)
 {
     MetadataDAO metadataDao(databaseServer->getDatabase());
-    QVector<FileMetadata> uidObjects = metadataDao.getUidFile(uid).value_or(QVector<FileMetadata>());
+    QVector<FFileMetadata> uidObjects = metadataDao.getUidFile(uid).value_or(QVector<FFileMetadata>());
 
     if (uidObjects.isEmpty()) {
         // 没有找到对应的 uid 对象，无法寻找到其父对象
         return std::nullopt;
     }
 
-    const FileMetadata &uidObject = uidObjects[0];
+    const FFileMetadata &uidObject = uidObjects[0];
 
-    QVector<FileMetadata> parentObjects = metadataDao.getUidFile(uidObject.parentUid).value_or(QVector<FileMetadata>());
+    QVector<FFileMetadata> parentObjects = metadataDao.getUidFile(uidObject.parentUid).value_or(QVector<FFileMetadata>());
 
     if (parentObjects.isEmpty()) {
         // 没有找到任何父对象，说明它本身就是根目录
@@ -176,7 +176,7 @@ std::optional<FileMetadata> RogalunaCloudDriveServer::getParent(const QString &u
     return parentObjects[0];
 }
 
-std::optional<FileMetadata> RogalunaCloudDriveServer::getMetadataFromPath(const QString &path, int userId)
+std::optional<FFileMetadata> RogalunaCloudDriveServer::getMetadataFromPath(const QString &path, int userId)
 {
     MetadataDAO metadataDao(databaseServer->getDatabase());
     return metadataDao.getMetadataFromPath(path, userId);

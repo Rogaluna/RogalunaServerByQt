@@ -4,7 +4,7 @@
 #include <QDateTime>
 #include <QString>
 
-struct FileMetadata {
+struct FFileMetadata {
     QString uid;
     int userId;
     QString fileName;
@@ -70,13 +70,13 @@ public:
     virtual QString getPath(const QString& uid) = 0;
 
     /**
-     * @brief 根据展平路径和用户ID获取最终对象的 FileMetadata。
+     * @brief 根据展平路径和用户ID获取最终对象的 FFileMetadata。
      *
      * @param path 以 '/' 分割的展平路径（如 "root/test"）。
      * @param userId 指定用户的 ID。
-     * @return 返回路径对应的最终对象的 FileMetadata。如果路径无效或不属于该用户则返回 std::nullopt。
+     * @return 返回路径对应的最终对象的 FFileMetadata。如果路径无效或不属于该用户则返回 std::nullopt。
      */
-    virtual std::optional<FileMetadata> getMetadataFromPath(const QString& path, int userId) = 0;
+    virtual std::optional<FFileMetadata> getMetadataFromPath(const QString& path, int userId) = 0;
 
     /**
      * @brief 获取用户拥有的文件或文件夹。
@@ -84,7 +84,7 @@ public:
      * @param userId 用户的 ID。
      * @return 包含文件或文件夹元数据的可选 QVector 数组，如果用户没有文件或文件夹，则为空。
      */
-    virtual std::optional<QVector<FileMetadata>> getUserFiles(int userId) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getUserFiles(int userId) = 0;
 
     /**
      * @brief 根据 UID 获取文件或文件夹的元数据（只返回一个元素的数组）。
@@ -92,7 +92,7 @@ public:
      * @param uid 文件或文件夹的 UID。
      * @return 包含该 UID 的文件或文件夹元数据的可选 QVector 数组，如果没有找到则为空。
      */
-    virtual std::optional<QVector<FileMetadata>> getUidFile(const QString &uid) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getUidFile(const QString &uid) = 0;
 
     /**
      * @brief 获取特定文件夹 UID 下的文件或文件夹。
@@ -100,7 +100,7 @@ public:
      * @param folderUid 文件夹的 UID。
      * @return 包含该文件夹下的文件或文件夹元数据的可选 QVector 数组，如果文件夹为空则返回空。
      */
-    virtual std::optional<QVector<FileMetadata>> getFolderFiles(const QString &folderUid) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getFolderFiles(const QString &folderUid) = 0;
 
 };
 

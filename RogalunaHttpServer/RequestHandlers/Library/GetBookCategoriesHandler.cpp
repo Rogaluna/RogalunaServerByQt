@@ -1,4 +1,4 @@
-#include "GetBookCategories.h"
+#include "GetBookCategoriesHandler.h"
 
 #include <QHttpServerRequest>
 #include <QJsonDocument>
@@ -9,7 +9,7 @@
 
 #include <Macro/TokenGV.h>
 
-QHttpServerResponse GetBookCategories::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetBookCategoriesHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 

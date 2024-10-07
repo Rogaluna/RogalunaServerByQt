@@ -12,6 +12,7 @@
 
 #include <RogalunaCloudDriveServer.h>
 #include <RogalunaLibraryServer.h>
+#include <RogalunaMusicServer.h>
 
 
 #include <RogalunaHttpServer.h>
@@ -29,8 +30,8 @@ int main(int argc, char *argv[])
     if (!storageConfig.isConfigFileValid()) {
         storageConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("Storage", {
-                {"root", "E:/Projects/Qt/RogalunaServerByQt/storage"},
-                {"temp", "E:/Projects/Qt/RogalunaServerByQt/temp"},
+                {"root", "storage"},
+                {"temp", "temp"},
                 {"tempFilePrefix", "chunk_"}
             })
         }));
@@ -112,6 +113,27 @@ int main(int argc, char *argv[])
         ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "root").toString(),
         ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "categoryRootId").toInt());
 
+    // 初始化音乐台服务
+
+    configFile musicConfig("music_config.ini");
+    if (!musicConfig.isConfigFileValid()) {
+        musicConfig.writeConfigFile(ConfigGroup::createConfigGroups({
+            ConfigGroup("MusicStation", {
+                {"root", "music_station"},
+                {"musicDirName", "music"},
+                {"coverDirName", "covers"},
+            })
+        }));
+    }
+    QList<ConfigGroup> musicConfigGroupsRead;
+    musicConfig.readConfigFile(musicConfigGroupsRead);
+    RogalunaMusicServer musicServer(
+        &rss,
+        &dbServer,
+        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "root").toString(),
+        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "musicDirName").toString(),
+        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "coverDirName").toString());
+
     //========================================================================================//
 
     // 开启http服务
@@ -120,7 +142,7 @@ int main(int argc, char *argv[])
     if (!httpConfig.isConfigFileValid()) {
         httpConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("HttpServer", {
-                {"dist", "E:\\Projects\\Web\\rogaluna-web\\dist"},
+                {"dist", "www/dist"},
                 {"port", 8000},
                 {"algorithm", "HS256"},
                 {"secretKey", "rogaluna"}
@@ -133,12 +155,13 @@ int main(int argc, char *argv[])
     RogalunaHttpServer server(
         ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "dist").toString(),
         ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "algorithm").toString(),
-        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "secretKey").toString(),
-        &rss,
-        &dbServer,
+        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "secretKey").toString());
 
-        &cloudDriveServer,
-        &libraryServer);
+    server.setStorageServer(&rss);
+    server.setDatabaseServer(&dbServer);
+    server.setCloudDriveServer(&cloudDriveServer);
+    server.setLibraryServer(&libraryServer);
+    server.setMusicServer(&musicServer);
 
     server.start(ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "port").toInt());
 
