@@ -75,7 +75,7 @@ QHttpServerResponse GetParentFolderHandler::handleRequest(const QHttpServerReque
         return response;
     }
 
-    const std::optional<FFileMetadata> &searchResult = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getParent(folderUid);
+    const std::optional<CloudDrive::FFileMetadata> &searchResult = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getParent(folderUid);
 
     // 如果没有找到值，报错
     if (!searchResult.has_value()) {

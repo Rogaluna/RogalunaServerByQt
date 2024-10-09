@@ -20,8 +20,8 @@ RogalunaLibraryServer::RogalunaLibraryServer(RogalunaStorageServer *storageServe
 QVector<FileInfoStruct> RogalunaLibraryServer::getDirFiles(const QString &driveName, const QString &targetPath)
 {
     QString dirPath = root \
-                      + (driveName.startsWith(QDir::separator()) ? "" : QDir::separator()) + driveName \
-                      + (targetPath.startsWith(QDir::separator()) ? "" : QDir::separator()) + targetPath;
+                      + (driveName.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + driveName \
+                      + (targetPath.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + targetPath;
 
     return storageServer->listFiles(dirPath);
 }

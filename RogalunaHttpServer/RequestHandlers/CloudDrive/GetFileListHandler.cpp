@@ -78,16 +78,16 @@ QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &
     }
 
     // 调用存储服务器获取文件列表
-    QVector<FFileMetadata> entries = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getFiles(
+    QVector<CloudDrive::FFileMetadata> entries = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getFiles(
                                        param,
-                                       RogalunaCloudDriveServer::EGetFileOpterator::E_FOLDER).value_or(QVector<FFileMetadata>());
+                                       RogalunaCloudDriveServer::EGetFileOpterator::E_FOLDER).value_or(QVector<CloudDrive::FFileMetadata>());
 
     // 获取路径全称
     QString fullPath = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getPath(param);
 
     // 构建JSON响应
     QJsonArray jsonArray;
-    for (const FFileMetadata &entry : entries) {
+    for (const CloudDrive::FFileMetadata &entry : entries) {
         QJsonObject jsonObject;
         jsonObject["uid"] = entry.uid;
         jsonObject["name"] = entry.fileName;

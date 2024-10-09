@@ -5,6 +5,7 @@ TEMPLATE = lib
 DEFINES += ROGALUNADATABASESERVER_LIBRARY
 
 CONFIG += c++17
+CONFIG += object_parallel_to_source # 编译配置，设置了这个选项，o文件将依照项目目录生成
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -12,13 +13,13 @@ CONFIG += c++17
 
 SOURCES += \
     BaseDAO.cpp \
+    RogalunaDatabaseServer.cpp \
+    Database/TestDAO.cpp \
     Database/Account/UsersDAO.cpp \
     Database/CloudDrive/ContentDAO.cpp \
     Database/CloudDrive/MetadataDAO.cpp \
     Database/Library/CategoriesDAO.cpp \
-    Database/MusicStation/MetadataDAO.cpp \
-    Database/TestDAO.cpp \
-    RogalunaDatabaseServer.cpp
+    Database/MusicStation/MetadataDAO.cpp
 
 HEADERS += \
     BaseDAO.h \

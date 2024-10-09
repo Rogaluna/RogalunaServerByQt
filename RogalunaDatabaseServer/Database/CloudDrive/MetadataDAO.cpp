@@ -1,5 +1,9 @@
 #include "MetadataDAO.h"
 
+#include <QDir>
+
+namespace CloudDrive {
+
 QString MetadataDAO::insertMetadata(int userId, const QString &fileName, const QString &contentMd5, bool isDirectory, const QString &parentUid, int version)
 {
     QSqlQuery insertQuery(database);
@@ -260,7 +264,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getUidFile(const QString &uid
     return files;
 }
 
-std::optional<QVector<FFileMetadata>> MetadataDAO::getFolderFiles(const QString &folderUid)
+std::optional<QVector<FFileMetadata> > MetadataDAO::getFolderFiles(const QString &folderUid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -298,4 +302,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getFolderFiles(const QString 
     }
 
     return files;
+}
+
+
 }

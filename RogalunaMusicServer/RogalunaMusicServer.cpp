@@ -31,22 +31,24 @@ RogalunaMusicServer::RogalunaMusicServer(
     }
 }
 
-std::optional<QVector<FFileMetadata>> RogalunaMusicServer::getMusicList(const QString &query, const EMusicQueryType &Operator)
-{
-    std::optional<QVector<FFileMetadata>> result;
+// std::optional<QVector<MusicStation::FFileMetadata>> RogalunaMusicServer::getMusicList(const QString &query, const EMusicQueryType &Operator)
+// {
+//     Q_UNUSED(query)
 
-    switch(Operator) {
-    case EMusicQueryType::E_RANDOM:
-        break;
-    case EMusicQueryType::E_PRIVATE:
-        break;
-    case EMusicQueryType::E_BYALBUM:
-        break;
-    case EMusicQueryType::E_BYUSERID:
-        break;
-    default:
+//     std::optional<QVector<MusicStation::FFileMetadata>> result;
 
-    }
+//     switch(Operator) {
+//     case EMusicQueryType::E_RANDOM:
+//         break;
+//     case EMusicQueryType::E_PRIVATE:
+//         break;
+//     case EMusicQueryType::E_BYALBUM:
+//         break;
+//     case EMusicQueryType::E_BYUSERID:
+//         break;
+//     default:
+//         break;
+//     }
 
-    return result;
-}
+//     return result;
+// }

@@ -4,6 +4,8 @@
 #include <QDateTime>
 #include <QString>
 
+namespace CloudDrive {
+
 struct FFileMetadata {
     QString uid;
     int userId;
@@ -103,5 +105,7 @@ public:
     virtual std::optional<QVector<FFileMetadata>> getFolderFiles(const QString &folderUid) = 0;
 
 };
+
+}
 
 #endif // IMETADATADAO_H

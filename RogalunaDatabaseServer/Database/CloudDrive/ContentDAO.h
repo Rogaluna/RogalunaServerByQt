@@ -4,6 +4,8 @@
 #include <BaseDAO.h>
 #include <Interface/CloudDrive/IContentDAO.h>
 
+namespace CloudDrive {
+
 class ROGALUNADATABASESERVER_EXPORT ContentDAO : public BaseDAO, public IContentDAO
 {
 public:
@@ -17,5 +19,8 @@ public:
 
     bool deleteContent(const QString& contentMd5) override;
 };
+
+
+}
 
 #endif // CONTENTDAO_H

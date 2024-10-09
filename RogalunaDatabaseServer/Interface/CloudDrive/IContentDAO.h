@@ -3,6 +3,8 @@
 
 #include <QString>
 
+namespace CloudDrive {
+
 class IContentDAO
 {
 public:
@@ -12,5 +14,7 @@ public:
     virtual QString getContentPath(const QString& contentMd5) = 0;
     virtual bool deleteContent(const QString& contentMd5) = 0;
 };
+
+}
 
 #endif // ICONTENTDAO_H

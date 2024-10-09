@@ -8,8 +8,6 @@
 #include <RogalunaDatabaseServer.h>
 #include <RogalunaStorageServer.h>
 
-#include <Interface/MusicStation/IMetaDataDAO.h>
-
 class ROGALUNAMUSICSERVER_EXPORT RogalunaMusicServer
 {
 public:
@@ -39,7 +37,7 @@ public:
      * @param limit 返回结果的最大数量，默认为 10
      * @return 包含音乐元数据的 QVector
      */
-    std::optional<QVector<FFileMetadata>> getMusicList(const QString &query, const EMusicQueryType &Operator);
+    // std::optional<QVector<MusicStation::FFileMetadata>> getMusicList(const QString &query, const EMusicQueryType &Operator);
 
     /**
      * @brief 上传文件块

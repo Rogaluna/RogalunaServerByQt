@@ -81,7 +81,7 @@ QHttpServerResponse GetUidFromPathHandler::handleRequest(const QHttpServerReques
         }
 
         // 获取路径指向的目录，如果找到了目标对象，并且目标对象是一个目录
-        const std::optional<FFileMetadata> &targetDir = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getMetadataFromPath(path, userId.toInt());
+        const std::optional<CloudDrive::FFileMetadata> &targetDir = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getMetadataFromPath(path, userId.toInt());
         if (targetDir.has_value() && targetDir->isDirectory == true) {
             // 将 param 设置为目标对象的 uid
             resultUid = targetDir->uid;
