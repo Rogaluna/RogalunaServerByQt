@@ -4,6 +4,8 @@
 #include <BaseDAO.h>
 #include <Interface/Account/IUsersDAO.h>
 
+namespace Account {
+
 class ROGALUNADATABASESERVER_EXPORT UserDAO : public BaseDAO, public IUserDAO
 {
 public:
@@ -27,4 +29,5 @@ public:
     std::optional<User> getUserByName(QString username) override;
 };
 
+}
 #endif // USERSDAO_H

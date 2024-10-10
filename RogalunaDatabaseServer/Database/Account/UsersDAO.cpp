@@ -1,5 +1,7 @@
 #include "UsersDAO.h"
 
+namespace Account {
+
 UserDAO::UserDAO(QSqlDatabase& db, const QString& schema, const QString& tableName): BaseDAO(db, schema, tableName) {}
 
 std::optional<User> UserDAO::registerUser(const QString& username, const QString& passwordHash,
@@ -124,4 +126,6 @@ std::optional<User> UserDAO::getUserByName(QString username)
         return user;  // 返回 User 对象的 std::optional
     }
     return std::nullopt;  // 未找到
+}
+
 }

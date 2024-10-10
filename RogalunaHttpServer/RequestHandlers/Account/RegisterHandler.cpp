@@ -51,8 +51,8 @@ QHttpServerResponse RegisterHandler::handleRequest(const QHttpServerRequest &req
     int saltRounds = 10;
     QString hashedPassword = QString::fromStdString(bcrypt::generateHash(password.toStdString(), saltRounds));
 
-    UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
-    std::optional<User> newUser = userDAO.registerUser(username, hashedPassword);
+    Account::UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
+    std::optional<Account::User> newUser = userDAO.registerUser(username, hashedPassword);
     if (!newUser) {
         // 注册失败
         QHttpServerResponse response("Register Fail!", QHttpServerResponse::StatusCode::BadRequest);

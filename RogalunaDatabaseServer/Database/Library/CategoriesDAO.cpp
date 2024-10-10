@@ -1,5 +1,7 @@
 #include "CategoriesDAO.h"
 
+namespace Library {
+
 QMap<int, QString> CategoriesDAO::getAllCategories()
 {
     QMap<int, QString> categories;
@@ -56,4 +58,6 @@ bool CategoriesDAO::deleteCategory(int categoryId)
     query.bindValue(":categoryId", categoryId);
 
     return executeQuery(query);
+}
+
 }

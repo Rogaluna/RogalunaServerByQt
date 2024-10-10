@@ -4,6 +4,8 @@
 #include <BaseDAO.h>
 #include <Interface/Library/ICategoriesDAO.h>
 
+namespace Library {
+
 class ROGALUNADATABASESERVER_EXPORT CategoriesDAO : public BaseDAO, public ICategoriesDAO
 {
 public:
@@ -16,5 +18,7 @@ public:
     bool addCategory(const QString& name, int parentId) override;
     bool deleteCategory(int categoryId) override;
 };
+
+}
 
 #endif // CATEGORIESDAO_H

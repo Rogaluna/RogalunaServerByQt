@@ -3,6 +3,8 @@
 
 #include <QString>
 
+namespace Account {
+
 struct User {
     int id;
     QString username;
@@ -39,5 +41,6 @@ public:
     virtual std::optional<User> getUserByName(QString username) = 0;
 };
 
+}
 
 #endif // IUSERSDAO_H

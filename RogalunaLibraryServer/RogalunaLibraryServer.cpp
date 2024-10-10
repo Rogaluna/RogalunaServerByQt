@@ -31,7 +31,7 @@ QJsonObject RogalunaLibraryServer::getCategories(const QString& parentCategoryNa
     QJsonObject result;
 
     // 获取数据库连接（假设有一个方法可以获取QSqlDatabase）
-    CategoriesDAO categoriesDAO(databaseServer->getDatabase());
+    Library::CategoriesDAO categoriesDAO(databaseServer->getDatabase());
 
     // 查找从哪个父类别开始（默认为根类别，即 parent_id = NULL）
     int parentId = categoryRootId;
@@ -54,7 +54,7 @@ QJsonObject RogalunaLibraryServer::getCategories(const QString& parentCategoryNa
 }
 
 // 递归构建类别层次 JSON 的辅助函数
-QJsonObject RogalunaLibraryServer::buildCategoryJson(CategoriesDAO& dao, int parentId)
+QJsonObject RogalunaLibraryServer::buildCategoryJson(Library::CategoriesDAO& dao, int parentId)
 {
     QJsonObject categoryObject;
     QList<QPair<int, QString>> subcategories = dao.getSubcategories(parentId);

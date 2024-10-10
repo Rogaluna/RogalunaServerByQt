@@ -5,6 +5,8 @@
 #include <QList>
 #include <QMap>
 
+namespace Library {
+
 class ICategoriesDAO
 {
 public:
@@ -22,5 +24,7 @@ public:
     // 删除类别
     virtual bool deleteCategory(int categoryId) = 0;
 };
+
+}
 
 #endif // ICATEGORIESDAO_H

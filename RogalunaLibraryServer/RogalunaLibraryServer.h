@@ -6,7 +6,8 @@
 #include <RogalunaDatabaseServer.h>
 #include <RogalunaStorageServer.h>
 
-class CategoriesDAO;
+#include <Database/Library/CategoriesDAO.h>
+
 class ROGALUNALIBRARYSERVER_EXPORT RogalunaLibraryServer
 {
 public:
@@ -20,7 +21,7 @@ public:
     QJsonObject getCategories(const QString& parentCategoryName = "");
 
 private:
-    QJsonObject buildCategoryJson(CategoriesDAO &dao, int parentId);
+    QJsonObject buildCategoryJson(Library::CategoriesDAO &dao, int parentId);
 
 private:
     RogalunaStorageServer* storageServer;

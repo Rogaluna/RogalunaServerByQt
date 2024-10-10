@@ -49,8 +49,8 @@ QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &reques
         }
     }
 
-    UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
-    std::optional<User> user = std::nullopt;
+    Account::UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
+    std::optional<Account::User> user = std::nullopt;
     bool isId;
     int id = usernameOrId.toInt(&isId);
     if (isId) {
