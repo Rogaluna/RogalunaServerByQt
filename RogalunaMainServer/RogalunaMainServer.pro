@@ -27,7 +27,6 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDataba
 INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
 DEPENDPATH += $$PWD/../RogalunaDatabaseServer
 
-
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/release/ -lRogalunaStorageServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/debug/ -lRogalunaStorageServer
 else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaStorageServer/ -lRogalunaStorageServer
@@ -69,3 +68,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaMusicServer/ -lRogalunaMusicServ
 
 INCLUDEPATH += $$PWD/../RogalunaMusicServer
 DEPENDPATH += $$PWD/../RogalunaMusicServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/release/ -lQTagLib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/debug/ -lQTagLib
+else:unix:!macx: LIBS += -L$$OUT_PWD/../QTagLib/ -lQTagLib
+
+INCLUDEPATH += $$PWD/../QTagLib
+DEPENDPATH += $$PWD/../QTagLib

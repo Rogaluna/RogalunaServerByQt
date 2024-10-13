@@ -48,7 +48,7 @@ public:
      * @param chunkMd5 当前块的 MD5 校验值，可选
      * @return 如果上传成功返回 true，否则返回 false
      */
-    // bool uploadChunk(const QString& tempDirName, int chunkIndex, const QByteArray& chunkData, const QString& chunkMd5 = QString());
+    bool uploadChunk(const QString& tempDirName, int chunkIndex, const QByteArray& chunkData, const QString& chunkMd5 = QString());
 
     /**
      * @brief 合并文件块
@@ -57,10 +57,16 @@ public:
      * @param fileName 合并后的文件名
      * @param totalChunks 文件块的总数量
      * @param userId 上传用户的 ID
-     * @param parentUid 父目录的 UID，可选
+     * @param description 音乐描述，可选
      * @return 合并后的文件的 UID，如果失败则返回空字符串
      */
-    // QString mergeChunks(const QString& tempDirName, const QString& fileName, int totalChunks, int userId, const QString& parentUid = QString());
+    QString mergeChunks(const QString &tempDirName,
+                        const QString &fileName,
+                        int totalChunks,
+                        int userId,
+                        const QString &albumDescription = "",
+                        const QString &musicDescription = "",
+                        bool bPublished = false);
 
     /**
      * @brief 获取音乐元数据
@@ -105,6 +111,22 @@ public:
      * @return 如果删除成功返回 true，否则返回 false
      */
     // bool deleteMusic(const QString& uid);
+
+private:
+    struct AudioMetadata {
+        QString artist;
+        QString album;
+        QString title;
+        uint trackNumber;
+        QString genre;
+        int year;
+        QString comment;
+        QString duration;
+        int bitrate;
+    };
+
+    AudioMetadata parseAudioFile(QFile &file);
+    QByteArray getAlbumCover(QFile &file, const QString &type);
 
 private:
     RogalunaStorageServer* storageServer;

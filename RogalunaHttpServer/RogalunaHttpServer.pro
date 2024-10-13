@@ -26,6 +26,8 @@ SOURCES += \
     RequestHandlers/GetWebFileHandler.cpp \
     RequestHandlers/Library/GetBookCategoriesHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
+    RequestHandlers/MusicStation/MergeMusicHandler.cpp \
+    RequestHandlers/MusicStation/PostMusicHandler.cpp \
     RogalunaHttpServer.cpp
 
 HEADERS += \
@@ -45,6 +47,8 @@ HEADERS += \
     RequestHandlers/GetWebFileHandler.h \
     RequestHandlers/Library/GetBookCategoriesHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
+    RequestHandlers/MusicStation/MergeMusicHandler.h \
+    RequestHandlers/MusicStation/PostMusicHandler.h \
     RequestHandlers/TestHandler.h \
     RogalunaHttpConfig.h \
     RogalunaHttpServer.h \
@@ -98,3 +102,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaLibraryServer/ -lRogalunaLibrary
 INCLUDEPATH += $$PWD/../RogalunaLibraryServer
 DEPENDPATH += $$PWD/../RogalunaLibraryServer
 
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaMusicServer/release/ -lRogalunaMusicServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaMusicServer/debug/ -lRogalunaMusicServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaMusicServer/ -lRogalunaMusicServer
+
+INCLUDEPATH += $$PWD/../RogalunaMusicServer
+DEPENDPATH += $$PWD/../RogalunaMusicServer

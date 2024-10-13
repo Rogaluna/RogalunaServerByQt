@@ -25,6 +25,8 @@
 #include <RequestHandlers/Library/GetBookCategoriesHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
+#include <RequestHandlers/MusicStation/MergeMusicHandler.h>
+#include <RequestHandlers/MusicStation/PostMusicHandler.h>
 
 RogalunaHttpServer::RogalunaHttpServer(
     const QString &_webRootPath,
@@ -82,6 +84,8 @@ bool RogalunaHttpServer::start(quint16 port)
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 
     REGISTER_ROUTE(server, "/api/musicStation/getMusicList", QHttpServerRequest::Method::Get, GetMusicListHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/postMusic", QHttpServerRequest::Method::Post, PostMusicHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/mergeMusic", QHttpServerRequest::Method::Post, MergeMusicHandler);
 
     qDebug() << "||||||||||||||||||||  ***ROUTERS END***  ||||||||||||||||||||";
 

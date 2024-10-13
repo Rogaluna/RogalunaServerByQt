@@ -10,9 +10,14 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Cover/FLACAlbumCoverHandler.cpp \
+    Cover/MP3AlbumCoverHandler.cpp \
     RogalunaMusicServer.cpp
 
 HEADERS += \
+    Cover/AlbumCoverHandler.h \
+    Cover/FLACAlbumCoverHandler.h \
+    Cover/MP3AlbumCoverHandler.h \
     RogalunaMusicServer_global.h \
     RogalunaMusicServer.h
 
@@ -35,3 +40,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDataba
 
 INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
 DEPENDPATH += $$PWD/../RogalunaDatabaseServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/release/ -lQTagLib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/debug/ -lQTagLib
+else:unix:!macx: LIBS += -L$$OUT_PWD/../QTagLib/ -lQTagLib
+
+INCLUDEPATH += $$PWD/../QTagLib
+DEPENDPATH += $$PWD/../QTagLib
