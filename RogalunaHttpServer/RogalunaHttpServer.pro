@@ -25,6 +25,7 @@ SOURCES += \
     RequestHandlers/CloudDrive/PostFileHandler.cpp \
     RequestHandlers/GetWebFileHandler.cpp \
     RequestHandlers/Library/GetBookCategoriesHandler.cpp \
+    RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RequestHandlers/MusicStation/MergeMusicHandler.cpp \
     RequestHandlers/MusicStation/PostMusicHandler.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
     RequestHandlers/CloudDrive/PostFileHandler.h \
     RequestHandlers/GetWebFileHandler.h \
     RequestHandlers/Library/GetBookCategoriesHandler.h \
+    RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/MusicStation/MergeMusicHandler.h \
     RequestHandlers/MusicStation/PostMusicHandler.h \

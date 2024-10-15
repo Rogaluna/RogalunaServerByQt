@@ -11,6 +11,8 @@
 #include <Cover/FLACAlbumCoverHandler.h>
 #include <Cover/MP3AlbumCoverHandler.h>
 
+#include <QJsonArray>
+
 RogalunaMusicServer::RogalunaMusicServer(
     RogalunaStorageServer* storageServer,
     RogalunaDatabaseServer* databaseServer,
@@ -42,6 +44,49 @@ RogalunaMusicServer::RogalunaMusicServer(
     }
 }
 
+QString RogalunaMusicServer::getMusicFilePath(const QString &musicMd5)
+{
+    return storageServer->absoluteFilePath(root + QDir::separator() + musicDirName + QDir::separator() + musicMd5);
+}
+
+QJsonArray RogalunaMusicServer::getMusicList(const EMusicQueryType &oper, const QString &query)
+{
+    MusicStation::MetadataDAO metadataDao(databaseServer->getDatabase());
+    QJsonArray musicList = QJsonArray();
+
+
+    switch (oper) {
+    case EMusicQueryType::E_RANDOM:
+    {
+        // 随机获取音乐，不使用参数 query
+        musicList = metadataDao.getRandomMetadata();
+    }
+    break;
+    case EMusicQueryType::E_PRIVATE:
+    {
+        // 获取私有音乐，参数 query 指示用户的 id
+        musicList = metadataDao.getMetadataByUserIdAndPublished(query.toInt(), false);
+    }
+    break;
+    case EMusicQueryType::E_BYALBUM:
+    {
+        // 获取专辑内的音乐，参数 query 指示专辑 id
+        musicList = metadataDao.getMetadataByAlbumId(query);
+    }
+    break;
+    case EMusicQueryType::E_BYUSERID:
+    {
+        // 获取用户收藏的全部音乐，参数 query 指示用户 id
+        musicList = metadataDao.getMetadataByUserId(query.toInt());
+    }
+    break;
+    default:
+        break;
+    }
+
+    return musicList;
+}
+
 bool RogalunaMusicServer::uploadChunk(const QString &tempDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5)
 {
     // 将块数据写入临时文件夹
@@ -61,15 +106,16 @@ QString RogalunaMusicServer::mergeChunks(
     const QString& targetMd5 = tempDirName;
 
     // 目标文件存储路径
-    QString targetName = root + QDir::separator() + targetMd5;
+    QString musicDirPath = root + QDir::separator() + musicDirName;
+    QString coverDirPath = root + QDir::separator() + coverDirName;
 
     // 合并临时文件夹中的文件块
-    if (!storageServer->mergeTempFile(tempDirName, totalChunks, root, targetMd5)) {
+    if (!storageServer->mergeTempFile(tempDirName, totalChunks, musicDirPath, targetMd5)) {
         qWarning() << "Failed to merge chunks";
         return QString();
     }
 
-    QFile mergedFile(storageServer->absoluteFilePath(targetName));
+    QFile mergedFile(storageServer->absoluteFilePath(musicDirPath + QDir::separator() + targetMd5));
     if (!mergedFile.exists()) {
         qWarning() << "Merged file not found";
         return QString();
@@ -101,9 +147,13 @@ QString RogalunaMusicServer::mergeChunks(
     }
 
     // 插入文件元数据记录, uuid 由数据库自动生成
+    QString fileType = fileName.mid(fileName.lastIndexOf('.') + 1).toLower();
     QString uuid = metadataDao.insertMetadata(
         userId,
-        fileName,
+        fileType,
+        audioMetadata.title,
+        audioMetadata.duration,
+        audioMetadata.artist,
         targetMd5,
         musicDescription,
         albumId,
@@ -116,12 +166,19 @@ QString RogalunaMusicServer::mergeChunks(
 
     // 在数据库完整写入后，导入专辑封面到指定位置
     // 查找目标位置是否存在专辑图片，如果已经存在了，则不写入，否则写入
-    QFile coverFile(storageServer->absoluteFilePath(root + "/" + coverDirName + "/" + targetMd5));
+    QFile coverFile(storageServer->absoluteFilePath(coverDirPath + QDir::separator() + targetMd5));
     if (!coverFile.exists()) {
-        QByteArray albumCover = getAlbumCover(mergedFile, fileName.mid(fileName.lastIndexOf('.') + 1).toLower());
+        QByteArray albumCover = getAlbumCover(mergedFile, fileType);
         if (!albumCover.isEmpty()) {
-            if (storageServer->writeFile(coverFile, albumCover)) {
-                qDebug() << "Album cover written to: " << coverFile.fileName();
+            if (coverFile.open(QIODevice::WriteOnly)) {  // 打开文件以写入模式
+                if (storageServer->writeFile(coverFile, albumCover)) {
+                    qDebug() << "Album cover written to: " << coverFile.fileName();
+                } else {
+                    qDebug() << "Failed to write album cover to: " << coverFile.fileName();
+                }
+                coverFile.close();  // 写入后关闭文件
+            } else {
+                qWarning() << "Failed to open file for writing: " << coverFile.fileName();
             }
         } else {
             qDebug() << "No album cover found";
@@ -132,6 +189,12 @@ QString RogalunaMusicServer::mergeChunks(
 
     // 最终返回写入到元数据表中的 uuid
     return uuid;
+}
+
+QJsonArray RogalunaMusicServer::getMusicMetadata(const QString &uid)
+{
+    MusicStation::MetadataDAO metadataDao(databaseServer->getDatabase());
+    return metadataDao.getMetadataByUid(uid);
 }
 
 RogalunaMusicServer::AudioMetadata RogalunaMusicServer::parseAudioFile(QFile &file)
@@ -174,21 +237,22 @@ RogalunaMusicServer::AudioMetadata RogalunaMusicServer::parseAudioFile(QFile &fi
     // 获取音频时长和比特率
     if (f.audioProperties()) {
         TagLib::AudioProperties *properties = f.audioProperties();
-        int seconds = properties->lengthInSeconds() % 60;
-        int minutes = (properties->lengthInSeconds() / 60) % 60;
-        int hours = properties->lengthInSeconds() / 3600;
+        // int seconds = properties->lengthInSeconds() % 60;
+        // int minutes = (properties->lengthInSeconds() / 60) % 60;
+        // int hours = properties->lengthInSeconds() / 3600;
 
-        if (hours > 0) {
-            metadata.duration = QString("%1:%2:%3")
-            .arg(hours, 2, 10, QChar('0'))
-                .arg(minutes, 2, 10, QChar('0'))
-                .arg(seconds, 2, 10, QChar('0'));
-        } else {
-            metadata.duration = QString("%1:%2")
-            .arg(minutes, 2, 10, QChar('0'))
-                .arg(seconds, 2, 10, QChar('0'));
-        }
+        // if (hours > 0) {
+        //     metadata.duration = QString("%1:%2:%3")
+        //     .arg(hours, 2, 10, QChar('0'))
+        //         .arg(minutes, 2, 10, QChar('0'))
+        //         .arg(seconds, 2, 10, QChar('0'));
+        // } else {
+        //     metadata.duration = QString("%1:%2")
+        //     .arg(minutes, 2, 10, QChar('0'))
+        //         .arg(seconds, 2, 10, QChar('0'));
+        // }
 
+        metadata.duration = properties->lengthInSeconds();
         metadata.bitrate = properties->bitrate();
     }
 
@@ -210,25 +274,3 @@ QByteArray RogalunaMusicServer::getAlbumCover(QFile &file, const QString &type)
     }
     return QByteArray();
 }
-
-// std::optional<QVector<MusicStation::FFileMetadata>> RogalunaMusicServer::getMusicList(const QString &query, const EMusicQueryType &Operator)
-// {
-//     Q_UNUSED(query)
-
-//     std::optional<QVector<MusicStation::FFileMetadata>> result;
-
-//     switch(Operator) {
-//     case EMusicQueryType::E_RANDOM:
-//         break;
-//     case EMusicQueryType::E_PRIVATE:
-//         break;
-//     case EMusicQueryType::E_BYALBUM:
-//         break;
-//     case EMusicQueryType::E_BYUSERID:
-//         break;
-//     default:
-//         break;
-//     }
-
-//     return result;
-// }

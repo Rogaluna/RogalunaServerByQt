@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     if (!musicConfig.isConfigFileValid()) {
         musicConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("MusicStation", {
-                {"root", "music_station"},
+                {"root", "musicStation"},
                 {"musicDirName", "music"},
                 {"coverDirName", "covers"},
             })

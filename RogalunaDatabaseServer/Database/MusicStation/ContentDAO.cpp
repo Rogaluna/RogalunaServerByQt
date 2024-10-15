@@ -14,6 +14,4 @@ bool MusicStation::ContentDAO::insertContent(const QString &contentMd5, qint64 s
     return executeQuery(query);
 }
 
-
-
 }

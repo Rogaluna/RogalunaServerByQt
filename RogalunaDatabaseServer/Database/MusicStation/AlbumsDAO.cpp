@@ -29,9 +29,9 @@ QString MusicStation::AlbumsDAO::insertAlbum(const QString &albumName,
     insertQuery.bindValue(":genre", genre);
     insertQuery.bindValue(":description", description);
 
-    // 执行插入并获取新生成的 uid
-    if (insertQuery.exec() && insertQuery.next()) {
-        return insertQuery.value("uid").toString();  // 返回数据库生成的 uid
+    // 执行插入
+    if (insertQuery.exec()) {
+        return albumId;
     }
 
     // 插入失败，记录错误并返回空字符串

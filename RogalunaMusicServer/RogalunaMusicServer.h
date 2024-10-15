@@ -24,10 +24,24 @@ public:
         E_PRIVATE,
         E_BYALBUM,
         E_BYUSERID,
+
+        E_OTHERS
+    };
+
+    struct FMusicMetadata {
+
     };
 
 public:
     // ... 其他成员变量和方法
+
+    /**
+     * @brief 获取音乐文件路径
+     *
+     * @param musicMd5 目标音乐的 md5 值，它同时也是文件名称
+     * @return 包含音乐文件绝对路径
+     */
+    QString getMusicFilePath(const QString &musicMd5);
 
     /**
      * @brief 获取音乐列表
@@ -37,7 +51,7 @@ public:
      * @param limit 返回结果的最大数量，默认为 10
      * @return 包含音乐元数据的 QVector
      */
-    // std::optional<QVector<MusicStation::FFileMetadata>> getMusicList(const QString &query, const EMusicQueryType &Operator);
+    QJsonArray getMusicList(const EMusicQueryType &oper, const QString &query = "");
 
     /**
      * @brief 上传文件块
@@ -74,7 +88,7 @@ public:
      * @param uid 音乐的 UID
      * @return 如果找到则返回 Metadata 对象，否则返回 std::nullopt
      */
-    // std::optional<FFileMetadata> getMusicMetadata(const QString& uid);
+    QJsonArray getMusicMetadata(const QString& uid);
 
     /**
      * @brief 处理音乐文件的下载请求
@@ -121,7 +135,7 @@ private:
         QString genre;
         int year;
         QString comment;
-        QString duration;
+        int duration;
         int bitrate;
     };
 

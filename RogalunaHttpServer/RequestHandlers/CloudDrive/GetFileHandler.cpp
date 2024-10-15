@@ -1,9 +1,6 @@
 #include "GetFileHandler.h"
 
 #include <QHttpServerRequest>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QFile>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaStorageServer.h>
 #include <Macro/TokenGV.h>

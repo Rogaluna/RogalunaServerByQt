@@ -2,15 +2,96 @@
 
 #include <QHttpServerRequest>
 #include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <RogalunaHttpConfig.h>
+#include <RogalunaMusicServer.h>
+
+#include <Macro/RequestBodyParser.h>
+#include <Macro/TokenGV.h>
 
 QHttpServerResponse GetMusicListHandler::handleRequest(const QHttpServerRequest &request)
 {
-    Q_UNUSED(request)
+    // 遍历头部列表，查找 "Authorization" 头
+    QList<QPair<QByteArray, QByteArray>> headers = request.headers();
+    QByteArray authorizationValue;
+    for (const auto &header : headers) {
+        if (header.first.toLower() == "authorization") {
+            authorizationValue = header.second;
+            break;
+        }
+    }
+
+    auto [isValid, header, payload] = VERIFY_JWT_TOKEN(QString(authorizationValue), *RogalunaHttpConfig::getInstance().getSecretKey());
+    // 令牌验证非法
+    if (!isValid) {
+        QHttpServerResponse response("Invalid token", QHttpServerResponse::StatusCode::Unauthorized);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
+
+    // 令牌验证通过，获取负载对象
+    QJsonDocument jwtDoc = QJsonDocument::fromJson(payload.toUtf8());
+    QJsonObject jwtObj = jwtDoc.object();
+
+    // 验证时间
+    int checkResult = CHECK_TIMESTAMPS(jwtObj);
+    switch (checkResult) {
+    case 0:
+    {
+        QHttpServerResponse response("Token Error: missing 'iat' or 'exp' claim.", QHttpServerResponse::StatusCode::Unauthorized);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+    case 1:
+    {
+        QHttpServerResponse response("Token Error: iat is in the future.", QHttpServerResponse::StatusCode::Unauthorized);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+    case 2:
+    {
+        QHttpServerResponse response("Token has expired!", QHttpServerResponse::StatusCode::Unauthorized);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+    case 3:
+        // 验证通过
+        break;
+    }
+
+    // 获取负载数据中包含的用户信息
+    QString userId = jwtObj.value("id").toString();
+
+    QUrlQuery query(request.url());
+    RogalunaMusicServer::EMusicQueryType opt = RogalunaMusicServer::EMusicQueryType::E_RANDOM;
+    QString param = "";
+
+    if (query.hasQueryItem("opt")) {
+        // 如果查询参数 "opt" 存在
+        int numOpt = query.queryItemValue("opt").toInt();
+
+
+        // 检查 numOpt 是否在枚举的有效范围内
+        if (numOpt >= static_cast<int>(RogalunaMusicServer::EMusicQueryType::E_RANDOM) &&
+            numOpt <= static_cast<int>(RogalunaMusicServer::EMusicQueryType::E_OTHERS)) {
+
+            // 将 numOpt 转换为 EMusicQueryType 并赋值给 opt
+            opt = static_cast<RogalunaMusicServer::EMusicQueryType>(numOpt);
+        } else {
+            // 处理无效的 opt 值，例如默认设置或者抛出错误
+            opt = RogalunaMusicServer::EMusicQueryType::E_RANDOM; // 设为默认值
+        }
+    }
+
+    if (query.hasQueryItem("param")) {
+        // 如果查询参数 "param" 存在
+        param = query.queryItemValue("param");
+        param = QUrl::fromPercentEncoding(param.toUtf8());
+    }
+
+    QJsonArray musicList = RogalunaHttpConfig::getInstance().getMusicServer()->getMusicList(opt, param);
 
     // 构建JSON响应
-    QJsonArray jsonArray;
+    // QJsonArray jsonArray;
     // for (const FileMetadata &entry : entries) {
     //     QJsonObject jsonObject;
     //     jsonObject["uid"] = entry.uid;
@@ -25,7 +106,7 @@ QHttpServerResponse GetMusicListHandler::handleRequest(const QHttpServerRequest 
 
     QJsonObject responseObject;
     responseObject["success"] = true;
-    responseObject["data"] = jsonArray;
+    responseObject["data"] = musicList;
     QJsonDocument jsonDoc(responseObject);
     QByteArray jsonResponse = jsonDoc.toJson();
 

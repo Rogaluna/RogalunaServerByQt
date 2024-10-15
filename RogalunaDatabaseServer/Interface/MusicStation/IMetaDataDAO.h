@@ -6,18 +6,18 @@
 
 namespace MusicStation {
 
-struct FFileMetadata {
-    QString uid;
-    int userId;
-    QString contentMd5;
-    QString fileName;
-    QString description;
-    int albumId;
-    int bitrate;
-    bool bPublished;
-    QDateTime createdAt;
-    QDateTime updatedAt;
-};
+// struct FFileMetadata {
+//     QString uid;
+//     int userId;
+//     QString contentMd5;
+//     QString fileName;
+//     QString description;
+//     int albumId;
+//     int bitrate;
+//     bool bPublished;
+//     QDateTime createdAt;
+//     QDateTime updatedAt;
+// };
 
 class IMetadataDAO
 {
@@ -37,7 +37,10 @@ public:
      * @return 新插入的元数据的UID。
      */
     virtual QString insertMetadata(int userId,
-                                   const QString &fileName,
+                                   const QString &fileType,
+                                   const QString &musicName,
+                                   int duration,
+                                   const QString &artist,
                                    const QString &contentMd5,
                                    const QString &description,
                                    const QString &albumId,
@@ -66,14 +69,14 @@ public:
      * @param uid 要获取的元数据的 UID。
      * @return 如果找到则返回元数据，否则返回 std::nullopt。
      */
-    virtual std::optional<FFileMetadata> getMetadataByUid(const QString& uid) = 0;
+    virtual QJsonArray getMetadataByUid(const QString& uid) = 0;
 
     /**
      * @brief 获取随机元数据记录。
      *
      * @return 包含随机元数据记录的向量。
      */
-    virtual std::optional<QVector<FFileMetadata>> getRandomMetadata() = 0;
+    virtual QJsonArray getRandomMetadata() = 0;
 
     /**
      * @brief 根据用户 ID 获取元数据记录。
@@ -81,7 +84,25 @@ public:
      * @param user_id 用户的 ID。
      * @return 包含该用户所有元数据记录的向量。
      */
-    // virtual std::optional<QVector<FFileMetadata>> getMetadataByUserId(int user_id) = 0;
+    virtual QJsonArray getMetadataByUserId(int user_id) = 0;
+
+    /**
+     * @brief 根据专辑 ID 获取元数据记录。
+     *
+     * @param album_id 专辑的 ID。
+     * @return 包含该专辑所有元数据记录的向量。
+     */
+    virtual QJsonArray getMetadataByAlbumId(const QString &albumId) = 0;
+
+    /**
+     * @brief 根据用户 ID 和是否公开获取元数据记录。
+     *
+     * @param user_id 用户的 ID。
+     * @param is_published 是否公开。
+     * @return 包含该用户对应公开/未公开的元数据记录的向量。
+     */
+    virtual QJsonArray getMetadataByUserIdAndPublished(int userId, bool bPublished) = 0;
+
 };
 
 }

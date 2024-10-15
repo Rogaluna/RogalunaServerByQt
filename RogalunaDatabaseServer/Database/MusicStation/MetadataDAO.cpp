@@ -1,10 +1,16 @@
 #include "MetadataDAO.h"
 
+#include <QJsonArray>
+#include <QJsonObject>
+
 namespace MusicStation {
 
 QString MusicStation::MetadataDAO::insertMetadata(
     int userId,
-    const QString &fileName,
+    const QString &fileType,
+    const QString &musicName,
+    int duration,
+    const QString &artist,
     const QString &contentMd5,
     const QString &description,
     const QString &albumId,
@@ -12,12 +18,15 @@ QString MusicStation::MetadataDAO::insertMetadata(
     bool bPublished)
 {
     QSqlQuery insertQuery(database);
-    QString sql = QString("INSERT INTO %1 (user_id, file_name, content_md5, description, album_id, bitrate, is_published) "
-                          "VALUES (:user_id, :file_name, :content_md5, :description, :album_id, :bitrate, :is_published)")
+    QString sql = QString("INSERT INTO %1 (user_id, file_type, music_name, duration, artist, content_md5, description, album_id, bitrate, is_published) "
+                          "VALUES (:user_id, :file_type, :music_name, :duration, :artist, :content_md5, :description, :album_id, :bitrate, :is_published) RETURNING uid")
                       .arg(fullTableName());
     insertQuery.prepare(sql);
     insertQuery.bindValue(":user_id", userId);
-    insertQuery.bindValue(":file_name", fileName);
+    insertQuery.bindValue(":file_type", fileType);
+    insertQuery.bindValue(":music_name", musicName);
+    insertQuery.bindValue(":duration", duration);
+    insertQuery.bindValue(":artist", artist);
     insertQuery.bindValue(":content_md5", contentMd5);
     insertQuery.bindValue(":description", description);
     insertQuery.bindValue(":album_id", albumId);
@@ -35,7 +44,7 @@ QString MusicStation::MetadataDAO::insertMetadata(
     return QString();
 }
 
-std::optional<FFileMetadata> MetadataDAO::getMetadataByUid(const QString &uid)
+QJsonArray MetadataDAO::getMetadataByUid(const QString &uid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT * FROM %1 WHERE uid = :uid").arg(fullTableName());
@@ -44,59 +53,159 @@ std::optional<FFileMetadata> MetadataDAO::getMetadataByUid(const QString &uid)
 
     if (!query.exec()) {
         qWarning() << "Failed to execute query:" << query.lastError().text();
-        return std::nullopt;
+        return QJsonArray();  // 查询失败，返回空数组
     }
 
+    QJsonArray metadataArray;
     if (query.next()) {
-        FFileMetadata metadata;
-        metadata.uid = query.value("uid").toString();
-        metadata.userId = query.value("user_id").toInt();
-        metadata.fileName = query.value("file_name").toString();
-        metadata.contentMd5 = query.value("content_md5").toString();
-        metadata.description = query.value("description").toString();
-        metadata.albumId = query.value("album_id").toInt();
-        metadata.bitrate = query.value("bitrate").toInt();
-        metadata.bPublished = query.value("is_published").toBool();
-        // 根据您的实际字段，继续填充 metadata 对象
+        QJsonObject metadata;
+        metadata["uid"] = query.value("uid").toString();
+        metadata["user_id"] = query.value("user_id").toInt();
+        metadata["file_type"] = query.value("file_type").toString();
+        metadata["music_name"] = query.value("music_name").toString();
+        metadata["duration"] = query.value("duration").toInt();
+        metadata["content_md5"] = query.value("content_md5").toString();
+        metadata["description"] = query.value("description").toString();
+        metadata["album_id"] = query.value("album_id").toString();
+        metadata["bitrate"] = query.value("bitrate").toInt();
+        metadata["is_published"] = query.value("is_published").toBool();
 
-        return metadata;
-    } else {
-        // 未找到记录
-        return std::nullopt;
+        metadataArray.append(metadata);  // 将 JSON 对象添加到数组中
     }
+
+    return metadataArray;
 }
 
-std::optional<QVector<FFileMetadata> > MetadataDAO::getRandomMetadata()
+QJsonArray MetadataDAO::getRandomMetadata()
 {
     QSqlQuery query(database);
-    QString sql = QString("SELECT * FROM %1 ORDER BY RANDOM() LIMIT 10").arg(fullTableName()); // 获取随机10条记录
-    if (!query.exec(sql)) {
+    QString sql = QString("SELECT * FROM %1 ORDER BY RANDOM() LIMIT 10").arg(fullTableName());
+    query.prepare(sql);
+
+    if (!query.exec()) {
         qWarning() << "Failed to execute query:" << query.lastError().text();
-        return std::nullopt;
+        return QJsonArray();  // 查询失败，返回空数组
     }
 
-    QVector<FFileMetadata> metadataList;
+    QJsonArray metadataArray;
     while (query.next()) {
-        FFileMetadata metadata;
-        metadata.uid = query.value("uid").toString();
-        metadata.userId = query.value("user_id").toInt();
-        metadata.fileName = query.value("file_name").toString();
-        metadata.contentMd5 = query.value("content_md5").toString();
-        metadata.description = query.value("description").toString();
-        metadata.albumId = query.value("album_id").toInt();
-        metadata.bitrate = query.value("bitrate").toInt();
-        metadata.bPublished = query.value("is_published").toBool();
-        // 根据您的实际字段，继续填充 metadata 对象
+        QJsonObject metadata;
+        metadata["uid"] = query.value("uid").toString();
+        metadata["user_id"] = query.value("user_id").toInt();
+        metadata["file_type"] = query.value("file_type").toString();
+        metadata["music_name"] = query.value("music_name").toString();
+        metadata["duration"] = query.value("duration").toInt();
+        metadata["artist"] = query.value("artist").toString();
+        metadata["content_md5"] = query.value("content_md5").toString();
+        metadata["description"] = query.value("description").toString();
+        metadata["album_id"] = query.value("album_id").toString();
+        metadata["bitrate"] = query.value("bitrate").toInt();
+        metadata["is_published"] = query.value("is_published").toBool();
 
-        metadataList.append(metadata);
+        metadataArray.append(metadata);  // 将 JSON 对象添加到数组中
     }
 
-    if (!metadataList.isEmpty()) {
-        return metadataList;
-    } else {
-        // 未找到任何记录
-        return std::nullopt;
+    return metadataArray;  // 返回包含所有元数据的数组
+}
+
+QJsonArray MetadataDAO::getMetadataByUserId(int userId)
+{
+    QSqlQuery query(database);
+    QString sql = QString("SELECT * FROM %1 WHERE user_id = :userId").arg(fullTableName());
+    query.prepare(sql);
+    query.bindValue(":userId", userId);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to execute query:" << query.lastError().text();
+        return QJsonArray();  // 查询失败，返回空数组
     }
+
+    QJsonArray metadataArray;
+    while (query.next()) {
+        QJsonObject metadata;
+        metadata["uid"] = query.value("uid").toString();
+        metadata["user_id"] = query.value("user_id").toInt();
+        metadata["file_type"] = query.value("file_type").toString();
+        metadata["music_name"] = query.value("music_name").toString();
+        metadata["duration"] = query.value("duration").toInt();
+        metadata["artist"] = query.value("artist").toString();
+        metadata["content_md5"] = query.value("content_md5").toString();
+        metadata["description"] = query.value("description").toString();
+        metadata["album_id"] = query.value("album_id").toString();
+        metadata["bitrate"] = query.value("bitrate").toInt();
+        metadata["is_published"] = query.value("is_published").toBool();
+
+        metadataArray.append(metadata);
+    }
+
+    return metadataArray;
+}
+
+QJsonArray MetadataDAO::getMetadataByAlbumId(const QString &albumId)
+{
+    QSqlQuery query(database);
+    QString sql = QString("SELECT * FROM %1 WHERE album_id = :albumId").arg(fullTableName());
+    query.prepare(sql);
+    query.bindValue(":albumId", albumId);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to execute query:" << query.lastError().text();
+        return QJsonArray();  // 查询失败，返回空数组
+    }
+
+    QJsonArray metadataArray;
+    while (query.next()) {
+        QJsonObject metadata;
+        metadata["uid"] = query.value("uid").toString();
+        metadata["user_id"] = query.value("user_id").toInt();
+        metadata["file_type"] = query.value("file_type").toString();
+        metadata["music_name"] = query.value("music_name").toString();
+        metadata["duration"] = query.value("duration").toInt();
+        metadata["artist"] = query.value("artist").toString();
+        metadata["content_md5"] = query.value("content_md5").toString();
+        metadata["description"] = query.value("description").toString();
+        metadata["album_id"] = query.value("album_id").toString();
+        metadata["bitrate"] = query.value("bitrate").toInt();
+        metadata["is_published"] = query.value("is_published").toBool();
+
+        metadataArray.append(metadata);
+    }
+
+    return metadataArray;
+}
+
+QJsonArray MetadataDAO::getMetadataByUserIdAndPublished(int userId, bool bPublished)
+{
+    QSqlQuery query(database);
+    QString sql = QString("SELECT * FROM %1 WHERE user_id = :userId AND is_published = :isPublished").arg(fullTableName());
+    query.prepare(sql);
+    query.bindValue(":userId", userId);
+    query.bindValue(":isPublished", bPublished);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to execute query:" << query.lastError().text();
+        return QJsonArray();  // 查询失败，返回空数组
+    }
+
+    QJsonArray metadataArray;
+    while (query.next()) {
+        QJsonObject metadata;
+        metadata["uid"] = query.value("uid").toString();
+        metadata["user_id"] = query.value("user_id").toInt();
+        metadata["file_type"] = query.value("file_type").toString();
+        metadata["music_name"] = query.value("music_name").toString();
+        metadata["duration"] = query.value("duration").toInt();
+        metadata["artist"] = query.value("artist").toString();
+        metadata["content_md5"] = query.value("content_md5").toString();
+        metadata["description"] = query.value("description").toString();
+        metadata["album_id"] = query.value("album_id").toString();
+        metadata["bitrate"] = query.value("bitrate").toInt();
+        metadata["is_published"] = query.value("is_published").toBool();
+
+        metadataArray.append(metadata);
+    }
+
+    return metadataArray;
 }
 
 }

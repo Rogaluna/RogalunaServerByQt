@@ -27,7 +27,10 @@ public:
      * @return 新插入的元数据的UID。
      */
     QString insertMetadata(int userId,
-                           const QString &fileName,
+                           const QString &fileType,
+                           const QString &musicName,
+                           int duration,
+                           const QString &artist,
                            const QString &contentMd5,
                            const QString &description,
                            const QString &albumId,
@@ -56,14 +59,14 @@ public:
      * @param uid 要获取的元数据的 UID。
      * @return 如果找到则返回元数据，否则返回 std::nullopt。
      */
-    std::optional<FFileMetadata> getMetadataByUid(const QString& uid) override;
+    QJsonArray getMetadataByUid(const QString& uid) override;
 
     /**
      * @brief 获取随机元数据记录。
      *
      * @return 包含随机元数据记录的向量。
      */
-    std::optional<QVector<FFileMetadata>> getRandomMetadata() override;
+    QJsonArray getRandomMetadata() override;
 
     /**
      * @brief 根据用户 ID 获取元数据记录。
@@ -71,7 +74,24 @@ public:
      * @param user_id 用户的 ID。
      * @return 包含该用户所有元数据记录的向量。
      */
-    // std::optional<QVector<FFileMetadata>> getMetadataByUserId(int user_id) override;
+    QJsonArray getMetadataByUserId(int userId) override;
+
+    /**
+     * @brief 根据专辑 ID 获取元数据记录。
+     *
+     * @param album_id 专辑的 ID。
+     * @return 包含该专辑所有元数据记录的向量。
+     */
+    QJsonArray getMetadataByAlbumId(const QString &albumId) override;
+
+    /**
+     * @brief 根据用户 ID 和是否公开获取元数据记录。
+     *
+     * @param user_id 用户的 ID。
+     * @param is_published 是否公开。
+     * @return 包含该用户对应公开/未公开的元数据记录的向量。
+     */
+    QJsonArray getMetadataByUserIdAndPublished(int userId, bool bPublished) override;
 };
 
 }

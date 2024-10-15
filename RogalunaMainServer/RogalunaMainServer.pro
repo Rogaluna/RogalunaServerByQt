@@ -48,6 +48,13 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../QJsonWebToken/ -lQJsonWebToken
 INCLUDEPATH += $$PWD/../QJsonWebToken
 DEPENDPATH += $$PWD/../QJsonWebToken
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/release/ -lQTagLib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/debug/ -lQTagLib
+else:unix:!macx: LIBS += -L$$OUT_PWD/../QTagLib/ -lQTagLib
+
+INCLUDEPATH += $$PWD/../QTagLib
+DEPENDPATH += $$PWD/../QTagLib
+
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/release/ -lRogalunaCloudDriveServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/debug/ -lRogalunaCloudDriveServer
 else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaCloudDriveServer/ -lRogalunaCloudDriveServer
@@ -69,9 +76,3 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaMusicServer/ -lRogalunaMusicServ
 INCLUDEPATH += $$PWD/../RogalunaMusicServer
 DEPENDPATH += $$PWD/../RogalunaMusicServer
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/release/ -lQTagLib
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QTagLib/debug/ -lQTagLib
-else:unix:!macx: LIBS += -L$$OUT_PWD/../QTagLib/ -lQTagLib
-
-INCLUDEPATH += $$PWD/../QTagLib
-DEPENDPATH += $$PWD/../QTagLib

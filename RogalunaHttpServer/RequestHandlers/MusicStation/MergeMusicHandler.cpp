@@ -81,7 +81,6 @@ QHttpServerResponse MergeMusicHandler::handleRequest(const QHttpServerRequest &r
 
     // 解析表单数据
     QString uid;
-    QString parentUid;
     QString fileName;
     qint64 totalChunks = -1;
 
@@ -91,8 +90,6 @@ QHttpServerResponse MergeMusicHandler::handleRequest(const QHttpServerRequest &r
     for (const MultipartPart &part : formParts) {
         if (part.name == "uid") {
             uid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "parentUid") {
-            parentUid = QString::fromUtf8(part.data).trimmed();
         } else if (part.name == "fileName") {
             fileName = QUrl::fromPercentEncoding(part.data).trimmed();
         } else if (part.name == "totalChunks") {
