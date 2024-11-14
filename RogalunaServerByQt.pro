@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     QTagLib \
+    RogalunaAccountServer \
     RogalunaConfigReader \
     RogalunaDatabaseServer \
     RogalunaHttpServer \

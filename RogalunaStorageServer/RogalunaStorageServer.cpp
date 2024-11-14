@@ -61,6 +61,41 @@ bool RogalunaStorageServer::writeFile(QFile &file, const QByteArray &data, qint6
     return bytesWritten == totalBytes;
 }
 
+bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &data, qint64 bufferSize)
+{
+    QFile file(path);
+
+    // 检查并创建路径中缺失的目录
+    QDir dir = QFileInfo(file).absoluteDir();
+    if (!dir.exists() && !dir.mkpath(".")) {
+        qWarning() << "Failed to create directory for file:" << path;
+        return false;
+    }
+
+    // 打开文件，使用写入模式和覆盖模式，如果文件不存在则创建
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qWarning() << "Failed to open file:" << path;
+        return false;
+    }
+
+    qint64 bytesWritten = 0;
+    qint64 totalBytes = data.size();
+
+    // 按照指定的缓冲区大小逐块写入数据
+    while (bytesWritten < totalBytes) {
+        qint64 chunkSize = qMin(bufferSize, totalBytes - bytesWritten);
+        qint64 written = file.write(data.mid(bytesWritten, chunkSize));
+        if (written == -1) {
+            qWarning() << "Error writing to file:" << path;
+            return false;  // 写入失败
+        }
+        bytesWritten += written;
+    }
+
+    file.close();
+    return bytesWritten == totalBytes;
+}
+
 bool RogalunaStorageServer::deleteFile(const QString &relativeFilePath)
 {
     QString filePath = absoluteFilePath(relativeFilePath);
@@ -72,12 +107,18 @@ bool RogalunaStorageServer::deleteFile(const QString &relativeFilePath)
     return false;
 }
 
-FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 bufferSize) {
+FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint64 bufferSize) {
     FileReadResult result;
 
-    if (!file.isOpen()) {
+    if (!file.open(QIODevice::ReadOnly)) {
         result.success = false;
         result.error = "File is not open";
+        return result;
+    }
+
+    if (!file.seek(offset)) {
+        result.success = false;
+        result.error = "Failed to seek to position";
         return result;
     }
 
@@ -89,6 +130,17 @@ FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 bufferSize) {
     if (!result.success && !result.atEnd) {
         result.error = "Failed to read file";
     }
+
+    return result;
+}
+
+FileReadResult RogalunaStorageServer::readFile(const QString &path, qint64 offset, qint64 bufferSize)
+{
+    QFile file(path);
+
+    FileReadResult result = readFile(file, offset, bufferSize);
+
+    file.close();
 
     return result;
 }

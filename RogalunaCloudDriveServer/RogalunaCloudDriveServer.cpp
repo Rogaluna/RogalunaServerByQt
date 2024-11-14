@@ -7,9 +7,9 @@
 #include <Database/CloudDrive/MetadataDAO.h>
 
 RogalunaCloudDriveServer::RogalunaCloudDriveServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root)
-    : storageServer(storageServer)
+    : root(root)
+    , storageServer(storageServer)
     , databaseServer(databaseServer)
-    , root(root)
 {
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
@@ -79,15 +79,8 @@ FileReadResult RogalunaCloudDriveServer::downloadFile(const QString &contentMd5)
         return { QByteArray(), false, "File not found", true };
     }
 
-    // 打开文件进行读取
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        return { QByteArray(), false, "Failed to open file", true };
-    }
-
     // 读取文件内容
-    FileReadResult result = storageServer->readFile(file);
-    file.close(); // 关闭文件
+    FileReadResult result = storageServer->readFile(filePath, 0);
     return result;
 }
 

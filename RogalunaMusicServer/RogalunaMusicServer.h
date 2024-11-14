@@ -83,6 +83,15 @@ public:
                         bool bPublished = false);
 
     /**
+     * @brief 保存专辑图片
+     *
+     * @param musicUid 音乐 uid
+     * @param cover 封面图片的内容
+     * @return 保存成功与否
+     */
+    bool saveAlbumCover(const QString &musicUid, const QByteArray &cover);
+
+    /**
      * @brief 获取音乐元数据
      *
      * @param uid 音乐的 UID
@@ -140,12 +149,14 @@ private:
     };
 
     AudioMetadata parseAudioFile(QFile &file);
-    QByteArray getAlbumCover(QFile &file, const QString &type);
+    QByteArray getAlbumCover(QFile &file, const QString &type); // 弃用
+
+public:
+    QString root;                    ///< 文件存储的根目录。
 
 private:
     RogalunaStorageServer* storageServer;
     RogalunaDatabaseServer* databaseServer;
-    QString root;
     QString musicDirName;
     QString coverDirName;
 };

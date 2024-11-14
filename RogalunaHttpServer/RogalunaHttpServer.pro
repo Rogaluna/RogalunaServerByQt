@@ -12,6 +12,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    RequestHandlers/Account/GetUserInfoHandler.cpp \
     RequestHandlers/Account/LoginHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.cpp \
@@ -24,16 +25,29 @@ SOURCES += \
     RequestHandlers/CloudDrive/MergeFileHandler.cpp \
     RequestHandlers/CloudDrive/PostFileHandler.cpp \
     RequestHandlers/GetWebFileHandler.cpp \
+    RequestHandlers/Library/DeleteBookHandler.cpp \
+    RequestHandlers/Library/DeleteChapterHandler.cpp \
     RequestHandlers/Library/GetBookCategoriesHandler.cpp \
+    RequestHandlers/Library/GetBookInfoHandler.cpp \
+    RequestHandlers/Library/GetBookListHandler.cpp \
+    RequestHandlers/Library/GetBookReadProgressHandler.cpp \
+    RequestHandlers/Library/GetChapterContentHandler.cpp \
+    RequestHandlers/Library/GetChapterListHandler.cpp \
+    RequestHandlers/Library/NewBookHandler.cpp \
+    RequestHandlers/Library/NewChapterHandler.cpp \
+    RequestHandlers/Library/UpdateBookReadProgressHandler.cpp \
+    RequestHandlers/Library/UpdateChapterContentHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RequestHandlers/MusicStation/MergeMusicHandler.cpp \
+    RequestHandlers/MusicStation/PostAlbumImageHandler.cpp \
     RequestHandlers/MusicStation/PostMusicHandler.cpp \
     RogalunaHttpServer.cpp
 
 HEADERS += \
     Macro/RequestBodyParser.h \
     Macro/TokenGV.h \
+    RequestHandlers/Account/GetUserInfoHandler.h \
     RequestHandlers/Account/LoginHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.h \
@@ -46,10 +60,22 @@ HEADERS += \
     RequestHandlers/CloudDrive/MergeFileHandler.h \
     RequestHandlers/CloudDrive/PostFileHandler.h \
     RequestHandlers/GetWebFileHandler.h \
+    RequestHandlers/Library/DeleteBookHandler.h \
+    RequestHandlers/Library/DeleteChapterHandler.h \
     RequestHandlers/Library/GetBookCategoriesHandler.h \
+    RequestHandlers/Library/GetBookInfoHandler.h \
+    RequestHandlers/Library/GetBookListHandler.h \
+    RequestHandlers/Library/GetBookReadProgressHandler.h \
+    RequestHandlers/Library/GetChapterContentHandler.h \
+    RequestHandlers/Library/GetChapterListHandler.h \
+    RequestHandlers/Library/NewBookHandler.h \
+    RequestHandlers/Library/NewChapterHandler.h \
+    RequestHandlers/Library/UpdateBookReadProgressHandler.h \
+    RequestHandlers/Library/UpdateChapterContentHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/MusicStation/MergeMusicHandler.h \
+    RequestHandlers/MusicStation/PostAlbumImageHandler.h \
     RequestHandlers/MusicStation/PostMusicHandler.h \
     RequestHandlers/TestHandler.h \
     RogalunaHttpConfig.h \
@@ -79,10 +105,6 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDataba
 INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
 DEPENDPATH += $$PWD/../RogalunaDatabaseServer
 
-
-INCLUDEPATH += $$PWD/../thirdparty/bcrypt/include
-LIBS += -L$$PWD/../thirdparty/bcrypt/lib -lbcrypt
-
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/release/ -lQJsonWebToken
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/debug/ -lQJsonWebToken
 else:unix:!macx: LIBS += -L$$OUT_PWD/../QJsonWebToken/ -lQJsonWebToken
@@ -111,3 +133,10 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaMusicServer/ -lRogalunaMusicServ
 
 INCLUDEPATH += $$PWD/../RogalunaMusicServer
 DEPENDPATH += $$PWD/../RogalunaMusicServer
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaAccountServer/release/ -lRogalunaAccountServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaAccountServer/debug/ -lRogalunaAccountServer
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaAccountServer/ -lRogalunaAccountServer
+
+INCLUDEPATH += $$PWD/../RogalunaAccountServer
+DEPENDPATH += $$PWD/../RogalunaAccountServer

@@ -31,6 +31,7 @@ public:
     QString mergeChunks(const QString &tempDirName, const QString &fileName, int totalChunks, int userId, const QString &parentUid = QString());
 
     // 下载文件，通过 MD5 获取文件数据
+    /* 注：这个函数实际上没有被使用过，预计会在获取文件的地方调用它，之后的修改可以酌情参考 */
     FileReadResult downloadFile(const QString &contentMd5);
 
     // 删除文件，通过 MD5 删除文件和数据库记录
@@ -51,10 +52,12 @@ public:
     // 根据路径获取 uid 对象
     std::optional<CloudDrive::FFileMetadata> getMetadataFromPath(const QString& path, int userId);
 
+public:
+    QString root;                    ///< 文件存储的根目录。
+
 private:
     RogalunaStorageServer* storageServer;
     RogalunaDatabaseServer* databaseServer;
-    QString root;
 };
 
 #endif // ROGALUNACLOUDDRIVESERVER_H

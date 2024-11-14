@@ -10,6 +10,7 @@
 #include <Database/TestDAO.h>
 
 
+#include <RogalunaAccountServer.h>
 #include <RogalunaCloudDriveServer.h>
 #include <RogalunaLibraryServer.h>
 #include <RogalunaMusicServer.h>
@@ -54,7 +55,10 @@ int main(int argc, char *argv[])
                {"dbname", "rogaluna_database"},
                {"username", "postgres"},
                {"password", "Lxzx546495"},
-               {"port", 5432}
+               {"port", 5432},
+               {"interval", 5000},
+               {"maxReconnectAttempts", 5},
+               {"reconnectInterval", 3000}
             })
         }));
     }
@@ -66,7 +70,10 @@ int main(int argc, char *argv[])
         ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "dbname").toString(),
         ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "username").toString(),
         ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "password").toString(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "port").toInt());
+        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "port").toInt(),
+        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "interval").toInt(),
+        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "maxReconnectAttempts").toInt(),
+        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "reconnectInterval").toInt());
     // RogalunaDatabaseServer dbServer("117.72.65.176", "test", "postgres", "Lxzx546495", 5432);
     if (!dbServer.connect())
     {
@@ -75,6 +82,24 @@ int main(int argc, char *argv[])
     }
 
     //========================================================================================//
+
+    // 初始化账户服务
+
+    configFile accountConfig("account_config.ini");
+    if (!accountConfig.isConfigFileValid()) {
+        accountConfig.writeConfigFile(ConfigGroup::createConfigGroups({
+            ConfigGroup("Account", {
+               {"root", "account"},
+               })
+        }));
+    }
+    QList<ConfigGroup> accountConfigGroupsRead;
+    accountConfig.readConfigFile(accountConfigGroupsRead);
+
+    RogalunaAccountServer accountServer(
+        &rss,
+        &dbServer,
+        ConfigGroup::getConfigValue(accountConfigGroupsRead, "Account", "root").toString());
 
     // 初始化云盘服务
 
@@ -159,6 +184,7 @@ int main(int argc, char *argv[])
 
     server.setStorageServer(&rss);
     server.setDatabaseServer(&dbServer);
+    server.setAccountServer(&accountServer);
     server.setCloudDriveServer(&cloudDriveServer);
     server.setLibraryServer(&libraryServer);
     server.setMusicServer(&musicServer);

@@ -7,6 +7,7 @@
 
 class RogalunaMusicServer;
 class RogalunaLibraryServer;
+class RogalunaAccountServer;
 class RogalunaCloudDriveServer;
 class RogalunaStorageServer;
 class RogalunaDatabaseServer;
@@ -31,6 +32,8 @@ public:
 public:
     void setStorageServer(RogalunaStorageServer *_storageServer);
     void setDatabaseServer(RogalunaDatabaseServer* _databaseServer);
+
+    void setAccountServer(RogalunaAccountServer* _accountServer);
     void setCloudDriveServer(RogalunaCloudDriveServer* _cloudDriveServer);
     void setLibraryServer(RogalunaLibraryServer* _libraryServer);
     void setMusicServer(RogalunaMusicServer* _musicServer);

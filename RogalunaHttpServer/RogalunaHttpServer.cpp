@@ -19,10 +19,19 @@
 #include <RequestHandlers/CloudDrive/MergeFileHandler.h>
 #include <RequestHandlers/CloudDrive/PostFileHandler.h>
 
+#include <RequestHandlers/Account/GetUserInfoHandler.h>
 #include <RequestHandlers/Account/LoginHandler.h>
 #include <RequestHandlers/Account/RegisterHandler.h>
 
 #include <RequestHandlers/Library/GetBookCategoriesHandler.h>
+#include <RequestHandlers/Library/GetBookInfoHandler.h>
+#include <RequestHandlers/Library/GetBookListHandler.h>
+#include <RequestHandlers/Library/GetBookReadProgressHandler.h>
+#include <RequestHandlers/Library/GetChapterContentHandler.h>
+#include <RequestHandlers/Library/GetChapterListHandler.h>
+#include <RequestHandlers/Library/NewBookHandler.h>
+#include <RequestHandlers/Library/NewChapterHandler.h>
+#include <RequestHandlers/Library/UpdateChapterContentHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
@@ -77,10 +86,19 @@ bool RogalunaHttpServer::start(quint16 port)
 
     REGISTER_ROUTE(server, "/api/account/register", QHttpServerRequest::Method::Post, RegisterHandler);
     REGISTER_ROUTE(server, "/api/account/login", QHttpServerRequest::Method::Post, LoginHandler);
+    REGISTER_ROUTE(server, "/api/account/getUserInfo", QHttpServerRequest::Method::Get, GetUserInfoHandler);
 
     qDebug() << "||||||||||||||||||||       Library       ||||||||||||||||||||";
 
     REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategoriesHandler);
+    REGISTER_ROUTE(server, "/api/library/newBook", QHttpServerRequest::Method::Post, NewBookHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookList", QHttpServerRequest::Method::Get, GetBookListHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookInfo", QHttpServerRequest::Method::Get, GetBookInfoHandler);
+    REGISTER_ROUTE(server, "/api/library/newChapter", QHttpServerRequest::Method::Post, NewChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterList", QHttpServerRequest::Method::Get, GetChapterListHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterContent", QHttpServerRequest::Method::Get, GetChapterContentHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookReadProgress", QHttpServerRequest::Method::Get, GetBookReadProgressHandler);
+    REGISTER_ROUTE(server, "/api/library/updateChapterContent", QHttpServerRequest::Method::Post, UpdateChapterContentHandler);
 
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 
@@ -113,6 +131,11 @@ void RogalunaHttpServer::setStorageServer(RogalunaStorageServer *_storageServer)
 void RogalunaHttpServer::setDatabaseServer(RogalunaDatabaseServer *_databaseServer)
 {
     RogalunaHttpConfig::getInstance().setDatabaseServer(_databaseServer);
+}
+
+void RogalunaHttpServer::setAccountServer(RogalunaAccountServer *_accountServer)
+{
+    RogalunaHttpConfig::getInstance().setAccountServer(_accountServer);
 }
 
 void RogalunaHttpServer::setCloudDriveServer(RogalunaCloudDriveServer *_cloudDriveServer)

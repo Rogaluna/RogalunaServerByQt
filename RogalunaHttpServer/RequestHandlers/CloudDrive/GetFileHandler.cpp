@@ -81,12 +81,12 @@ QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &requ
     QString fileName = fileInfo.fileName();
     qint64 fileSize = file.size();
 
-    // 检查是否为 Range 请求（断点续传）
+    // 位置指示器，以及是否断点续传符号定义
     qint64 startPos = 0;
     qint64 endPos = fileSize - 1; // 默认读取整个文件
     bool isRangeRequest = false;
 
-    // 获取请求头
+    // 获取请求头，检查是否为 Range 请求（断点续传）
     QString rangeHeader;
     for (const auto &header : headers) {
         if (header.first.toLower() == "range") {

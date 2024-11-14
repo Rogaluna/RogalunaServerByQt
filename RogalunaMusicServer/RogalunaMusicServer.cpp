@@ -19,9 +19,9 @@ RogalunaMusicServer::RogalunaMusicServer(
     const QString &root,
     const QString &musicDirName,
     const QString &coverDirName)
-    : storageServer(storageServer)
+    : root(root)
+    , storageServer(storageServer)
     , databaseServer(databaseServer)
-    , root(root)
     , musicDirName(musicDirName)
     , coverDirName(coverDirName)
 {
@@ -189,6 +189,16 @@ QString RogalunaMusicServer::mergeChunks(
 
     // 最终返回写入到元数据表中的 uuid
     return uuid;
+}
+
+bool RogalunaMusicServer::saveAlbumCover(const QString &musicUid, const QByteArray &cover)
+{
+    QString coverDirPath = root + QDir::separator() + coverDirName;
+
+    return storageServer->writeFile(
+        storageServer->absoluteFilePath(coverDirPath + QDir::separator() + musicUid),
+        cover
+        );
 }
 
 QJsonArray RogalunaMusicServer::getMusicMetadata(const QString &uid)

@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 
@@ -65,12 +66,12 @@ QHttpServerResponse GetBookCategoriesHandler::handleRequest(const QHttpServerReq
 
     // 获取书籍类别数据
     QUrlQuery query = request.query();
-    // 提取 category 参数
-    QString category;
+    // 提取 category 参数 (id 形式)
+    int category = 0;
     if (query.hasQueryItem("category")) {
-        category = query.queryItemValue("category");
+        category = query.queryItemValue("category").toInt();
     } else {
-        // 如果没有 token 参数，返回错误响应
+        // 如果没有 category 参数，返回错误响应
         QHttpServerResponse response("Missing category in query parameters", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
         return response;

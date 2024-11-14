@@ -26,10 +26,19 @@ struct FileReadResult {
     bool atEnd;       // 是否已读取到文件末尾
 };
 
-
+/**
+ * @class RogalunaStorageServer
+ * @brief 一个用于管理文件操作的存储服务器类，包括文件的读取、写入、删除和合并操作。
+ */
 class ROGALUNASTORAGESERVER_EXPORT RogalunaStorageServer
 {
 public:
+    /**
+     * @brief 构造一个 RogalunaStorageServer 实例。
+     * @param rootDir 文件存储的根目录。
+     * @param tempDir 临时文件存储的目录。
+     * @param tempFilePrefix 临时文件的命名前缀。
+     */
     RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix);
 
     // 删除拷贝构造函数和赋值操作符，防止实例被拷贝
@@ -37,32 +46,113 @@ public:
     RogalunaStorageServer& operator=(const RogalunaStorageServer&) = delete;
 
 public:
-    // 获取文件的绝对路径
+    /**
+     * @brief 获取文件相对程序的路径。（旧名没有变动）
+     * @param relativeFilePath 文件的相对路径。
+     * @return 文件相对程序的路径。
+     */
     QString absoluteFilePath(const QString &relativeFilePath) const;
 
+    /**
+     * @brief 写入数据到指定的 QFile 文件对象。
+     * @param file 要写入的 QFile 对象。
+     * @param data 要写入的数据。
+     * @param bufferSize 每次写入的缓冲区大小，默认为 4096 字节。
+     * @return 如果写入成功返回 true，否则返回 false。
+     */
     bool writeFile(QFile &file, const QByteArray &data, qint64 bufferSize = 4096);
+
+    /**
+     * @brief 写入数据到指定路径的文件。如果文件已存在，将覆盖；如果不存在，将创建文件。
+     * @param path 要写入的文件路径。
+     * @param data 要写入的数据。
+     * @param bufferSize 每次写入的缓冲区大小，默认为 4096 字节。
+     * @return 如果写入成功返回 true，否则返回 false。
+     */
+    bool writeFile(const QString &path, const QByteArray &data, qint64 bufferSize = 4096);
+
+    /**
+     * @brief 删除指定路径的文件。
+     * @param filePath 要删除的文件路径。
+     * @return 如果删除成功返回 true，否则返回 false。
+     */
     bool deleteFile(const QString &filePath);
-    FileReadResult readFile(QFile &file, qint64 bufferSize = 4096);
+
+    /**
+     * @brief 读取 QFile 对象中的数据。
+     * @param file 要读取的 QFile 对象。
+     * @param offset 读取的字节偏移量。
+     * @param bufferSize 每次读取的缓冲区大小，默认为 4096 字节。
+     * @return 返回包含读取结果的 FileReadResult 对象。
+     */
+    FileReadResult readFile(QFile &file, qint64 offset, qint64 bufferSize = 4096);
+
+    /**
+     * @brief 读取指定路径的文件。
+     * @param path 要读取的文件路径。
+     * @param offset 读取的字节偏移量。
+     * @param bufferSize 每次读取的缓冲区大小，默认为 4096 字节。
+     * @return 返回包含读取结果的 FileReadResult 对象。
+     */
+    FileReadResult readFile(const QString &path, qint64 offset, qint64 bufferSize = 4096);
+
+    /**
+     * @brief 列出指定目录中的文件和文件夹。
+     * @param directoryPath 要列出的目录路径。
+     * @param includeDirs 是否包含目录，默认为 true。
+     * @return 返回包含文件信息的 QVector。
+     */
     QVector<FileInfoStruct> listFiles(const QString &directoryPath, bool includeDirs = true);
 
-    // 获取临时文件夹路径
+    /**
+     * @brief 获取临时文件夹的路径。
+     * @return 临时文件夹路径的 QString。
+     */
     QString getTempPath() const { return temp; };
 
-    // 写临时块，如果有校验码，校验，否则不进行校验
+    /**
+     * @brief 写入临时文件块，如果提供了校验码则进行校验。
+     * @param tempFileDirName 临时文件目录名称。
+     * @param chunkIndex 当前块的索引。
+     * @param chunkData 当前块的数据。
+     * @param chunkMd5 当前块的 MD5 校验码，可选。
+     * @return 如果写入成功返回 true，否则返回 false。
+     */
     bool writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
-    // 合并临时文件夹内的块，参数 targetDir 指示了相对 storage 基础路径下的目录，因此不能传入完整路径
+
+    /**
+     * @brief 合并临时文件夹中的文件块到目标目录。
+     * @param tempFileDirName 临时文件目录名称。
+     * @param totalChunks 总块数。
+     * @param targetDir 目标目录（相对于存储根目录）。
+     * @param mergeFileName 合并后的文件名。
+     * @return 如果合并成功返回 true，否则返回 false。
+     */
     bool mergeTempFile(const QString &tempFileDirName, int totalChunks, const QString &targetDir, const QString &mergeFileName);
 
     // 清理临时文件夹
 
 private:
+    /**
+     * @brief 获取文件的类型。
+     * @param fileInfo 文件的 QFileInfo 对象。
+     * @return 文件类型的 QString。
+     */
     QString getFileType(const QFileInfo &fileInfo);
+
+    /**
+     * @brief 格式化文件大小为易读的字符串。
+     * @param size 文件大小（字节）。
+     * @return 格式化后的文件大小字符串。
+     */
     QString formatFileSize(qint64 size) const;
 
-private:
-    QString root;
-    QString temp;
-    QString tempFilePrefix;
+public:
+    QString root;                    ///< 文件存储的根目录。
+
+private:                
+    QString temp;                    ///< 临时文件存储的目录。
+    QString tempFilePrefix;          ///< 临时文件的命名前缀。
 };
 
 #endif // ROGALUNASTORAGESERVER_H

@@ -4,12 +4,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaDatabaseServer.h>
+#include <RogalunaAccountServer.h>
 
 #include <Macro/RequestBodyParser.h>
-#include <bcrypt.h>
-
-#include <Database/Account/UsersDAO.h>
 
 QHttpServerResponse RegisterHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -47,13 +44,9 @@ QHttpServerResponse RegisterHandler::handleRequest(const QHttpServerRequest &req
         }
     }
 
-    // bcrypt 进行加密
-    int saltRounds = 10;
-    QString hashedPassword = QString::fromStdString(bcrypt::generateHash(password.toStdString(), saltRounds));
+    QJsonObject result = RogalunaHttpConfig::getInstance().getAccountServer()->registerAccount(username, password);
 
-    Account::UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
-    std::optional<Account::User> newUser = userDAO.registerUser(username, hashedPassword);
-    if (!newUser) {
+    if (result.isEmpty()) {
         // 注册失败
         QHttpServerResponse response("Register Fail!", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
@@ -62,9 +55,8 @@ QHttpServerResponse RegisterHandler::handleRequest(const QHttpServerRequest &req
 
     // 返回 JSON 响应，表示注册成功
     QJsonObject jsonResponse;
-    jsonResponse["id"] = newUser->id;
-    jsonResponse["username"] = newUser->username;
-    jsonResponse["authority"] = newUser->authority;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = result;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

@@ -1,17 +1,11 @@
 #include "LoginHandler.h"
 
 #include <QHttpServerRequest>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaDatabaseServer.h>
+#include <RogalunaAccountServer.h>
 
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
-
-#include <bcrypt.h>
-
-#include <Database/Account/UsersDAO.h>
 
 QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -49,38 +43,24 @@ QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &reques
         }
     }
 
-    Account::UserDAO userDAO(RogalunaHttpConfig::getInstance().getDatabaseServer()->getDatabase());
-    std::optional<Account::User> user = std::nullopt;
-    bool isId;
-    int id = usernameOrId.toInt(&isId);
-    if (isId) {
-        user = userDAO.getUserById(id);
-    } else {
-        user = userDAO.getUserByName(usernameOrId);
-    }
+    QJsonObject result = RogalunaHttpConfig::getInstance().getAccountServer()->loginAccount(usernameOrId, password);
 
-    // 未检索到账户
-    if (user == std::nullopt) {
-        QHttpServerResponse response("Account does not exist", QHttpServerResponse::StatusCode::BadRequest);
+    if (result["success"].toBool() == false) {
+        QJsonDocument jsonDoc(result);
+        QByteArray jsonResponseData = jsonDoc.toJson();
+
+        QHttpServerResponse response("application/json", jsonResponseData, QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
         return response;
     }
 
-    // 获取了加密密码，使用 bcrypt 验证密码
-    bool isPasswordCorrect = bcrypt::validatePassword(password.toStdString(), user->password.toStdString());
-
-    // 密码错误
-    if (!isPasswordCorrect) {
-        QHttpServerResponse response("Password Incorrect!", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-        return response;
-    }
+    const QJsonObject &user = result["data"].toObject();
 
     // 密码验证通过, 生成 Token
     QList<QPair<QString, QString>> claims = {
-        {"id", QString::number(user->id)},
-        {"username", user->username},
-        {"authority", user->authority},
+        {"id", user["id"].toString()},
+        {"username", user["username"].toString()},
+        {"authority", user["authority"].toString()},
         {"iat", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())},
         {"exp", QString::number(QDateTime::currentDateTime().addDays(7).toSecsSinceEpoch())}
     };

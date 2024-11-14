@@ -17,6 +17,7 @@ public:                                         \
 class QString;
 class RogalunaStorageServer;
 class RogalunaDatabaseServer;
+class RogalunaAccountServer;
 class RogalunaCloudDriveServer;
 class RogalunaLibraryServer;
 class RogalunaMusicServer;
@@ -28,6 +29,7 @@ class RogalunaHttpConfig
     ADD_PROPERTY_PTR(QString, SecretKey)
     ADD_PROPERTY_PTR(RogalunaStorageServer, StorageServer)
     ADD_PROPERTY_PTR(RogalunaDatabaseServer, DatabaseServer)
+    ADD_PROPERTY_PTR(RogalunaAccountServer, AccountServer)
     ADD_PROPERTY_PTR(RogalunaCloudDriveServer, CloudDriveServer)
     ADD_PROPERTY_PTR(RogalunaLibraryServer, LibraryServer)
     ADD_PROPERTY_PTR(RogalunaMusicServer, MusicServer)

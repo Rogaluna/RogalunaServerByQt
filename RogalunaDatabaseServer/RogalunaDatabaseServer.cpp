@@ -1,12 +1,27 @@
 #include "RogalunaDatabaseServer.h"
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
+#include <HeartbeatTimer.h>
 #include <QDebug>
+#include <QThread>
 
-RogalunaDatabaseServer::RogalunaDatabaseServer(const QString& hostname, const QString& dbname, const QString& username, const QString& password, int port)
-    : hostname(hostname), dbname(dbname), username(username), password(password), port(port)
+RogalunaDatabaseServer::RogalunaDatabaseServer(
+   const QString& hostname,
+   const QString& dbname,
+   const QString& username,
+   const QString& password,
+   int port,
+   int intervalMs,
+   int maxReconnectAttempts,
+   int reconnectIntervalMs)
+    : hostname(hostname)
+    , dbname(dbname)
+    , username(username)
+    , password(password)
+    , port(port)
+    , maxReconnectAttempts(maxReconnectAttempts)
+    , reconnectIntervalMs(reconnectIntervalMs)
 {
-
     db = QSqlDatabase::addDatabase("QPSQL");
     db.setHostName(hostname);
     db.setDatabaseName(dbname);
@@ -20,6 +35,9 @@ RogalunaDatabaseServer::RogalunaDatabaseServer(const QString& hostname, const QS
     // db.setUserName("postgres");  // 数据库用户名
     // db.setPassword("Lxzx546495");  // 数据库密码
     // db.setPort(5432);  // 数据库端口，默认是5432
+
+    heartbeatTimer = new HeartbeatTimer(db, intervalMs);
+    heartbeatTimer->setOnStopCallback(std::bind(&RogalunaDatabaseServer::onHeartbeatStop, this));
 }
 
 RogalunaDatabaseServer::~RogalunaDatabaseServer()
@@ -33,6 +51,8 @@ bool RogalunaDatabaseServer::connect()
         qDebug() << "Database connection error:" << db.lastError();
         return false;
     }
+    reconnectAttempts = 0; // 重置重连计数
+    heartbeatTimer->start();
     return true;
 }
 
@@ -43,8 +63,36 @@ void RogalunaDatabaseServer::disconnect()
     }
 }
 
+bool RogalunaDatabaseServer::isConnected()
+{
+    return db.isOpen() && db.isValid();
+}
+
 QSqlDatabase& RogalunaDatabaseServer::getDatabase()
 {
     return db;
 }
 
+void RogalunaDatabaseServer::onHeartbeatStop()
+{
+    qDebug() << "Heartbeat stopped, attempting to reconnect...";
+    heartbeatTimer->stop();
+
+    const auto tryReconnect = [this]() {
+        disconnect();
+        return connect();
+    };
+
+    while (reconnectAttempts < maxReconnectAttempts) {
+        qDebug() << "Reconnection attempt" << (reconnectAttempts + 1);
+        if (tryReconnect()) {
+            qDebug() << "Reconnected successfully.";
+            heartbeatTimer->start();
+            return;
+        }
+        reconnectAttempts++;
+        QThread::sleep(reconnectIntervalMs / 1000); // 等待一段时间后重试
+    }
+
+    qWarning() << "Failed to reconnect after" << maxReconnectAttempts << "attempts.";
+}

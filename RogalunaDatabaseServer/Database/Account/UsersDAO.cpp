@@ -4,7 +4,7 @@ namespace Account {
 
 UserDAO::UserDAO(QSqlDatabase& db, const QString& schema, const QString& tableName): BaseDAO(db, schema, tableName) {}
 
-std::optional<User> UserDAO::registerUser(const QString& username, const QString& passwordHash,
+QJsonObject UserDAO::registerUser(const QString& username, const QString& passwordHash,
                                           const std::optional<QString>& authority)
 {
     QString sql = QString("INSERT INTO %1 (username, password").arg(fullTableName());
@@ -27,15 +27,20 @@ std::optional<User> UserDAO::registerUser(const QString& username, const QString
         query.addBindValue(*authority);
     }
 
+    QJsonObject result;
+
     if (executeQuery(query) && query.next()) {
         // 获取新插入的用户ID
         int userId = query.value("id").toInt();
         // 如果 authority 没有提供，默认为 "normal"
         QString authValue = authority ? *authority : "normal";
-        return User(userId, username, authValue);
+
+        result["userId"] = userId;
+        result["username"] = username;
+        result["authority"] = authValue;
     }
 
-    return std::nullopt;  // 插入失败，返回空值
+    return result;  // 返回插入结果
 }
 
 bool UserDAO::deleteUser(int userId)
@@ -46,7 +51,7 @@ bool UserDAO::deleteUser(int userId)
     return query.exec();
 }
 
-std::optional<User> UserDAO::updateUser(int userId,
+QJsonObject UserDAO::updateUser(int userId,
                                         const std::optional<QString>& username,
                                         const std::optional<QString>& passwordHash,
                                         const std::optional<QString>& authority)
@@ -54,6 +59,7 @@ std::optional<User> UserDAO::updateUser(int userId,
     // 动态构建 SQL 语句
     QString sql = QString("UPDATE %1 SET ").arg(fullTableName());
     QStringList setClauses;
+    QJsonObject result;
 
     if (username) {
         setClauses << "username = :username";
@@ -66,7 +72,7 @@ std::optional<User> UserDAO::updateUser(int userId,
     }
 
     if (setClauses.isEmpty()) {
-        return std::nullopt;  // 如果没有任何字段需要更新，返回空值
+        return result;  // 如果没有任何字段需要更新，返回空值
     }
 
     sql += setClauses.join(", ");
@@ -87,45 +93,47 @@ std::optional<User> UserDAO::updateUser(int userId,
     query.bindValue(":id", userId);
 
     if (executeQuery(query) && query.next()) {
-        // 返回更新后的用户信息
-        return User(query.value("id").toInt(),
-                    query.value("username").toString(),
-                    query.value("authority").toString());
+        // 写入更新后的用户信息
+        result["userId"] = query.value("id").toInt();
+        result["username"] = query.value("username").toString();
+        result["authority"] = query.value("authority").toString();
     }
 
-    return std::nullopt;  // 更新失败，返回空值
+    return result;  // 返回结果值
 }
 
-std::optional<User> UserDAO::getUserById(int userId)
+QJsonObject UserDAO::getUserById(int userId)
 {
+    QJsonObject result;
+
     QString sql = QString("SELECT id, username, password, authority FROM %1 WHERE id = :id").arg(fullTableName());
     QSqlQuery query = createSchemaQuery(sql);
     query.bindValue(":id", userId);
 
     if (executeQuery(query) && query.next()) {
-        User user(query.value("id").toInt(),
-                  query.value("username").toString(),
-                  query.value("password").toString(),
-                  query.value("authority").toString());
-        return user;  // 返回 User 对象的 std::optional
+        result["userId"] = query.value("id").toInt();
+        result["username"] = query.value("username").toString();
+        result["password"] = query.value("password").toString();
+        result["authority"] = query.value("authority").toString();
     }
-    return std::nullopt;  // 未找到
+    return result;
 }
 
-std::optional<User> UserDAO::getUserByName(QString username)
+QJsonObject UserDAO::getUserByName(QString username)
 {
+    QJsonObject result;
+
     QString sql = QString("SELECT id, username, password, authority FROM %1 WHERE username = :username").arg(fullTableName());
     QSqlQuery query = createSchemaQuery(sql);
     query.bindValue(":username", username);
 
     if (executeQuery(query) && query.next()) {
-        User user(query.value("id").toInt(),
-                  query.value("username").toString(),
-                  query.value("password").toString(),
-                  query.value("authority").toString());
-        return user;  // 返回 User 对象的 std::optional
+        result["userId"] = query.value("id").toInt();
+        result["username"] = query.value("username").toString();
+        result["password"] = query.value("password").toString();
+        result["authority"] = query.value("authority").toString();
     }
-    return std::nullopt;  // 未找到
+    return result;  // 未找到
 }
 
 }
