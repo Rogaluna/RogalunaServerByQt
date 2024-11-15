@@ -38,6 +38,8 @@ public:
     void setLibraryServer(RogalunaLibraryServer* _libraryServer);
     void setMusicServer(RogalunaMusicServer* _musicServer);
 
+    void postInitialization();
+
 private:
     QHttpServer *server;
 

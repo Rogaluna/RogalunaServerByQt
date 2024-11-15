@@ -65,10 +65,3 @@ unix {
     target.path = /usr/lib
 }
 !isEmpty(target.path): INSTALLS += target
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaAccountServer/release/ -lRogalunaAccountServer
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaAccountServer/debug/ -lRogalunaAccountServer
-else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaAccountServer/ -lRogalunaAccountServer
-
-INCLUDEPATH += $$PWD/../RogalunaAccountServer
-DEPENDPATH += $$PWD/../RogalunaAccountServer

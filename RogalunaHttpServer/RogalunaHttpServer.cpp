@@ -4,6 +4,7 @@
 #include <QHostAddress>
 #include <QDebug>
 #include <RogalunaHttpConfig.h>
+#include <RogalunaStorageServer.h>
 
 #include <RequestHandlers/DefaultOptionsHandler.h>
 
@@ -48,8 +49,6 @@ RogalunaHttpServer::RogalunaHttpServer(
     , algorithm(_algorithm)
     , secretKey(_secretKey)
 {
-    QString localWebRootPath = webRootPath;
-
     RogalunaHttpConfig::getInstance().setWebRootPath(&webRootPath);
     RogalunaHttpConfig::getInstance().setAlgorithm(&algorithm);
     RogalunaHttpConfig::getInstance().setSecretKey(&secretKey);
@@ -151,4 +150,16 @@ void RogalunaHttpServer::setLibraryServer(RogalunaLibraryServer *_libraryServer)
 void RogalunaHttpServer::setMusicServer(RogalunaMusicServer *_musicServer)
 {
     RogalunaHttpConfig::getInstance().setMusicServer(_musicServer);
+}
+
+void RogalunaHttpServer::postInitialization()
+{
+    // 后初始化，在设置了配置变量之后调用
+
+    // 检查 webRootPath 所标识的文件夹是否存在，不存在则创建一个
+    QString rootPath = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(webRootPath);
+    QDir rootDir(rootPath);
+    if (!rootDir.exists()) {
+        rootDir.mkpath(".");  // 创建根文件夹
+    }
 }

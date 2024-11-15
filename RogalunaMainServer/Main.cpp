@@ -189,6 +189,8 @@ int main(int argc, char *argv[])
     server.setLibraryServer(&libraryServer);
     server.setMusicServer(&musicServer);
 
+    server.postInitialization();
+
     server.start(ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "port").toInt());
 
     return a.exec();
