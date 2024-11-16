@@ -64,7 +64,7 @@ QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerReq
     // 提取书籍 id 和章节 index
     QString bookId;
     QString chapterIndex;
-    if (query.hasQueryItem("id") && query.hasQueryItem("index")) {
+    if (query.hasQueryItem("id") || query.hasQueryItem("index")) {
         bookId = query.queryItemValue("id");
         chapterIndex = query.queryItemValue("index");
     } else {
@@ -74,11 +74,16 @@ QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerReq
         return response;
     }
 
+    // 获取章节文件名
+    QJsonObject chapterInfo = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterInfo(bookId, chapterIndex);
+
+    const QString &chapterFileName = chapterInfo["file_name"].toString();
+    const QString &chapterName = chapterInfo["title"].toString();
+
     // 打开文件
     QFile file(RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
         RogalunaHttpConfig::getInstance().getLibraryServer()->root + QDir::separator() +
-        bookId + QDir::separator() +
-        chapterIndex
+        chapterFileName
         ));
     if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
         QJsonObject jsonObject;
@@ -92,7 +97,6 @@ QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerReq
     }
 
     QFileInfo fileInfo(file);
-    QString fileName = fileInfo.fileName();
     qint64 fileSize = file.size();
 
     // 位置指示器，以及是否断点续传符号定义
@@ -154,7 +158,7 @@ QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerReq
 
     response.setHeader("Content-Type", "application/octet-stream");
     response.setHeader("Content-Length", QString::number(fileData.size()).toUtf8());
-    response.setHeader("Content-Disposition", QString("filename=\"%1\"").arg(fileName).toUtf8());
+    response.setHeader("Content-Disposition", QString("filename=\"%1\"").arg(chapterName).toUtf8());
     response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
 
     return response;

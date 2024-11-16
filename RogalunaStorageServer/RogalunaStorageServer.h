@@ -97,6 +97,14 @@ public:
     FileReadResult readFile(const QString &path, qint64 offset, qint64 bufferSize = 4096);
 
     /**
+     * @brief 重命名指定路径的文件。
+     * @param path 要读取的文件路径。
+     * @param newName 新的名称。
+     * @return 返回是否成功重命名。
+     */
+    bool renameFile(const QString &path, const QString &newName);
+
+    /**
      * @brief 列出指定目录中的文件和文件夹。
      * @param directoryPath 要列出的目录路径。
      * @param includeDirs 是否包含目录，默认为 true。

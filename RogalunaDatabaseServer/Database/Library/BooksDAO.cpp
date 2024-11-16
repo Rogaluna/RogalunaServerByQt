@@ -176,16 +176,57 @@ QString Library::BooksDAO::addBook(const QString &userId, const QString &bookNam
 
 bool Library::BooksDAO::updateBook(const QString &bookId, const QString &bookName, const QString &bookDesc)
 {
-    Q_UNUSED(bookId)
-    Q_UNUSED(bookName)
-    Q_UNUSED(bookDesc)
+    // 构建更新语句
+    QString queryStr = QString(
+                           "UPDATE %1 "
+                           "SET name = :bookName, description = :bookDesc "
+                           "WHERE id = :bookId"
+                           ).arg(fullTableName());
 
-    return false;
+    // 创建查询对象
+    QSqlQuery query = createSchemaQuery(queryStr);
+    query.bindValue(":bookName", bookName);
+    query.bindValue(":bookDesc", bookDesc);
+    query.bindValue(":bookId", bookId);
+
+    // 执行查询并检查结果
+    if (!query.exec()) {
+        qWarning() << "Failed to update book:" << query.lastError();
+        return false;
+    }
+
+    // 检查受影响的行数
+    if (query.numRowsAffected() == 0) {
+        qWarning() << "No book found with id:" << bookId;
+        return false;
+    }
+
+    return true; // 更新成功
 }
 
 bool Library::BooksDAO::deleteBook(const QString &bookId)
 {
-    Q_UNUSED(bookId)
+    // 构建删除语句
+    QString queryStr = QString(
+                           "DELETE FROM %1 "
+                           "WHERE id = :bookId"
+                           ).arg(fullTableName());
 
-    return false;
+    // 创建查询对象
+    QSqlQuery query = createSchemaQuery(queryStr);
+    query.bindValue(":bookId", bookId);
+
+    // 执行查询并检查结果
+    if (!query.exec()) {
+        qWarning() << "Failed to delete book:" << query.lastError();
+        return false;
+    }
+
+    // 检查受影响的行数
+    if (query.numRowsAffected() == 0) {
+        qWarning() << "No book found with id:" << bookId;
+        return false;
+    }
+
+    return true; // 删除成功
 }

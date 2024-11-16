@@ -1,12 +1,13 @@
-#include "DeleteChapterHandler.h"
+#include "UpdateBookInfoHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 
 #include <Macro/TokenGV.h>
+#include <Macro/RequestBodyParser.h>
 
-QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse UpdateBookInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -60,21 +61,55 @@ QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
 
-    QUrlQuery query = request.query();
-    // 提取书籍 id 以及章节 index
-    QString bookId;
-    QString chapterIndex;
-    if (query.hasQueryItem("id") || query.hasQueryItem("index")) {
-        bookId = query.queryItemValue("id");
-        chapterIndex = query.queryItemValue("index");
-    } else {
-        // 如果没有 id 参数，返回错误响应
-        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+    // 检查是否为 multipart form-data 类型
+    QString contentType;
+    for (const auto &header : headers) {
+        if (header.first.toLower() == "content-type") {
+            contentType = header.second;
+            break;
+        }
+    }
+
+    // 如果不是 multipart/form-data 请求，返回错误
+    if (!contentType.startsWith("multipart/form-data")) {
+        QHttpServerResponse response(QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
         return response;
     }
 
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapter(bookId, chapterIndex);
+    // 获取请求头中的数据
+    QString bookId;
+    QString newName;
+    QString newDesc;
+    QVector<int> newTags;
+
+    // 获取请求体（FormData）中的数据
+    QByteArray bodyParts = request.body();
+
+    PARSE_MULTIPART_FORM_DATA(bodyParts, contentType, formParts);
+
+    // 从解析的 formParts 中提取必要的字段
+    for (const MultipartPart &part : formParts) {
+        if (part.name == "id") {
+            bookId = QString::fromUtf8(part.data).trimmed();
+        } else if (part.name == "name") {
+            newName = QString::fromUtf8(part.data).trimmed();
+        } else if (part.name == "desc") {
+            newDesc = QString::fromUtf8(part.data).trimmed();
+        } else if (part.name == "tags") {
+            newTags.append(QString::fromUtf8(part.data).trimmed().toInt());
+        }
+    }
+
+    // 检查是否收到了必须的参数
+    if (bookId.isEmpty() || newName.isEmpty()) {
+        QHttpServerResponse response("Missing metadata", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+
+    // 更新书籍数据
+    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->updateBookInfo(bookId, newName, newDesc, newTags);
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;

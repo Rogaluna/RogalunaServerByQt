@@ -24,7 +24,7 @@
 #include <RequestHandlers/Account/LoginHandler.h>
 #include <RequestHandlers/Account/RegisterHandler.h>
 
-#include <RequestHandlers/Library/GetBookCategoriesHandler.h>
+#include <RequestHandlers/Library/GetCategoriesHandler.h>
 #include <RequestHandlers/Library/GetBookInfoHandler.h>
 #include <RequestHandlers/Library/GetBookListHandler.h>
 #include <RequestHandlers/Library/GetBookReadProgressHandler.h>
@@ -33,6 +33,12 @@
 #include <RequestHandlers/Library/NewBookHandler.h>
 #include <RequestHandlers/Library/NewChapterHandler.h>
 #include <RequestHandlers/Library/UpdateChapterContentHandler.h>
+#include <RequestHandlers/Library/GetBookCategoriesHandler.h>
+#include <RequestHandlers/Library/GetChapterInfoHandler.h>
+#include <RequestHandlers/Library/UpdateBookInfoHandler.h>
+#include <RequestHandlers/Library/UpdateChapterInfoHandler.h>
+#include <RequestHandlers/Library/DeleteChapterHandler.h>
+#include <RequestHandlers/Library/DeleteBookHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
@@ -89,15 +95,23 @@ bool RogalunaHttpServer::start(quint16 port)
 
     qDebug() << "||||||||||||||||||||       Library       ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategoriesHandler);
-    REGISTER_ROUTE(server, "/api/library/newBook", QHttpServerRequest::Method::Post, NewBookHandler);
+    REGISTER_ROUTE(server, "/api/library/getCategories", QHttpServerRequest::Method::Get, GetCategoriesHandler);
     REGISTER_ROUTE(server, "/api/library/getBookList", QHttpServerRequest::Method::Get, GetBookListHandler);
     REGISTER_ROUTE(server, "/api/library/getBookInfo", QHttpServerRequest::Method::Get, GetBookInfoHandler);
-    REGISTER_ROUTE(server, "/api/library/newChapter", QHttpServerRequest::Method::Post, NewChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategoriesHandler);
     REGISTER_ROUTE(server, "/api/library/getChapterList", QHttpServerRequest::Method::Get, GetChapterListHandler);
     REGISTER_ROUTE(server, "/api/library/getChapterContent", QHttpServerRequest::Method::Get, GetChapterContentHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterInfo", QHttpServerRequest::Method::Get, GetChapterInfoHandler);
     REGISTER_ROUTE(server, "/api/library/getBookReadProgress", QHttpServerRequest::Method::Get, GetBookReadProgressHandler);
+
+    REGISTER_ROUTE(server, "/api/library/newBook", QHttpServerRequest::Method::Post, NewBookHandler);
+    REGISTER_ROUTE(server, "/api/library/newChapter", QHttpServerRequest::Method::Post, NewChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/updateBookInfo", QHttpServerRequest::Method::Post, UpdateBookInfoHandler);
     REGISTER_ROUTE(server, "/api/library/updateChapterContent", QHttpServerRequest::Method::Post, UpdateChapterContentHandler);
+    REGISTER_ROUTE(server, "/api/library/updateChapterInfo", QHttpServerRequest::Method::Post, UpdateChapterInfoHandler);
+
+    REGISTER_ROUTE(server, "/api/library/deleteChapter", QHttpServerRequest::Method::Delete, DeleteChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/deleteBook", QHttpServerRequest::Method::Delete, DeleteBookHandler);
 
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 

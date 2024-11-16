@@ -2,11 +2,11 @@
 
 #include <QJsonArray>
 
-bool Library::ChaptersDAO::addChapter(const QString &bookId, int chapterNumber, const QString &title, const QString &group)
+bool Library::ChaptersDAO::addChapter(const QString &bookId, int chapterNumber, const QString &title, const QString &group, const QString &fileName)
 {
     QString queryStr = QString(
-                           "INSERT INTO %1 (book_id, chapter_number, title, \"group\") "
-                           "VALUES (:bookId, :chapterNumber, :title, :group)"
+                           "INSERT INTO %1 (book_id, chapter_number, title, \"group\", file_name) "
+                           "VALUES (:bookId, :chapterNumber, :title, :group, :fileName)"
                            ).arg(fullTableName());
 
     QSqlQuery query = createSchemaQuery(queryStr);
@@ -14,6 +14,7 @@ bool Library::ChaptersDAO::addChapter(const QString &bookId, int chapterNumber, 
     query.bindValue(":chapterNumber", chapterNumber);
     query.bindValue(":title", title);
     query.bindValue(":group", group);
+    query.bindValue(":fileName", fileName);
 
     return executeQuery(query);
 }
@@ -21,7 +22,7 @@ bool Library::ChaptersDAO::addChapter(const QString &bookId, int chapterNumber, 
 QJsonObject Library::ChaptersDAO::getChapterDetails(const QString &bookId, int chapterNumber)
 {
     QString queryStr = QString(
-                           "SELECT book_id, chapter_number, title, \"group\", word_count, created_at, updated_at "
+                           "SELECT book_id, chapter_number, title, \"group\", word_count, file_name, created_at, updated_at "
                            "FROM %1 "
                            "WHERE book_id = :bookId AND chapter_number = :chapterNumber"
                            ).arg(fullTableName());
@@ -41,21 +42,23 @@ QJsonObject Library::ChaptersDAO::getChapterDetails(const QString &bookId, int c
     chapterDetails["title"] = query.value("title").toString();
     chapterDetails["group"] = query.value("group").toString();
     chapterDetails["word_count"] = query.value("word_count").toInt();
+    chapterDetails["file_name"] = query.value("file_name").toString();
     chapterDetails["created_at"] = query.value("created_at").toString();
     chapterDetails["updated_at"] = query.value("updated_at").toString();
 
     return chapterDetails;
 }
 
-bool Library::ChaptersDAO::updateChapter(const QString &bookId, int chapterNumber, const QString &title, const QString &group, int wordCount)
+bool Library::ChaptersDAO::updateChapter(const QString &bookId, int chapterNumber, int newChapterNumber, const QString &title, const QString &group, int wordCount)
 {
     QString queryStr = QString(
                            "UPDATE %1 "
-                           "SET title = :title, \"group\" = :group, word_count = :wordCount, updated_at = NOW() "
+                           "SET chapter_number = :newChapterNumber, title = :title, \"group\" = :group, word_count = :wordCount, updated_at = NOW() "
                            "WHERE book_id = :bookId AND chapter_number = :chapterNumber"
                            ).arg(fullTableName());
 
     QSqlQuery query = createSchemaQuery(queryStr);
+    query.bindValue(":newChapterNumber", newChapterNumber);
     query.bindValue(":title", title);
     query.bindValue(":group", group);
     query.bindValue(":wordCount", wordCount);
@@ -109,4 +112,29 @@ QJsonArray Library::ChaptersDAO::listChapters(const QString &bookId)
     }
 
     return chaptersArray;
+}
+
+QPair<QVector<QString>, bool> Library::ChaptersDAO::getAllChapterFileName(const QString &bookId)
+{
+    QString queryStr = QString(
+                           "SELECT file_name "
+                           "FROM %1 "
+                           "WHERE book_id = :bookId "
+                           "ORDER BY chapter_number"
+                           ).arg(fullTableName());
+
+    QSqlQuery query = createSchemaQuery(queryStr);
+    query.bindValue(":bookId", bookId);
+
+    QVector<QString> fileNameArray;
+
+    if (query.exec()) {
+        while (query.next()) {
+            fileNameArray.append(query.value("file_name").toString());
+        }
+        return qMakePair(fileNameArray, true);
+    } else {
+        qWarning() << "Failed to execute query:" << query.lastError();
+        return qMakePair(fileNameArray, false);
+    }
 }

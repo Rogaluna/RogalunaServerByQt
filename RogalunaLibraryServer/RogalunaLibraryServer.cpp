@@ -40,37 +40,29 @@ QJsonObject RogalunaLibraryServer::getCategories(int parentCategoryId)
     return categoriesDAO.getSubcategories(parentCategoryId);
 }
 
-QString RogalunaLibraryServer::registerBook(const QString &userId, const QString &bookName, const QString &bookDesc, const QString &tags)
+QString RogalunaLibraryServer::registerBook(const QString &userId, const QString &bookName, const QString &bookDesc, const QVector<int> &tags)
 {
-    // 将书籍写入书籍表
-    Library::BooksDAO booksDAO(databaseServer->getDatabase());
-    QString bookId = booksDAO.addBook(userId, bookName, bookDesc);
+    QString bookId;
 
-    // 将标签与书籍对应，通过标签映射表，将字符串对应到标签 id ，标签 id 与书籍 id 进行映射
-    Library::CategoriesDAO categoriesDAO(databaseServer->getDatabase());
-    QMap<QString, int> tagMapping = categoriesDAO.getCategoriesInversionMapping();
-
-    // 将字符串按逗号分隔，并去除多余的空白符
-    QStringList categories = tags.split(",", Qt::SkipEmptyParts);
-    for (QString& category : categories) {
-        category = category.trimmed();  // 去除首尾空白
-    }
-
-    // 将字符串转为 id
-    QVector<int> tagIds;
-    for (const QString &category : categories) {
-        if (tagMapping.contains(category)) {
-            tagIds.append(tagMapping[category]);  // 添加标签ID到数组
-        } else {
-            qWarning() << "can't find category ID:" << category;
+    bool bReg = databaseServer->executeTransaction([&]() {
+        // 将书籍写入书籍表
+        Library::BooksDAO booksDAO(databaseServer->getDatabase());
+        bookId = booksDAO.addBook(userId, bookName, bookDesc);
+        if (bookId.isEmpty()) {
+            return false;
         }
-    }
 
-    Library::BookCategoriesDAO bookCategoriesDAO(databaseServer->getDatabase());
-    bool bIsAppend = bookCategoriesDAO.addBookTags(bookId, tagIds);
+        // 将标签注册到标签映射表
+        Library::BookCategoriesDAO bookCategoriesDAO(databaseServer->getDatabase());
+        if (!bookCategoriesDAO.addBookTags(bookId, tags)) {
+            return false;
+        }
 
-    if (!bIsAppend) {
-        // 如果标签注册失败
+        return true;
+    });
+
+    if (!bReg) {
+        // 如果书籍注册失败
     }
 
     return bookId;
@@ -118,26 +110,44 @@ QJsonObject RogalunaLibraryServer::getBookInfo(const QString &bookId)
     return booksDAO.getBookDetails(bookId);
 }
 
+QJsonObject RogalunaLibraryServer::getBookCategories(const QString &bookId)
+{
+    Library::BookCategoriesDAO bookCategoriesDAO(databaseServer->getDatabase());
+    return bookCategoriesDAO.getBookTags(bookId);
+}
+
 QJsonArray RogalunaLibraryServer::getChapterList(const QString &bookId)
 {
     Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
     return chaptersDAO.listChapters(bookId);
 }
 
-bool RogalunaLibraryServer::registerChapter(const QString &bookId, int chapterIndex, const QString &chapterName, const QString &groupName)
+QJsonObject RogalunaLibraryServer::getChapterInfo(const QString &bookId, const QString &chapterIndex)
 {
-    // 数据库中注册章节信息
     Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
-    bool bReg = chaptersDAO.addChapter(bookId, chapterIndex, chapterName, groupName);
+    return chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());
+}
 
-    // 文件系统中创建对应空白文件
-    bool bWrite = storageServer->writeFile(
-        storageServer->absoluteFilePath(
-            root + QDir::separator() +
-            bookId + QDir::separator() +
-            QString::number(chapterIndex)),
-        QByteArray());
-    return bReg && bWrite;
+bool RogalunaLibraryServer::registerChapter(const QString &bookId, int chapterIndex, const QString &chapterName, const QString &groupName, const QString &fileName)
+{
+    return databaseServer->executeTransaction([&]() {
+        // 数据库中注册章节信息
+        Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+        if (!chaptersDAO.addChapter(bookId, chapterIndex, chapterName, groupName, fileName)) {
+            return false;
+        }
+
+        // 文件系统中创建对应空白文件
+        if (!storageServer->writeFile(
+                storageServer->absoluteFilePath(
+                    root + QDir::separator() +
+                    fileName),
+                QByteArray())) {
+            return false;
+        }
+
+        return true;
+    });
 }
 
 QJsonObject RogalunaLibraryServer::getBookReadProgress(const QString &bookId, const QString &userId)
@@ -154,11 +164,110 @@ bool RogalunaLibraryServer::updateBookReadProgress(const QString &bookId, const 
 
 bool RogalunaLibraryServer::updateChapterContent(const QString &bookId, const QString &chapterIndex, const QString &chapterContent)
 {
-    return storageServer->writeFile(
-        storageServer->absoluteFilePath(
-            root + QDir::separator() +
-            bookId + QDir::separator() +
-            chapterIndex),
-        chapterContent.toUtf8());
+    return databaseServer->executeTransaction([&]() {
+        Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+        // 获取对应的文件名称
+        QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());
+        if (result.isEmpty()) {
+            return false;
+        }
+        const QString &fileName = result["file_name"].toString();
+
+        // 更新文件内容
+        if(!storageServer->writeFile(
+                storageServer->absoluteFilePath(
+                    root + QDir::separator() +
+                    fileName),
+                chapterContent.toUtf8())) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+bool RogalunaLibraryServer::updateBookInfo(const QString &bookId, const QString &newName, const QString &newDesc, const QVector<int> &newTags)
+{
+    return databaseServer->executeTransaction([&]() {
+        Library::BooksDAO booksDAO(databaseServer->getDatabase());
+        if (!booksDAO.updateBook(bookId, newName, newDesc)) {
+            return false;
+        }
+
+        Library::BookCategoriesDAO bookCategoriesDAO(databaseServer->getDatabase());
+        if (!bookCategoriesDAO.deleteAllBookTags(bookId)) {
+            return false;
+        }
+
+        if (!bookCategoriesDAO.addBookTags(bookId, newTags)) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+bool RogalunaLibraryServer::updateChapterInfo(const QString &bookId, const QString &chapterIndex, const QString &newIndex, const QString &newName, const QString &newGroup)
+{
+    Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+    return chaptersDAO.updateChapter(bookId, chapterIndex.toInt(), newIndex.toInt(), newName, newGroup, 0);
+}
+
+bool RogalunaLibraryServer::deleteChapter(const QString &bookId, const QString &chapterIndex)
+{
+    return databaseServer->executeTransaction([&]() {
+        Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+        // 获取对应的文件名称
+        QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());
+        if (result.isEmpty()) {
+            return false;
+        }
+        const QString &fileName = result["file_name"].toString();
+
+        // 注销记录的章节信息
+        if(!chaptersDAO.deleteChapter(bookId, chapterIndex.toInt())){
+            return false;
+        }
+
+        // 将文件删除
+        if(!storageServer->deleteFile(storageServer->absoluteFilePath(
+                root + QDir::separator() +
+                fileName))) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+bool RogalunaLibraryServer::deleteBook(const QString &bookId)
+{
+    return databaseServer->executeTransaction([&]() {
+        // 获取该书所有的章节文件名称
+        Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+        QPair<QVector<QString>, bool> result = chaptersDAO.getAllChapterFileName(bookId);
+        const QVector<QString> &fileNames = result.first;
+        const bool &bSuccess = result.second;
+        if (!bSuccess) {
+            return false;
+        }
+
+        // 注销书籍
+        Library::BooksDAO booksDAO(databaseServer->getDatabase());
+        if (!booksDAO.deleteBook(bookId)) {
+            return false;
+        }
+
+        // 删除所有的章节文件
+        for (const QString &fileName : fileNames) {
+            if(!storageServer->deleteFile(storageServer->absoluteFilePath(
+                    root + QDir::separator() +
+                    fileName))) {
+                return false;
+            }
+        }
+
+        return true;
+    });
 }
 

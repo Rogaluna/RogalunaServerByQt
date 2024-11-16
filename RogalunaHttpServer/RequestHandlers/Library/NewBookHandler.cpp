@@ -80,7 +80,7 @@ QHttpServerResponse NewBookHandler::handleRequest(const QHttpServerRequest &requ
     // 获取请求头中的元数据（如文件名、块索引、总块数等）
     QString bookName;
     QString bookDesc;
-    QString tags;
+    QVector<int> tags;
 
     // 获取请求体（FormData）中的数据
     QByteArray bodyParts = request.body();
@@ -94,7 +94,7 @@ QHttpServerResponse NewBookHandler::handleRequest(const QHttpServerRequest &requ
         } else if (part.name == "description") {
             bookDesc = QString::fromUtf8(part.data).trimmed();
         } else if (part.name == "tags") {
-            tags = QString::fromUtf8(part.data).trimmed();
+            tags.append(QString::fromUtf8(part.data).trimmed().toInt());
         }
     }
 
@@ -110,8 +110,8 @@ QHttpServerResponse NewBookHandler::handleRequest(const QHttpServerRequest &requ
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["status"] = "success";
-    jsonResponse["id"] = bookId;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = bookId;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

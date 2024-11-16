@@ -58,7 +58,7 @@ QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &reques
 
     // 密码验证通过, 生成 Token
     QList<QPair<QString, QString>> claims = {
-        {"id", user["userId"].toString()},
+        {"id", QString::number(user["userId"].toInt())},
         {"username", user["username"].toString()},
         {"authority", user["authority"].toString()},
         {"iat", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())},

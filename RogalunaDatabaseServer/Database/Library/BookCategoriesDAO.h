@@ -25,6 +25,9 @@ public:
 
     // 删除指定书籍的所有标签映射
     bool deleteAllBookTags(const QString& bookId) override;
+
+    // 获取书籍拥有的标签
+    QJsonObject getBookTags(const QString& bookId) override;
 };
 
 }

@@ -1,5 +1,7 @@
 #include "BookCategoriesDAO.h"
 
+#include <QJsonArray>
+
 bool Library::BookCategoriesDAO::addBookTag(const QString &bookId, int tagId)
 {
     QString queryStr = QString("INSERT INTO %1 (book_id, category_id) VALUES (:bookId, :tagId)")
@@ -53,4 +55,34 @@ bool Library::BookCategoriesDAO::deleteAllBookTags(const QString &bookId)
     query.bindValue(":bookId", bookId);
 
     return executeQuery(query);
+}
+
+QJsonObject Library::BookCategoriesDAO::getBookTags(const QString &bookId)
+{
+    // 构建查询语句
+    QString queryStr = QString("SELECT category_id FROM %1 WHERE book_id = :bookId")
+                           .arg(fullTableName());
+
+    // 创建查询对象
+    QSqlQuery query = createSchemaQuery(queryStr);
+    query.bindValue(":bookId", bookId);
+
+    // 执行查询
+    if (!executeQuery(query)) {
+        return {};  // 查询失败，返回空的 QJsonObject
+    }
+
+    // 构建返回的 QJsonObject
+    QJsonObject result;
+    QJsonArray tagArray;
+    while (query.next()) {
+        int tagId = query.value(0).toInt();
+        tagArray.append(tagId);
+    }
+
+    // 添加结果到 QJsonObject 中
+    result["id"] = bookId;
+    result["tags"] = tagArray;
+
+    return result;
 }

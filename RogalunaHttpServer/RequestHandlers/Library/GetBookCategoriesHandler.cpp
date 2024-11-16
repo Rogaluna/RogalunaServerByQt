@@ -1,10 +1,6 @@
 #include "GetBookCategoriesHandler.h"
 
 #include <QHttpServerRequest>
-#include <QJsonDocument>
-#include <QJsonObject>
-
-#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 
@@ -64,24 +60,31 @@ QHttpServerResponse GetBookCategoriesHandler::handleRequest(const QHttpServerReq
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
 
-    // 获取书籍类别数据
     QUrlQuery query = request.query();
-    // 提取 category 参数 (id 形式)
-    int category = 0;
-    if (query.hasQueryItem("category")) {
-        category = query.queryItemValue("category").toInt();
+    // 提取书籍 id
+    QString bookId;
+    if (query.hasQueryItem("id")) {
+        bookId = query.queryItemValue("id");
     } else {
-        // 如果没有 category 参数，返回错误响应
-        QHttpServerResponse response("Missing category in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        // 如果没有 id 参数，返回错误响应
+        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
         return response;
     }
-    QJsonObject categories = RogalunaHttpConfig::getInstance().getLibraryServer()->getCategories(category);
+
+    QJsonObject result = RogalunaHttpConfig::getInstance().getLibraryServer()->getBookCategories(bookId);
+
+    if (result.isEmpty()) {
+        // 获取数据失败
+        QHttpServerResponse response("Can't fetch data", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+        return response;
+    }
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["status"] = "success";
-    jsonResponse["categories"] = categories;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = result;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

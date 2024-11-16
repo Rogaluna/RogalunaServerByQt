@@ -1,12 +1,16 @@
-#include "DeleteChapterHandler.h"
+#include "GetCategoriesHandler.h"
 
 #include <QHttpServerRequest>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 
 #include <Macro/TokenGV.h>
 
-QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetCategoriesHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -60,25 +64,24 @@ QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
 
+    // 获取书籍类别数据
     QUrlQuery query = request.query();
-    // 提取书籍 id 以及章节 index
-    QString bookId;
-    QString chapterIndex;
-    if (query.hasQueryItem("id") || query.hasQueryItem("index")) {
-        bookId = query.queryItemValue("id");
-        chapterIndex = query.queryItemValue("index");
+    // 提取 category 参数 (id 形式)
+    int category = 0;
+    if (query.hasQueryItem("category")) {
+        category = query.queryItemValue("category").toInt();
     } else {
-        // 如果没有 id 参数，返回错误响应
-        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        // 如果没有 category 参数，返回错误响应
+        QHttpServerResponse response("Missing category in query parameters", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
         return response;
     }
-
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapter(bookId, chapterIndex);
+    QJsonObject categories = RogalunaHttpConfig::getInstance().getLibraryServer()->getCategories(category);
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["success"] = bSuccess;
+    jsonResponse["status"] = "success";
+    jsonResponse["categories"] = categories;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

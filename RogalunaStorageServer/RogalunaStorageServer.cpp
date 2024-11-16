@@ -96,10 +96,9 @@ bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &dat
     return bytesWritten == totalBytes;
 }
 
-bool RogalunaStorageServer::deleteFile(const QString &relativeFilePath)
+bool RogalunaStorageServer::deleteFile(const QString &path)
 {
-    QString filePath = absoluteFilePath(relativeFilePath);
-    QFile file(filePath);
+    QFile file(path);
     if (file.exists())
     {
         return file.remove();
@@ -143,6 +142,29 @@ FileReadResult RogalunaStorageServer::readFile(const QString &path, qint64 offse
     file.close();
 
     return result;
+}
+
+bool RogalunaStorageServer::renameFile(const QString &path, const QString &newName)
+{
+    // 获取文件所在的目录和文件名
+    QFileInfo fileInfo(path);
+    QString dirPath = fileInfo.absolutePath();
+    QString newFilePath = dirPath + QDir::separator() + newName;
+
+    // 检查源文件是否存在
+    if (!QFile::exists(path)) {
+        qWarning() << "Source file does not exist:" << path;
+        return false;
+    }
+
+    // 尝试重命名文件
+    if (QFile::rename(path, newFilePath)) {
+        qDebug() << "File renamed successfully from" << path << "to" << newFilePath;
+        return true;
+    } else {
+        qWarning() << "Failed to rename file:" << QFile(path).errorString();
+        return false;
+    }
 }
 
 QVector<FileInfoStruct> RogalunaStorageServer::listFiles(const QString &relativeDirPath, bool includeDirs)

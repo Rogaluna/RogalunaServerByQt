@@ -1,4 +1,4 @@
-#include "DeleteChapterHandler.h"
+#include "GetChapterInfoHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -6,7 +6,7 @@
 
 #include <Macro/TokenGV.h>
 
-QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetChapterInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -74,11 +74,20 @@ QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest
         return response;
     }
 
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapter(bookId, chapterIndex);
+    QJsonObject result = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterInfo(bookId, chapterIndex);
+    result.remove("file_name");
+
+    if (result.isEmpty()) {
+        // 获取数据失败
+        QHttpServerResponse response("Can't fetch data", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+        return response;
+    }
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["success"] = bSuccess;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = result;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

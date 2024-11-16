@@ -1,8 +1,6 @@
 #include "RogalunaDatabaseServer.h"
-#include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
 #include <HeartbeatTimer.h>
-#include <QDebug>
 #include <QThread>
 
 RogalunaDatabaseServer::RogalunaDatabaseServer(
@@ -78,7 +76,7 @@ void RogalunaDatabaseServer::onHeartbeatStop()
     qDebug() << "Heartbeat stopped, attempting to reconnect...";
     heartbeatTimer->stop();
 
-    const auto tryReconnect = [this]() {
+    const auto tryReconnect = [&]() {
         disconnect();
         return connect();
     };

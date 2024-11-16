@@ -1,6 +1,7 @@
 #ifndef IBOOKCATEGORIESDAO_H
 #define IBOOKCATEGORIESDAO_H
 
+#include <QJsonObject>
 #include <QString>
 
 
@@ -22,6 +23,9 @@ public:
 
     // 删除与某书籍关联的所有标签映射
     virtual bool deleteAllBookTags(const QString& bookId) = 0;
+
+    // 获取书籍拥有的标签
+    virtual QJsonObject getBookTags(const QString& bookId) = 0;
 };
 
 }

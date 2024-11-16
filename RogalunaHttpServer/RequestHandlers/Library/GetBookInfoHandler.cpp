@@ -83,7 +83,7 @@ QHttpServerResponse GetBookInfoHandler::handleRequest(const QHttpServerRequest &
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["status"] = "success";
+    jsonResponse["success"] = true;
     jsonResponse["data"] = result;
 
     QJsonDocument jsonDoc(jsonResponse);

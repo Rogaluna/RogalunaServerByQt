@@ -1,6 +1,7 @@
 #include "NewChapterHandler.h"
 
 #include <QHttpServerRequest>
+#include <QUuid>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 
@@ -109,8 +110,11 @@ QHttpServerResponse NewChapterHandler::handleRequest(const QHttpServerRequest &r
         return response;
     }
 
+    // 生成文件名称
+    QString randomFileName = QUuid::createUuid().toString();
+
     // 新建书籍，写入数据库
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->registerChapter(bookId, chapterIndex, chapterName, groupName);
+    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->registerChapter(bookId, chapterIndex, chapterName, groupName, randomFileName);
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
