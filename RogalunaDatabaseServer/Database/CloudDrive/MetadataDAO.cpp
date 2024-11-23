@@ -8,7 +8,8 @@ QString MetadataDAO::insertMetadata(int userId, const QString &fileName, const Q
 {
     QSqlQuery insertQuery(database);
     QString sql = QString("INSERT INTO %1 (user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at) "
-                          "VALUES (:user_id, :file_name, :content_md5, :parent_uid, :is_directory, :version, NOW(), NOW())")
+                          "VALUES (:user_id, :file_name, :content_md5, :parent_uid, :is_directory, :version, NOW(), NOW()) "
+                          "RETURNING uid")
                       .arg(fullTableName());
     insertQuery.prepare(sql);
     insertQuery.bindValue(":user_id", userId);
@@ -20,7 +21,7 @@ QString MetadataDAO::insertMetadata(int userId, const QString &fileName, const Q
 
     // 执行插入并获取新生成的 uid
     if (insertQuery.exec() && insertQuery.next()) {
-        return insertQuery.value("uid").toString();  // 返回数据库生成的 uid
+        return insertQuery.value(0).toString();  // 返回数据库生成的 uid
     }
 
     // 插入失败，记录错误并返回空字符串

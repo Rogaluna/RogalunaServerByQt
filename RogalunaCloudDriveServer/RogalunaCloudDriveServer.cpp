@@ -32,6 +32,8 @@ QString RogalunaCloudDriveServer::createFolder(int userId, const QString &parent
 
 QString RogalunaCloudDriveServer::mergeChunks(const QString &tempDirName, const QString &fileName, int totalChunks, int userId, const QString &parentUid)
 {
+    QString uuid;
+
     // 需要进行合并的文件夹名称即是文件的 MD5 值
     const QString& targetMd5 = tempDirName;
 
@@ -50,20 +52,31 @@ QString RogalunaCloudDriveServer::mergeChunks(const QString &tempDirName, const 
         return QString();
     }
 
-    CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
-    CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
+    bool bReg = databaseServer->executeTransaction([&]() {
+        CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
+        CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
 
-    // 插入文件内容记录
-    if (!contentDao.insertContent(targetMd5, mergedFile.size())) {
-        qWarning() << "Failed to insert file content into database";
-        return QString();
-    }
+        // 插入文件内容记录
+        if (!contentDao.insertContent(targetMd5, mergedFile.size())) {
+            qWarning() << "Failed to insert file content into database";
+            return false;
+        }
 
-    // 插入文件元数据记录, uuid 由数据库自动生成
-    QString uuid = metadataDao.insertMetadata(userId, fileName, targetMd5, false, parentUid);
-    if (uuid.isEmpty()) {
-        qWarning() << "Failed to insert file metadata into database";
-        return QString();
+        // 插入文件元数据记录, uuid 由数据库自动生成
+        uuid = metadataDao.insertMetadata(userId, fileName, targetMd5, false, parentUid);
+        if (uuid.isEmpty()) {
+            qWarning() << "Failed to insert file metadata into database";
+            return false;
+        }
+
+        return true;
+    });
+
+    if (!bReg) {
+        // 如果数据库注册失败，检查之前合并的文件，进行清理
+        if (mergedFile.exists()) {
+            mergedFile.remove();
+        }
     }
 
     return uuid;
@@ -86,29 +99,36 @@ FileReadResult RogalunaCloudDriveServer::downloadFile(const QString &contentMd5)
 
 bool RogalunaCloudDriveServer::deleteFile(const QString &contentMd5)
 {
-    CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
-    CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
+    return databaseServer->executeTransaction([&]() {
+        CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
+        CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
 
-    // 从数据库中获取文件的存储路径
-    QString filePath = contentDao.getContentPath(contentMd5);
-    if (filePath.isEmpty()) {
-        qWarning() << "File not found in database:" << contentMd5;
-        return false;
-    }
+        // 从数据库中获取文件的存储路径
+        QString filePath = contentDao.getContentPath(contentMd5);
+        if (filePath.isEmpty()) {
+            qWarning() << "File not found in database:" << contentMd5;
+            return false;
+        }
 
-    // 删除文件
-    if (!storageServer->deleteFile(filePath)) {
-        qWarning() << "Failed to delete file:" << filePath;
-        return false;
-    }
+        // 删除数据库中的文件记录
+        if (!contentDao.deleteContent(contentMd5)) {
+            qWarning() << "Failed to delete file content.";
+            return false;
+        }
 
-    // 删除数据库中的文件记录
-    if (!contentDao.deleteContent(contentMd5) || !metadataDao.deleteMetadata(contentMd5)) {
-        qWarning() << "Failed to delete file metadata from database";
-        return false;
-    }
+        if (!metadataDao.deleteMetadata(contentMd5)) {
+            qWarning() << "Failed to delete file metadata.";
+            return false;
+        }
 
-    return true;
+        // 删除文件
+        if (!storageServer->deleteFile(filePath)) {
+            qWarning() << "Failed to delete file:" << filePath;
+            return false;
+        }
+
+        return true;
+    });
 }
 
 std::optional<QVector<CloudDrive::FFileMetadata>> RogalunaCloudDriveServer::getFiles(const QString &query, const EGetFileOpterator &Operator)

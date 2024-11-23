@@ -74,6 +74,8 @@ bool RogalunaHttpServer::start(quint16 port)
 
     qDebug() << "||||||||||||||||||||         Web         ||||||||||||||||||||";
 
+    REGISTER_ROUTE(server, "/", QHttpServerRequest::Method::Get, RedirectToWebHandler);
+    REGISTER_ROUTE(server, "/web", QHttpServerRequest::Method::Get, RedirectToWebHandler);
     REGISTER_ROUTE(server, "/web/<arg>", QHttpServerRequest::Method::Get, GetWebFileHandler);
 
     qDebug() << "||||||||||||||||||||      CloudDrive     ||||||||||||||||||||";

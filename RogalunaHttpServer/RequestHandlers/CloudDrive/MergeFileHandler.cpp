@@ -116,8 +116,8 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
 
     // 合并成功，返回响应
     QJsonObject jsonResponse;
-    jsonResponse["status"] = "success";
-    jsonResponse["insUid"] = fileUid;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = fileUid;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

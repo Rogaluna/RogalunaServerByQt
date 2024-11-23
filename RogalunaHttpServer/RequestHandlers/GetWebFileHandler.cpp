@@ -1,5 +1,6 @@
 #include "GetWebFileHandler.h"
 #include <QHttpServerRequest>
+#include <QHttpServerResponse>
 #include <QFile>
 #include <QMimeDatabase>
 #include <RogalunaHttpConfig.h>
@@ -55,4 +56,11 @@ QHttpServerResponse GetWebFileHandler::handleRequest(QUrl path, const QHttpServe
 
     // 默认返回 404 Not Found
     return QHttpServerResponse("404 Not Found", QHttpServerResponse::StatusCode::NotFound);
+}
+
+QHttpServerResponse RedirectToWebHandler::handleRequest(const QHttpServerRequest &)
+{
+    QHttpServerResponse response("", QHttpServerResponse::StatusCode::MovedPermanently);
+    response.setHeader("Location", "/web/");
+    return response;
 }
