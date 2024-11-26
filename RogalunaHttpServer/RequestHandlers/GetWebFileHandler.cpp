@@ -60,7 +60,7 @@ QHttpServerResponse GetWebFileHandler::handleRequest(QUrl path, const QHttpServe
 
 QHttpServerResponse RedirectToWebHandler::handleRequest(const QHttpServerRequest &)
 {
-    QHttpServerResponse response("", QHttpServerResponse::StatusCode::MovedPermanently);
+    QHttpServerResponse response(QHttpServerResponse::StatusCode::MovedPermanently);
     response.setHeader("Location", "/web/");
     return response;
 }

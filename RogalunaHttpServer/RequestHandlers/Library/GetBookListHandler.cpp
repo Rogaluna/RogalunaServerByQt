@@ -69,11 +69,17 @@ QHttpServerResponse GetBookListHandler::handleRequest(const QHttpServerRequest &
     if (query.hasQueryItem("opt") && query.hasQueryItem("param")) {
         opt = query.queryItemValue("opt").toInt();
         param = query.queryItemValue("param");
-    }
 
-    if (param == "#") {
-        // 如果 param 使用 # ，则替换为用户 id
-        param = userId;
+        if (param == "#") {
+            // 如果 param 使用 # ，则替换为用户 id
+            param = userId;
+        }
+
+    } else {
+        // 如果没有必须参数，返回错误响应
+        QHttpServerResponse response("Missing must args in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
     }
 
     QJsonArray result = RogalunaHttpConfig::getInstance().getLibraryServer()->getBookList(opt, param);

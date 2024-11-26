@@ -77,15 +77,31 @@ QHttpServerResponse GetMusicListHandler::handleRequest(const QHttpServerRequest 
             // 将 numOpt 转换为 EMusicQueryType 并赋值给 opt
             opt = static_cast<RogalunaMusicServer::EMusicQueryType>(numOpt);
         } else {
-            // 处理无效的 opt 值，例如默认设置或者抛出错误
+            // 处理无效的 opt 值
             opt = RogalunaMusicServer::EMusicQueryType::E_RANDOM; // 设为默认值
         }
+    } else {
+        // 如果没有 opt 参数，返回错误响应
+        QHttpServerResponse response("Missing opt in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
     }
 
     if (query.hasQueryItem("param")) {
         // 如果查询参数 "param" 存在
         param = query.queryItemValue("param");
         param = QUrl::fromPercentEncoding(param.toUtf8());
+
+        if (param == "#") {
+            // 如果 param 使用 # ，则替换为用户 id
+            param = userId;
+        }
+
+    } else {
+        // 如果没有 param 参数，返回错误响应
+        QHttpServerResponse response("Missing param in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
     }
 
     QJsonArray musicList = RogalunaHttpConfig::getInstance().getMusicServer()->getMusicList(opt, param);
