@@ -39,6 +39,8 @@
 #include <RequestHandlers/Library/UpdateChapterInfoHandler.h>
 #include <RequestHandlers/Library/DeleteChapterHandler.h>
 #include <RequestHandlers/Library/DeleteBookHandler.h>
+#include <RequestHandlers/Library/GetLibraryResourceHandler.h>
+#include <RequestHandlers/Library/UploadLibraryResourceHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
@@ -114,6 +116,9 @@ bool RogalunaHttpServer::start(quint16 port)
 
     REGISTER_ROUTE(server, "/api/library/deleteChapter", QHttpServerRequest::Method::Delete, DeleteChapterHandler);
     REGISTER_ROUTE(server, "/api/library/deleteBook", QHttpServerRequest::Method::Delete, DeleteBookHandler);
+
+    REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, UploadLibraryResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, GetLibraryResourceHandler);
 
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 

@@ -126,6 +126,10 @@ int main(int argc, char *argv[])
         libraryConfig.writeConfigFile(ConfigGroup::createConfigGroups({
             ConfigGroup("Library", {
                {"root", "library"},
+               {"bookDirName", "book"},
+               {"resDirName", "res"},
+               {"maxRangeSize", "10"},
+               {"maxSingleResSize", "10485760"},
                {"categoryRootId", "1"},
            })
         }));
@@ -136,6 +140,10 @@ int main(int argc, char *argv[])
         &rss,
         &dbServer,
         ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "root").toString(),
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "bookDirName").toString(),
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "resDirName").toString(),
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "maxRangeSize").toInt(),
+        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "maxSingleResSize").toInt(),
         ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "categoryRootId").toInt());
 
     // 初始化音乐台服务

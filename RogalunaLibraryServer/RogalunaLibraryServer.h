@@ -11,7 +11,14 @@
 class ROGALUNALIBRARYSERVER_EXPORT RogalunaLibraryServer
 {
 public:
-    RogalunaLibraryServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root, int categoryRootId = 1);
+    RogalunaLibraryServer(RogalunaStorageServer *storageServer,
+                          RogalunaDatabaseServer *databaseServer,
+                          const QString &root,
+                          const QString &bookDirName,
+                          const QString &resDirName,
+                          int maxRangeSize,
+                          int maxSingleResSize,
+                          int categoryRootId = 1);
 
 public:
     // Storage
@@ -64,8 +71,19 @@ public:
     // 删除书籍
     bool deleteBook(const QString &bookId);
 
+    // 查询资源计数
+    int queryResCount(const QString &resId);
+
+    // 上传图书馆资源
+    bool uplaodLibraryTempFile(const QString tempDirName, const QString &type, const QByteArray &data, const QString &md5 = "");
+
+    // 获取图书馆资源
+    QPair<QByteArray, QString> getLibraryRes(const QString &md5);
+
 public:
     QString root;                    ///< 文件存储的根目录。
+    QString bookDirName;             ///< 书籍文件目录名称。
+    QString resDirName;              ///< 引用资源目录名称。
 
 private:
     RogalunaStorageServer* storageServer;
@@ -73,6 +91,7 @@ private:
     int categoryRootId;
 
     int maxRangeSize;
+    int maxSingleResSize;
 };
 
 #endif // ROGALUNALIBRARYSERVER_H

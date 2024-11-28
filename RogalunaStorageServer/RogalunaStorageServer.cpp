@@ -29,9 +29,9 @@ RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QStri
     }
 }
 
-QString RogalunaStorageServer::absoluteFilePath(const QString &relativeFilePath) const
+QString RogalunaStorageServer::absoluteFilePath(const QString &relativeFilePath, const QString &basePath) const
 {
-    QString result = root + relativeFilePath;
+    QString result = (basePath.isEmpty() ? root : basePath) + relativeFilePath;
 
     // 如果 result 以 '/' 结尾，去掉它
     if (result.endsWith(QDir::separator())) {
@@ -172,7 +172,7 @@ QVector<FileInfoStruct> RogalunaStorageServer::listFiles(const QString &relative
     QString dirPath = absoluteFilePath(relativeDirPath);
     QDir dir(dirPath);
     if (!dir.exists()) {
-        dir.mkpath(dirPath);  // 创建目标文件夹
+        dir.mkpath(".");  // 创建目标文件夹
     }
 
     QVector<FileInfoStruct> entryList;
@@ -197,11 +197,11 @@ bool RogalunaStorageServer::writeTempFile(const QString &tempFileDirName, int ch
     QString tempDirPath = getTempPath() + tempFileDirName;
     QDir tempDir(tempDirPath);
     if (!tempDir.exists()) {
-        tempDir.mkpath(tempDirPath);  // 创建临时文件夹
+        tempDir.mkpath(".");  // 创建临时文件夹
     }
 
     // 每个文件块的临时文件路径
-    QString tempFileChunkPath = tempDirPath + "/" + tempFilePrefix + QString::number(chunkIndex);
+    QString tempFileChunkPath = tempDirPath + QDir::separator() + tempFilePrefix + QString::number(chunkIndex);
 
     // 将块保存到临时文件
     QFile tempFile(tempFileChunkPath);
@@ -230,6 +230,44 @@ bool RogalunaStorageServer::writeTempFile(const QString &tempFileDirName, int ch
     return true;
 }
 
+bool RogalunaStorageServer::writeTempFile(const QString &tempFileDirName, const QString &type, const QByteArray &data, const QString &md5)
+{
+    QString tempDirPath = getTempPath() + tempFileDirName;
+    QDir tempDir(tempDirPath);
+    if (!tempDir.exists()) {
+        tempDir.mkpath(".");  // 创建临时文件夹
+    }
+
+    // 文件数据的临时文件路径
+    QString tempFilePath = tempDirPath + QDir::separator() + type;
+
+    // 将数据保存到临时文件
+    QFile tempFile(tempFilePath);
+    if (!tempFile.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+    tempFile.write(data);
+
+    // 如果有校验码，那么进行校验，如果没有，直接保存
+    if (!md5.isEmpty()) {
+        QCryptographicHash hash(QCryptographicHash::Md5);
+        hash.addData(data);
+        QString calculatedMd5 = hash.result().toHex();
+
+        // 验证 MD5 校验是否匹配，如果不匹配，则删除文件
+        if (calculatedMd5 != md5) {
+            tempFile.close(); // 关闭临时文件
+            tempFile.remove(); // 删除文件块
+
+            return false;
+        }
+    }
+
+    tempFile.close();
+
+    return true;
+}
+
 bool RogalunaStorageServer::mergeTempFile(const QString &tempFileDirName, int totalChunks, const QString &targetDir, const QString &mergeFileName)
 {
     // 获取临时目录路径
@@ -240,7 +278,7 @@ bool RogalunaStorageServer::mergeTempFile(const QString &tempFileDirName, int to
         return false;
     }
 
-    QString targetFilePath = absoluteFilePath(targetDir) + "/" + mergeFileName;
+    QString targetFilePath = absoluteFilePath(targetDir) + QDir::separator() + mergeFileName;
     // 打开最终文件用于写入
     QFile finalFile(targetFilePath);
     if (!finalFile.open(QIODevice::WriteOnly)) {
@@ -249,7 +287,7 @@ bool RogalunaStorageServer::mergeTempFile(const QString &tempFileDirName, int to
 
     // 按顺序合并所有块
     for (qint64 i = 0; i < totalChunks; ++i) {
-        QString chunkFilePath = tempDirPath + "/" + tempFilePrefix + QString::number(i);
+        QString chunkFilePath = tempDirPath + QDir::separator() + tempFilePrefix + QString::number(i);
         QFile chunkFile(chunkFilePath);
         if (!chunkFile.open(QIODevice::ReadOnly)) {
             finalFile.close();

@@ -20,10 +20,10 @@ RogalunaMusicServer::RogalunaMusicServer(
     const QString &musicDirName,
     const QString &coverDirName)
     : root(root)
-    , storageServer(storageServer)
-    , databaseServer(databaseServer)
     , musicDirName(musicDirName)
     , coverDirName(coverDirName)
+    , storageServer(storageServer)
+    , databaseServer(databaseServer)
 {
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);

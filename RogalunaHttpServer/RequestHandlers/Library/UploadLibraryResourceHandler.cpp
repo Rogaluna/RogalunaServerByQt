@@ -1,4 +1,4 @@
-#include "UpdateChapterContentHandler.h"
+#include "UploadLibraryResourceHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -7,7 +7,9 @@
 #include <Macro/TokenGV.h>
 #include <Macro/RequestBodyParser.h>
 
-QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServerRequest &request)
+// 它上传到临时文件夹中。
+
+QHttpServerResponse UploadLibraryResourceHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -77,10 +79,10 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
         return response;
     }
 
-    // 获取请求头中的数据
-    QString bookId;
-    QString chapterIndex;
-    QString chapterContent;
+    // 获取请求头中的元数据（如文件名、块索引、总块数等）
+    QString id;
+    QString type;
+    QByteArray data;
 
     // 获取请求体（FormData）中的数据
     QByteArray bodyParts = request.body();
@@ -90,29 +92,41 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
     // 从解析的 formParts 中提取必要的字段
     for (const MultipartPart &part : formParts) {
         if (part.name == "id") {
-            bookId = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "index") {
-            chapterIndex = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "content") {
-            chapterContent = QString::fromUtf8(part.data).trimmed();
+            id = QString::fromUtf8(part.data).trimmed();
+        } else if (part.name == "type") {
+            type = QString::fromUtf8(part.data).trimmed();
+        } else if (part.name == "data") {
+            data = part.data;
         }
     }
 
-    // 需要增加资源引用更新部分，增加参数资源引用变更映射，用于将临时资源持久化或删除资源。也许可以用多个参数：adds、deletes控制要增加和删除的资源
-
     // 检查是否收到了必须的参数
-    if (bookId.isEmpty() || chapterIndex.isEmpty()) {
-        QHttpServerResponse response("Missing metadata", QHttpServerResponse::StatusCode::BadRequest);
+    if (id.isEmpty() || type.isEmpty() || data.isEmpty()) {
+        QHttpServerResponse response("Missing upload metadata", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
 
-    // 更新章节内容
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent);
+    bool bSuccess = false;
+
+    // 检查是否存在同名 id
+    if (RogalunaHttpConfig::getInstance().getLibraryServer()->queryResCount(id) > 0) {
+        // 存在同名 id ，跳过写入文件
+        bSuccess = true;
+    } else {
+        // 不存在此 id ，写入到 temp 文件夹
+        if (RogalunaHttpConfig::getInstance().getLibraryServer()->uplaodLibraryTempFile(
+                id, type, data, id
+                )) {
+            // 写入成功
+            bSuccess = true;
+        }
+    }
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
     jsonResponse["success"] = bSuccess;
+    jsonResponse["data"] = id;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

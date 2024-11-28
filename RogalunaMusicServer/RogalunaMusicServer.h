@@ -153,12 +153,12 @@ private:
 
 public:
     QString root;                    ///< 文件存储的根目录。
+    QString musicDirName;            ///< 音频文件目录名称。
+    QString coverDirName;            ///< 专辑封面目录名称。
 
 private:
     RogalunaStorageServer* storageServer;
     RogalunaDatabaseServer* databaseServer;
-    QString musicDirName;
-    QString coverDirName;
 };
 
 #endif // ROGALUNAMUSICSERVER_H

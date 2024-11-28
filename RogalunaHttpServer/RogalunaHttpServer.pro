@@ -35,12 +35,14 @@ SOURCES += \
     RequestHandlers/Library/GetChapterContentHandler.cpp \
     RequestHandlers/Library/GetChapterInfoHandler.cpp \
     RequestHandlers/Library/GetChapterListHandler.cpp \
+    RequestHandlers/Library/GetLibraryResourceHandler.cpp \
     RequestHandlers/Library/NewBookHandler.cpp \
     RequestHandlers/Library/NewChapterHandler.cpp \
     RequestHandlers/Library/UpdateBookInfoHandler.cpp \
     RequestHandlers/Library/UpdateBookReadProgressHandler.cpp \
     RequestHandlers/Library/UpdateChapterContentHandler.cpp \
     RequestHandlers/Library/UpdateChapterInfoHandler.cpp \
+    RequestHandlers/Library/UploadLibraryResourceHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RequestHandlers/MusicStation/MergeMusicHandler.cpp \
@@ -75,12 +77,14 @@ HEADERS += \
     RequestHandlers/Library/GetChapterContentHandler.h \
     RequestHandlers/Library/GetChapterInfoHandler.h \
     RequestHandlers/Library/GetChapterListHandler.h \
+    RequestHandlers/Library/GetLibraryResourceHandler.h \
     RequestHandlers/Library/NewBookHandler.h \
     RequestHandlers/Library/NewChapterHandler.h \
     RequestHandlers/Library/UpdateBookInfoHandler.h \
     RequestHandlers/Library/UpdateBookReadProgressHandler.h \
     RequestHandlers/Library/UpdateChapterContentHandler.h \
     RequestHandlers/Library/UpdateChapterInfoHandler.h \
+    RequestHandlers/Library/UploadLibraryResourceHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/MusicStation/MergeMusicHandler.h \

@@ -48,10 +48,11 @@ public:
 public:
     /**
      * @brief 获取文件相对程序的路径。（旧名没有变动）
-     * @param relativeFilePath 文件的相对路径。
-     * @return 文件相对程序的路径。
+     * @param <QString> relativeFilePath 文件的相对路径。
+     * @param <QString> 基底检索路径，默认是空，即 root 指向的路径。
+     * @return <QString> 文件相对程序的路径。
      */
-    QString absoluteFilePath(const QString &relativeFilePath) const;
+    QString absoluteFilePath(const QString &relativeFilePath, const QString &basePath = "") const;
 
     /**
      * @brief 写入数据到指定的 QFile 文件对象。
@@ -129,6 +130,24 @@ public:
     bool writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
 
     /**
+     * @brief 写入临时文件（使用这个函数不要进行合并），如果提供了校验码则进行校验。
+     * @param tempFileDirName 临时文件目录名称。
+     * @param type 文件的类型。
+     * @param data 文件的数据。
+     * @param md5 文件的 MD5 校验码，可选。
+     * @return 如果写入成功返回 true，否则返回 false。
+     *
+     * @note 很奇怪，不同于上传块，完整文件上传的时候，计算的 md5 值又不同于原文件，见函数实现的
+     *         QCryptographicHash hash(QCryptographicHash::Md5);
+     *         hash.addData(data);
+     *       在上传块的重载内，是使用文件：
+     *         hash.addData(&tempFile);
+     *
+     *       这个问题有待商榷和优化
+     */
+    bool writeTempFile(const QString &tempFileDirName, const QString &type, const QByteArray &data, const QString &md5 = "");
+
+    /**
      * @brief 合并临时文件夹中的文件块到目标目录。
      * @param tempFileDirName 临时文件目录名称。
      * @param totalChunks 总块数。
@@ -157,9 +176,9 @@ private:
 
 public:
     QString root;                    ///< 文件存储的根目录。
+    QString temp;                    ///< 临时文件存储的目录。
 
 private:                
-    QString temp;                    ///< 临时文件存储的目录。
     QString tempFilePrefix;          ///< 临时文件的命名前缀。
 };
 
