@@ -187,9 +187,13 @@ bool RogalunaLibraryServer::updateBookReadProgress(const QString &bookId, const 
     return readProgressDAO.updateProgress(userId.toInt(), bookId, chapterIndex.toInt(),percentProgress.toInt());
 }
 
-bool RogalunaLibraryServer::updateChapterContent(const QString &bookId, const QString &chapterIndex, const QString &chapterContent)
+bool RogalunaLibraryServer::updateChapterContent(
+    const QString &bookId,
+    const QString &chapterIndex,
+    const QString &chapterContent)
 {
     return databaseServer->executeTransaction([&]() {
+
         Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
         // 获取对应的文件名称
         QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());

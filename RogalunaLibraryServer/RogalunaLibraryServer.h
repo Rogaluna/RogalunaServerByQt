@@ -57,7 +57,9 @@ public:
     bool updateBookReadProgress(const QString &bookId, const QString &userId, const QString &chapterIndex, const QString &percentProgress);
 
     // 更新章节内容
-    bool updateChapterContent(const QString &bookId, const QString &chapterIndex, const QString &chapterContent);
+    bool updateChapterContent(const QString &bookId,
+                              const QString &chapterIndex,
+                              const QString &chapterContent);
 
     // 更新书籍信息
     bool updateBookInfo(const QString &bookId, const QString &newName, const QString &newDesc, const QVector<int> &newTags);

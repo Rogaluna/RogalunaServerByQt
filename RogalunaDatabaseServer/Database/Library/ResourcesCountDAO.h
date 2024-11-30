@@ -19,6 +19,12 @@ public:
 
     // 获取资源类型
     QString getResourceType(const QString &resId) override;
+
+    // 增加资源计数
+    QPair<bool, QStringList> addResourceCount(const QStringList &added) override;
+
+    // 减少资源计数
+    QPair<bool, QStringList> removeResourceCount(const QStringList &removed) override;
 };
 
 }

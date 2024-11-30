@@ -98,7 +98,19 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
         }
     }
 
-    // 需要增加资源引用更新部分，增加参数资源引用变更映射，用于将临时资源持久化或删除资源。也许可以用多个参数：adds、deletes控制要增加和删除的资源
+    // 获取旧的内容
+
+    // 从旧内容中提取资源引用 id
+
+    // 从内容中提取出资源引用 id
+
+    // 比对引用 id ，获取新增和移除的 id
+
+    // 将新增的 id 文件复制持久存储，将移除的 id 文件复制到临时存储
+
+    // 如果失败了，就不需要考虑其他的了，如果成功了，说明其他的文件操作都会成功，唯一的例外是磁盘空间不足，考虑这个，将文件回滚，即删除复制到持久存储和临时存储中的文件。
+
+
 
     // 检查是否收到了必须的参数
     if (bookId.isEmpty() || chapterIndex.isEmpty()) {
