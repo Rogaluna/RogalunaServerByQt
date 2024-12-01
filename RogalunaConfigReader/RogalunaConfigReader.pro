@@ -10,9 +10,12 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Handlers/INIHandler.cpp \
     RogalunaConfigReader.cpp
 
 HEADERS += \
+    ConfigFileHandler.h \
+    Handlers/INIHandler.h \
     RogalunaConfigReader.h \
     RogalunaConfigReader_Global.h
 

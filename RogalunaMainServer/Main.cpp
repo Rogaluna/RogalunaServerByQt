@@ -1,13 +1,10 @@
 #include <QCoreApplication>
-#include <ConfigFile.h>
-#include <QSettings>
-
 
 #include <RogalunaStorageServer.h>
 #include <RogalunaDatabaseServer.h>
 
 
-#include <Database/TestDAO.h>
+#include <RogalunaConfigReader.h>
 
 
 #include <RogalunaAccountServer.h>
@@ -19,61 +16,144 @@
 #include <RogalunaHttpServer.h>
 
 
+#define REQUIRE_INPUT(configData, group, key) \
+while (true) { \
+        qDebug() << "Enter" << #group << #key << "value (require):"; \
+        QTextStream in(stdin); \
+        QString input = in.readLine().trimmed(); \
+        if (!input.isEmpty()) { \
+            configData[#group][#key] = input; \
+            break; \
+    } else { \
+            qDebug() << #key << "cannot be empty! Please input a valid value."; \
+    } \
+}
+
+#define OPTIONAL_INPUT(configData, group, key) \
+{ \
+        qDebug() << "Enter" << #group << #key << "value (default:" << configData[#group][#key] << "):"; \
+        QTextStream in(stdin); \
+        QString input = in.readLine().trimmed(); \
+        if (!input.isEmpty()) { \
+            configData[#group][#key] = input; \
+    } else { \
+            qDebug() << "Use default value:" << configData[#group][#key]; \
+    } \
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
+    qDebug() << "Initializing...";
+
+    auto configHandler = CREATE_CONFIG_HANDLER("config.ini");
+
+    RogalunaConfigurator::ConfigData defaultConfig;
+    // 存储服务
+    defaultConfig["Storage"] = {
+        {"root", "storage"},
+        {"temp", "temp"},
+        {"tempFilePrefix", "chunk_"}
+    };
+
+    // 数据库服务
+    defaultConfig["Database"] = {
+        {"hostname", ""},
+        {"dbname", ""},
+        {"username", "postgres"},
+        {"password", ""},
+        {"port", 5432},
+        {"interval", 5000},
+        {"maxReconnectAttempts", 5},
+        {"reconnectInterval", 3000}
+    };
+
+    // 账户服务
+    defaultConfig["Account"] = {
+        {"root", "account"}
+    };
+
+    // 云盘服务
+    defaultConfig["CloudDrive"] = {
+        {"root", "cloudDrive"}
+    };
+
+    // 图书馆服务
+    defaultConfig["Library"] = {
+        {"root", "library"},
+        {"bookDirName", "book"},
+        {"resDirName", "res"},
+        {"maxRangeSize", 10},
+        {"maxSingleResSize", 10485760},
+        {"categoryRootId", 1}
+    };
+
+    // 音乐台服务
+    defaultConfig["MusicStation"] = {
+        {"root", "musicStation"},
+        {"musicDirName", "music"},
+        {"coverDirName", "covers"}
+    };
+
+    // HTTP 服务
+    defaultConfig["HttpServer"] = {
+        {"dist", "www/dist"},
+        {"port", 8000},
+        {"algorithm", "HS256"},
+        {"secretKey", "rogaluna"}
+    };
+
+    VALIDATE_CONFIG(configHandler, defaultConfig, [](RogalunaConfigurator::ConfigData& configData) {
+        QTextStream in(stdin);
+
+        // 存储服务
+        if (configData.contains("Storage")) {
+            OPTIONAL_INPUT(configData, Storage, root);
+            OPTIONAL_INPUT(configData, Storage, temp);
+        }
+
+        // 数据库服务
+        if (configData.contains("Database")) {
+            REQUIRE_INPUT(configData, Database, hostname);
+            REQUIRE_INPUT(configData, Database, dbname);
+            OPTIONAL_INPUT(configData, Database, username);
+            REQUIRE_INPUT(configData, Database, password);
+            OPTIONAL_INPUT(configData, Database, port);
+        }
+
+        // HTTP 服务
+        if (configData.contains("HttpServer")) {
+            OPTIONAL_INPUT(configData, HttpServer, port);
+            REQUIRE_INPUT(configData, HttpServer, secretKey);
+        }
+    });
+
+    RogalunaConfigurator::ConfigData configData = READ_CONFIG(configHandler);
+
+    qDebug() << "Initialization completed, start server...";
+
     //========================================================================================//
 
     // 初始化存储器
-
-    configFile storageConfig("storage_config.ini");
-    if (!storageConfig.isConfigFileValid()) {
-        storageConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("Storage", {
-                {"root", "storage"},
-                {"temp", "temp"},
-                {"tempFilePrefix", "chunk_"}
-            })
-        }));
-    }
-    QList<ConfigGroup> storageConfigGroupsRead;
-    storageConfig.readConfigFile(storageConfigGroupsRead);
-    RogalunaStorageServer rss = RogalunaStorageServer(ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "root").toString(),
-                                                      ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "temp").toString(),
-                                                      ConfigGroup::getConfigValue(storageConfigGroupsRead, "Storage", "tempFilePrefix").toString());
+    RogalunaStorageServer rss = RogalunaStorageServer(
+        configData["Storage"].value("root", "").toString(),
+        configData["Storage"].value("temp", "").toString(),
+        configData["Storage"].value("tempFilePrefix", "").toString());
 
     //========================================================================================//
 
     // 初始化数据库
 
-    configFile dbConfig("db_config.ini");
-    if (!dbConfig.isConfigFileValid()) {
-        dbConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("Database", {
-               {"hostname", "117.72.65.176"},
-               {"dbname", "rogaluna_database"},
-               {"username", "postgres"},
-               {"password", "Lxzx546495"},
-               {"port", 5432},
-               {"interval", 5000},
-               {"maxReconnectAttempts", 5},
-               {"reconnectInterval", 3000}
-            })
-        }));
-    }
-    QList<ConfigGroup> dbConfigGroupsRead;
-    dbConfig.readConfigFile(dbConfigGroupsRead);
-
     RogalunaDatabaseServer dbServer(
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "hostname").toString(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "dbname").toString(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "username").toString(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "password").toString(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "port").toInt(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "interval").toInt(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "maxReconnectAttempts").toInt(),
-        ConfigGroup::getConfigValue(dbConfigGroupsRead, "Database", "reconnectInterval").toInt());
+        configData["Database"].value("hostname", "").toString(),
+        configData["Database"].value("dbname", "").toString(),
+        configData["Database"].value("username", "").toString(),
+        configData["Database"].value("password", "").toString(),
+        configData["Database"].value("port", "").toInt(),
+        configData["Database"].value("interval", "").toInt(),
+        configData["Database"].value("maxReconnectAttempts", "").toInt(),
+        configData["Database"].value("reconnectInterval", "").toInt());
     // RogalunaDatabaseServer dbServer("117.72.65.176", "test", "postgres", "Lxzx546495", 5432);
     if (!dbServer.connect())
     {
@@ -84,111 +164,43 @@ int main(int argc, char *argv[])
     //========================================================================================//
 
     // 初始化账户服务
-
-    configFile accountConfig("account_config.ini");
-    if (!accountConfig.isConfigFileValid()) {
-        accountConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("Account", {
-               {"root", "account"},
-               })
-        }));
-    }
-    QList<ConfigGroup> accountConfigGroupsRead;
-    accountConfig.readConfigFile(accountConfigGroupsRead);
-
     RogalunaAccountServer accountServer(
         &rss,
         &dbServer,
-        ConfigGroup::getConfigValue(accountConfigGroupsRead, "Account", "root").toString());
+        configData["Account"].value("root", "").toString());
 
     // 初始化云盘服务
-
-    configFile cloudDriveConfig("cloud_drive_config.ini");
-    if (!cloudDriveConfig.isConfigFileValid()) {
-        cloudDriveConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("CloudDrive", {
-                {"root", "cloudDrive"},
-            })
-        }));
-    }
-    QList<ConfigGroup> cloudDriveConfigGroupsRead;
-    cloudDriveConfig.readConfigFile(cloudDriveConfigGroupsRead);
-
     RogalunaCloudDriveServer cloudDriveServer(
         &rss,
         &dbServer,
-        ConfigGroup::getConfigValue(cloudDriveConfigGroupsRead, "CloudDrive", "root").toString());
+        configData["CloudDrive"].value("root", "").toString());
 
     // 初始化图书馆服务
-
-    configFile libraryConfig("library_config.ini");
-    if (!libraryConfig.isConfigFileValid()) {
-        libraryConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("Library", {
-               {"root", "library"},
-               {"bookDirName", "book"},
-               {"resDirName", "res"},
-               {"maxRangeSize", "10"},
-               {"maxSingleResSize", "10485760"},
-               {"categoryRootId", "1"},
-           })
-        }));
-    }
-    QList<ConfigGroup> libraryConfigGroupsRead;
-    libraryConfig.readConfigFile(libraryConfigGroupsRead);
     RogalunaLibraryServer libraryServer(
         &rss,
         &dbServer,
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "root").toString(),
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "bookDirName").toString(),
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "resDirName").toString(),
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "maxRangeSize").toInt(),
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "maxSingleResSize").toInt(),
-        ConfigGroup::getConfigValue(libraryConfigGroupsRead, "Library", "categoryRootId").toInt());
+        configData["Library"].value("root", "").toString(),
+        configData["Library"].value("bookDirName", "").toString(),
+        configData["Library"].value("resDirName", "").toString(),
+        configData["Library"].value("maxRangeSize", "").toInt(),
+        configData["Library"].value("maxSingleResSize", "").toInt(),
+        configData["Library"].value("categoryRootId", "").toInt());
 
     // 初始化音乐台服务
-
-    configFile musicConfig("music_config.ini");
-    if (!musicConfig.isConfigFileValid()) {
-        musicConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("MusicStation", {
-                {"root", "musicStation"},
-                {"musicDirName", "music"},
-                {"coverDirName", "covers"},
-            })
-        }));
-    }
-    QList<ConfigGroup> musicConfigGroupsRead;
-    musicConfig.readConfigFile(musicConfigGroupsRead);
     RogalunaMusicServer musicServer(
         &rss,
         &dbServer,
-        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "root").toString(),
-        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "musicDirName").toString(),
-        ConfigGroup::getConfigValue(musicConfigGroupsRead, "MusicStation", "coverDirName").toString());
+        configData["MusicStation"].value("root", "").toString(),
+        configData["MusicStation"].value("musicDirName", "").toString(),
+        configData["MusicStation"].value("coverDirName", "").toString());
 
     //========================================================================================//
 
     // 开启http服务
-
-    configFile httpConfig("http_config.ini");
-    if (!httpConfig.isConfigFileValid()) {
-        httpConfig.writeConfigFile(ConfigGroup::createConfigGroups({
-            ConfigGroup("HttpServer", {
-                {"dist", "www/dist"},
-                {"port", 8000},
-                {"algorithm", "HS256"},
-                {"secretKey", "rogaluna"}
-            })
-        }));
-    }
-    QList<ConfigGroup> httpConfigGroupsRead;
-    httpConfig.readConfigFile(httpConfigGroupsRead);
-
     RogalunaHttpServer server(
-        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "dist").toString(),
-        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "algorithm").toString(),
-        ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "secretKey").toString());
+        configData["HttpServer"].value("dist", "").toString(),
+        configData["HttpServer"].value("algorithm", "").toString(),
+        configData["HttpServer"].value("secretKey", "").toString());
 
     server.setStorageServer(&rss);
     server.setDatabaseServer(&dbServer);
@@ -199,7 +211,7 @@ int main(int argc, char *argv[])
 
     server.postInitialization();
 
-    server.start(ConfigGroup::getConfigValue(httpConfigGroupsRead, "HttpServer", "port").toInt());
+    server.start(configData["HttpServer"].value("port", "").toInt());
 
     return a.exec();
 }

@@ -98,6 +98,13 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
         }
     }
 
+    // 检查是否收到了必须的参数
+    if (bookId.isEmpty() || chapterIndex.isEmpty()) {
+        QHttpServerResponse response("Missing metadata", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+
     // 获取旧的内容
 
     // 从旧内容中提取资源引用 id
@@ -110,17 +117,16 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
 
     // 如果失败了，就不需要考虑其他的了，如果成功了，说明其他的文件操作都会成功，唯一的例外是磁盘空间不足，考虑这个，将文件回滚，即删除复制到持久存储和临时存储中的文件。
 
-
-
-    // 检查是否收到了必须的参数
-    if (bookId.isEmpty() || chapterIndex.isEmpty()) {
-        QHttpServerResponse response("Missing metadata", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
-
-    // 更新章节内容
+    // 如果成功了，那么更新章节内容
     bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent);
+
+    // 内容更新失败，删除复制的文件
+
+    // 内容更新成功，那么将资源 id 注册到数据库
+
+    // 注册数据库失败，删除复制的文件，回滚之前的章节内容
+
+    // 注册成功，将复制的文件的原件删除，完成任务。
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;

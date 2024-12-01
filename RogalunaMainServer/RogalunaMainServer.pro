@@ -8,17 +8,22 @@ CONFIG += c++17 cmdline
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-HEADERS += \
-    ConfigFile.h
+HEADERS +=
 
 SOURCES += \
-        ConfigFile.cpp \
         Main.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaConfigReader/release/ -lRogalunaConfigReader
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaConfigReader/debug/ -lRogalunaConfigReader
+else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaConfigReader/ -lRogalunaConfigReader
+
+INCLUDEPATH += $$PWD/../RogalunaConfigReader
+DEPENDPATH += $$PWD/../RogalunaConfigReader
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/release/ -lRogalunaDatabaseServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/debug/ -lRogalunaDatabaseServer
