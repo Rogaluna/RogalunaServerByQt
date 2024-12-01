@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaStorageServer.h>
+#include <QSslKey>
 
 #include <RequestHandlers/DefaultOptionsHandler.h>
 
@@ -62,7 +63,10 @@ RogalunaHttpServer::RogalunaHttpServer(
     RogalunaHttpConfig::getInstance().setSecretKey(&secretKey);
 }
 
-bool RogalunaHttpServer::start(quint16 port)
+bool RogalunaHttpServer::start(quint16 httpPort,
+                               quint16 httpsPort,
+                               const QString &certFilePath,
+                               const QString &keyFilePath)
 {
     // server->route("/", []() {
     //     return "Hello, welcome to your Qt HTTP server!";
@@ -131,16 +135,49 @@ bool RogalunaHttpServer::start(quint16 port)
 
     // REGISTER_ROUTE(server, "/*", GetWebFileHandler, webRootPath);
 
-    if (server->listen(QHostAddress::Any, port))
-    {
-        qDebug() << "Server running on port" << port;
-        return true;
+    // 监听 http
+    if (httpPort >= 0x0 && httpPort <= 0xFFFF) {
+        if (!server->listen(QHostAddress::Any, httpPort))
+        {
+            qDebug() << "Failed to listen on port:" << httpPort;
+            return false;
+        }
+        qDebug() << "Http server running on port:" << httpPort;
+    } else {
+        qDebug() << "Illegal port, http server closed";
     }
-    else
-    {
-        qDebug() << "Failed to listen on port" << port;
-        return true;
+
+    // 监听 https
+    if (httpsPort >= 0x0 && httpsPort <= 0xFFFF) {
+        // 获取证书和私钥
+        QFile certFile(certFilePath);
+        QFile keyFile(keyFilePath);
+        if (!certFile.open(QIODevice::ReadOnly) || !keyFile.open(QIODevice::ReadOnly)) {
+            qWarning() << "Unable to open certificate or private key file!";
+            return false;
+        }
+
+        QSslCertificate certificate(&certFile);
+        QSslKey privateKey(&keyFile, QSsl::Rsa);
+
+        QSslConfiguration sslConfiguration;
+        sslConfiguration.setLocalCertificate(certificate);
+        sslConfiguration.setPrivateKey(privateKey);
+        sslConfiguration.setPeerVerifyMode(QSslSocket::VerifyNone);
+
+        server->sslSetup(sslConfiguration);
+
+        if (!server->listen(QHostAddress::Any, httpsPort))
+        {
+            qDebug() << "Failed to listen on port!" << httpsPort;
+            return false;
+        }
+        qDebug() << "Https server running on port." << httpsPort;
+    } else {
+        qDebug() << "Illegal port, https server closed";
     }
+
+    return true;
 }
 
 void RogalunaHttpServer::setStorageServer(RogalunaStorageServer *_storageServer)

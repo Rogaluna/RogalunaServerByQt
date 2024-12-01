@@ -27,7 +27,11 @@ public:
         const QString &_algorithm,
         const QString &_secretKey);
 
-    bool start(quint16 port);
+    bool start(
+        quint16 httpPort,
+        quint16 httpsPort,
+        const QString &certFilePath,
+        const QString &keyFilePath);
 
 public:
     void setStorageServer(RogalunaStorageServer *_storageServer);

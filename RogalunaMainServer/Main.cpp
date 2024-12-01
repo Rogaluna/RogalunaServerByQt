@@ -99,9 +99,12 @@ int main(int argc, char *argv[])
     // HTTP 服务
     defaultConfig["HttpServer"] = {
         {"dist", "www/dist"},
-        {"port", 8000},
+        {"httpPort", 80},
+        {"httpsPort", 443},
+        {"certFilePath", ""},
+        {"keyFilePath", ""},
         {"algorithm", "HS256"},
-        {"secretKey", "rogaluna"}
+        {"secretKey", ""}
     };
 
     VALIDATE_CONFIG(configHandler, defaultConfig, [](RogalunaConfigurator::ConfigData& configData) {
@@ -124,7 +127,8 @@ int main(int argc, char *argv[])
 
         // HTTP 服务
         if (configData.contains("HttpServer")) {
-            OPTIONAL_INPUT(configData, HttpServer, port);
+            REQUIRE_INPUT(configData, HttpServer, certFilePath);
+            REQUIRE_INPUT(configData, HttpServer, keyFilePath);
             REQUIRE_INPUT(configData, HttpServer, secretKey);
         }
     });
@@ -211,7 +215,10 @@ int main(int argc, char *argv[])
 
     server.postInitialization();
 
-    server.start(configData["HttpServer"].value("port", "").toInt());
+    server.start(configData["HttpServer"].value("httpPort", "").toInt(),
+                 configData["HttpServer"].value("httpsPort", "").toInt(),
+                 configData["HttpServer"].value("certFilePath", "").toString(),
+                 configData["HttpServer"].value("keyFilePath", "").toString());
 
     return a.exec();
 }
