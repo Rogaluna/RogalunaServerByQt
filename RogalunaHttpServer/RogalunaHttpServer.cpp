@@ -68,7 +68,7 @@ RogalunaHttpServer::RogalunaHttpServer(
     , httpsPort(_httpsPort)
     , certFilePath(_certFilePath)
     , keyFilePath(_keyFilePath)
-    , SslEncryptAlg(_SslEncryptAlg)
+    , sslEncryptAlg(_SslEncryptAlg)
 {
     RogalunaHttpConfig::getInstance().setWebRootPath(&webRootPath);
     RogalunaHttpConfig::getInstance().setAlgorithm(&algorithm);
@@ -163,18 +163,18 @@ bool RogalunaHttpServer::start()
 
         QSsl::KeyAlgorithm keyAlg = QSsl::Ec;
 
-        if (SslEncryptAlg.compare("Rsa", Qt::CaseInsensitive) == 0) {
+        if (sslEncryptAlg.compare("Rsa", Qt::CaseInsensitive) == 0) {
             keyAlg = QSsl::Rsa;
-        } else if (SslEncryptAlg.compare("Ec", Qt::CaseInsensitive) == 0) {
+        } else if (sslEncryptAlg.compare("Ec", Qt::CaseInsensitive) == 0) {
             keyAlg = QSsl::Ec;
-        } else if (SslEncryptAlg.compare("Dsa", Qt::CaseInsensitive) == 0) {
+        } else if (sslEncryptAlg.compare("Dsa", Qt::CaseInsensitive) == 0) {
             keyAlg = QSsl::Dsa;
-        } else if (SslEncryptAlg.compare("Dh", Qt::CaseInsensitive) == 0) {
+        } else if (sslEncryptAlg.compare("Dh", Qt::CaseInsensitive) == 0) {
             keyAlg = QSsl::Dh;
-        } else if (SslEncryptAlg.compare("Opaque", Qt::CaseInsensitive) == 0) {
+        } else if (sslEncryptAlg.compare("Opaque", Qt::CaseInsensitive) == 0) {
             keyAlg = QSsl::Opaque;
         } else {
-            qWarning() << "Unsupported key encryption algorithm:" << SslEncryptAlg;
+            qWarning() << "Unsupported key encryption algorithm:" << sslEncryptAlg;
             qDebug() << "Key encryption algorithm will use \"Ec\"";
         }
 
