@@ -25,13 +25,15 @@ public:
     RogalunaHttpServer(
         const QString &_webRootPath,
         const QString &_algorithm,
-        const QString &_secretKey);
+        const QString &_secretKey,
+        quint16 _httpPort,
+        bool _enableSsl,
+        quint16 _httpsPort,
+        const QString &_certFilePath,
+        const QString &_keyFilePath,
+        const QString &_keyEncryptAlg);
 
-    bool start(
-        quint16 httpPort,
-        quint16 httpsPort,
-        const QString &certFilePath,
-        const QString &keyFilePath);
+    bool start();
 
 public:
     void setStorageServer(RogalunaStorageServer *_storageServer);
@@ -50,6 +52,13 @@ private:
     QString webRootPath;
     QString algorithm;
     QString secretKey;
+
+    quint16 httpPort;
+    bool enableSsl;
+    quint16 httpsPort;
+    QString certFilePath;
+    QString keyFilePath;
+    QString keyEncryptAlg;
 };
 
 #endif // ROGALUNAHTTPSERVER_H

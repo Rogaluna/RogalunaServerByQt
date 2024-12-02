@@ -99,22 +99,24 @@ int main(int argc, char *argv[])
     // HTTP 服务
     defaultConfig["HttpServer"] = {
         {"dist", "www/dist"},
-        {"httpPort", 80},
-        {"httpsPort", 443},
-        {"certFilePath", ""},
-        {"keyFilePath", ""},
         {"algorithm", "HS256"},
-        {"secretKey", ""}
+        {"secretKey", ""},
+        {"httpPort", 80},
+        {"enableSsl", true},
+        {"httpsPort", 443},
+        {"certFilePath", "fullchain.crt"},
+        {"keyFilePath", "private.pem"},
+        {"keyEncryptAlg", "Ec"}
     };
 
     VALIDATE_CONFIG(configHandler, defaultConfig, [](RogalunaConfigurator::ConfigData& configData) {
         QTextStream in(stdin);
 
-        // 存储服务
-        if (configData.contains("Storage")) {
-            OPTIONAL_INPUT(configData, Storage, root);
-            OPTIONAL_INPUT(configData, Storage, temp);
-        }
+        // // 存储服务
+        // if (configData.contains("Storage")) {
+        //     OPTIONAL_INPUT(configData, Storage, root);
+        //     OPTIONAL_INPUT(configData, Storage, temp);
+        // }
 
         // 数据库服务
         if (configData.contains("Database")) {
@@ -127,8 +129,8 @@ int main(int argc, char *argv[])
 
         // HTTP 服务
         if (configData.contains("HttpServer")) {
-            REQUIRE_INPUT(configData, HttpServer, certFilePath);
-            REQUIRE_INPUT(configData, HttpServer, keyFilePath);
+            // REQUIRE_INPUT(configData, HttpServer, certFilePath);
+            // REQUIRE_INPUT(configData, HttpServer, keyFilePath);
             REQUIRE_INPUT(configData, HttpServer, secretKey);
         }
     });
@@ -141,23 +143,23 @@ int main(int argc, char *argv[])
 
     // 初始化存储器
     RogalunaStorageServer rss = RogalunaStorageServer(
-        configData["Storage"].value("root", "").toString(),
-        configData["Storage"].value("temp", "").toString(),
-        configData["Storage"].value("tempFilePrefix", "").toString());
+        configData["Storage"].value("root").toString(),
+        configData["Storage"].value("temp").toString(),
+        configData["Storage"].value("tempFilePrefix").toString());
 
     //========================================================================================//
 
     // 初始化数据库
 
     RogalunaDatabaseServer dbServer(
-        configData["Database"].value("hostname", "").toString(),
-        configData["Database"].value("dbname", "").toString(),
-        configData["Database"].value("username", "").toString(),
-        configData["Database"].value("password", "").toString(),
-        configData["Database"].value("port", "").toInt(),
-        configData["Database"].value("interval", "").toInt(),
-        configData["Database"].value("maxReconnectAttempts", "").toInt(),
-        configData["Database"].value("reconnectInterval", "").toInt());
+        configData["Database"].value("hostname").toString(),
+        configData["Database"].value("dbname").toString(),
+        configData["Database"].value("username").toString(),
+        configData["Database"].value("password").toString(),
+        configData["Database"].value("port").toInt(),
+        configData["Database"].value("interval").toInt(),
+        configData["Database"].value("maxReconnectAttempts").toInt(),
+        configData["Database"].value("reconnectInterval").toInt());
     // RogalunaDatabaseServer dbServer("117.72.65.176", "test", "postgres", "Lxzx546495", 5432);
     if (!dbServer.connect())
     {
@@ -171,40 +173,46 @@ int main(int argc, char *argv[])
     RogalunaAccountServer accountServer(
         &rss,
         &dbServer,
-        configData["Account"].value("root", "").toString());
+        configData["Account"].value("root").toString());
 
     // 初始化云盘服务
     RogalunaCloudDriveServer cloudDriveServer(
         &rss,
         &dbServer,
-        configData["CloudDrive"].value("root", "").toString());
+        configData["CloudDrive"].value("root").toString());
 
     // 初始化图书馆服务
     RogalunaLibraryServer libraryServer(
         &rss,
         &dbServer,
-        configData["Library"].value("root", "").toString(),
-        configData["Library"].value("bookDirName", "").toString(),
-        configData["Library"].value("resDirName", "").toString(),
-        configData["Library"].value("maxRangeSize", "").toInt(),
-        configData["Library"].value("maxSingleResSize", "").toInt(),
-        configData["Library"].value("categoryRootId", "").toInt());
+        configData["Library"].value("root").toString(),
+        configData["Library"].value("bookDirName").toString(),
+        configData["Library"].value("resDirName").toString(),
+        configData["Library"].value("maxRangeSize").toInt(),
+        configData["Library"].value("maxSingleResSize").toInt(),
+        configData["Library"].value("categoryRootId").toInt());
 
     // 初始化音乐台服务
     RogalunaMusicServer musicServer(
         &rss,
         &dbServer,
-        configData["MusicStation"].value("root", "").toString(),
-        configData["MusicStation"].value("musicDirName", "").toString(),
-        configData["MusicStation"].value("coverDirName", "").toString());
+        configData["MusicStation"].value("root").toString(),
+        configData["MusicStation"].value("musicDirName").toString(),
+        configData["MusicStation"].value("coverDirName").toString());
 
     //========================================================================================//
 
     // 开启http服务
     RogalunaHttpServer server(
-        configData["HttpServer"].value("dist", "").toString(),
-        configData["HttpServer"].value("algorithm", "").toString(),
-        configData["HttpServer"].value("secretKey", "").toString());
+        configData["HttpServer"].value("dist").toString(),
+        configData["HttpServer"].value("algorithm").toString(),
+        configData["HttpServer"].value("secretKey").toString(),
+        configData["HttpServer"].value("httpPort").toInt(),
+        configData["HttpServer"].value("enableSsl").toBool(),
+        configData["HttpServer"].value("httpsPort").toInt(),
+        configData["HttpServer"].value("certFilePath").toString(),
+        configData["HttpServer"].value("keyFilePath").toString(),
+        configData["HttpServer"].value("keyEncryptAlg").toString());
 
     server.setStorageServer(&rss);
     server.setDatabaseServer(&dbServer);
@@ -215,10 +223,7 @@ int main(int argc, char *argv[])
 
     server.postInitialization();
 
-    server.start(configData["HttpServer"].value("httpPort", "").toInt(),
-                 configData["HttpServer"].value("httpsPort", "").toInt(),
-                 configData["HttpServer"].value("certFilePath", "").toString(),
-                 configData["HttpServer"].value("keyFilePath", "").toString());
+    server.start();
 
     return a.exec();
 }

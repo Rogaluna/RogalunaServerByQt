@@ -51,22 +51,31 @@
 RogalunaHttpServer::RogalunaHttpServer(
     const QString &_webRootPath,
     const QString &_algorithm,
-    const QString &_secretKey)
+    const QString &_secretKey,
+    quint16 _httpPort,
+    bool _enableSsl,
+    quint16 _httpsPort,
+    const QString &_certFilePath,
+    const QString &_keyFilePath,
+    const QString &_keyEncryptAlg)
 
     : server(new QHttpServer())
     , webRootPath(_webRootPath)
     , algorithm(_algorithm)
     , secretKey(_secretKey)
+    , httpPort(_httpPort)
+    , enableSsl(_enableSsl)
+    , httpsPort(_httpsPort)
+    , certFilePath(_certFilePath)
+    , keyFilePath(_keyFilePath)
+    , keyEncryptAlg(_keyEncryptAlg)
 {
     RogalunaHttpConfig::getInstance().setWebRootPath(&webRootPath);
     RogalunaHttpConfig::getInstance().setAlgorithm(&algorithm);
     RogalunaHttpConfig::getInstance().setSecretKey(&secretKey);
 }
 
-bool RogalunaHttpServer::start(quint16 httpPort,
-                               quint16 httpsPort,
-                               const QString &certFilePath,
-                               const QString &keyFilePath)
+bool RogalunaHttpServer::start()
 {
     // server->route("/", []() {
     //     return "Hello, welcome to your Qt HTTP server!";
@@ -136,19 +145,14 @@ bool RogalunaHttpServer::start(quint16 httpPort,
     // REGISTER_ROUTE(server, "/*", GetWebFileHandler, webRootPath);
 
     // 监听 http
-    if (httpPort >= 0x0 && httpPort <= 0xFFFF) {
-        if (!server->listen(QHostAddress::Any, httpPort))
-        {
-            qDebug() << "Failed to listen on port:" << httpPort;
-            return false;
-        }
-        qDebug() << "Http server running on port:" << httpPort;
-    } else {
-        qDebug() << "Illegal port, http server closed";
+    if (!server->listen(QHostAddress::Any, httpPort))
+    {
+        qDebug() << "Failed to listen on port:" << httpPort;
+        return false;
     }
+    qDebug() << "Http server running on port:" << httpPort;
 
-    // 监听 https
-    if (httpsPort >= 0x0 && httpsPort <= 0xFFFF) {
+    if (enableSsl) {
         // 获取证书和私钥
         QFile certFile(certFilePath);
         QFile keyFile(keyFilePath);
@@ -157,8 +161,35 @@ bool RogalunaHttpServer::start(quint16 httpPort,
             return false;
         }
 
+        QSsl::KeyAlgorithm keyAlg = QSsl::Ec;
+
+        if (keyEncryptAlg.compare("Rsa", Qt::CaseInsensitive) == 0) {
+            keyAlg = QSsl::Rsa;
+        } else if (keyEncryptAlg.compare("Ec", Qt::CaseInsensitive) == 0) {
+            keyAlg = QSsl::Ec;
+        } else if (keyEncryptAlg.compare("Dsa", Qt::CaseInsensitive) == 0) {
+            keyAlg = QSsl::Dsa;
+        } else if (keyEncryptAlg.compare("Dh", Qt::CaseInsensitive) == 0) {
+            keyAlg = QSsl::Dh;
+        } else if (keyEncryptAlg.compare("Opaque", Qt::CaseInsensitive) == 0) {
+            keyAlg = QSsl::Opaque;
+        } else {
+            qWarning() << "Unsupported key encryption algorithm:" << keyEncryptAlg;
+            qDebug() << "Key encryption algorithm will use \"Ec\"";
+        }
+
         QSslCertificate certificate(&certFile);
-        QSslKey privateKey(&keyFile, QSsl::Rsa);
+        QSslKey privateKey(&keyFile, keyAlg);
+
+        if (certificate.isNull()) {
+            qDebug() << "Certificate is null. Check file path and format.";
+            return false;
+        }
+
+        if (privateKey.isNull()) {
+            qDebug() << "Private key is null. Check file path and format.";
+            return false;
+        }
 
         QSslConfiguration sslConfiguration;
         sslConfiguration.setLocalCertificate(certificate);
@@ -167,14 +198,13 @@ bool RogalunaHttpServer::start(quint16 httpPort,
 
         server->sslSetup(sslConfiguration);
 
+        // 监听 https
         if (!server->listen(QHostAddress::Any, httpsPort))
         {
             qDebug() << "Failed to listen on port!" << httpsPort;
             return false;
         }
         qDebug() << "Https server running on port." << httpsPort;
-    } else {
-        qDebug() << "Illegal port, https server closed";
     }
 
     return true;
