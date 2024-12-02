@@ -31,7 +31,7 @@ public:
         quint16 _httpsPort,
         const QString &_certFilePath,
         const QString &_keyFilePath,
-        const QString &_keyEncryptAlg);
+        const QString &_SslEncryptAlg);
 
     bool start();
 
@@ -58,7 +58,7 @@ private:
     quint16 httpsPort;
     QString certFilePath;
     QString keyFilePath;
-    QString keyEncryptAlg;
+    QString SslEncryptAlg;
 };
 
 #endif // ROGALUNAHTTPSERVER_H
