@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         {"httpsPort", 443},
         {"certFilePath", "fullchain.crt"},
         {"keyFilePath", "private.pem"},
-        {"SslEncryptAlg", "Ec"}
+        {"sslEncryptAlg", "Ec"}
     };
 
     VALIDATE_CONFIG(configHandler, defaultConfig, [](RogalunaConfigurator::ConfigData& configData) {
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
         configData["HttpServer"].value("httpsPort").toInt(),
         configData["HttpServer"].value("certFilePath").toString(),
         configData["HttpServer"].value("keyFilePath").toString(),
-        configData["HttpServer"].value("SslEncryptAlg").toString());
+        configData["HttpServer"].value("sslEncryptAlg").toString());
 
     server.setStorageServer(&rss);
     server.setDatabaseServer(&dbServer);
