@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     defaultConfig["HttpServer"] = {
         {"dist", "www/dist"},
         {"algorithm", "HS256"},
-        {"secretKey", ""},
+        {"secretKey", ""}, // 秘密密钥，生成 token 所必须的加密密钥
         {"httpPort", 80},
         {"enableSsl", true},
         {"httpsPort", 443},

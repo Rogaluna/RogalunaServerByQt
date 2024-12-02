@@ -52,6 +52,9 @@ public:
     // 根据路径获取 uid 对象
     std::optional<CloudDrive::FFileMetadata> getMetadataFromPath(const QString& path, int userId);
 
+    // 获取目标文件，得到文件数据等信息
+    bool getTargetFile(const QString &targetMd5, bool isRangeRequest, QByteArray& fileData, qint64 &startPos, qint64 &endPos, qint64 &fileSize);
+
 public:
     QString root;                    ///< 文件存储的根目录。
 

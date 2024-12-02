@@ -2,7 +2,7 @@
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaStorageServer.h>
+#include <RogalunaCloudDriveServer.h>
 #include <Macro/TokenGV.h>
 
 QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &request)
@@ -61,29 +61,14 @@ QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &requ
         break;
     }
 
-    // 获取负载数据中包含的目标文件路径
-    QString filePath = jsonObj.value("filePath").toString();
+    // 获取负载数据中包含的目标文件路径和文件名
+    QString targetMd5 = jsonObj.value("targetMd5").toString();
+    QString fileName = jsonObj.value("fileName").toString();
 
-    // 打开文件
-    QFile file(RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(filePath));
-    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
-        QJsonObject jsonObject;
-        jsonObject["error"] = "File not found or cannot be opened";
-        QJsonDocument jsonDoc(jsonObject);
-        QByteArray jsonResponse = jsonDoc.toJson();
-
-        QHttpServerResponse response("application/json", jsonResponse, QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
-        return response;
-    }
-
-    QFileInfo fileInfo(file);
-    QString fileName = fileInfo.fileName();
-    qint64 fileSize = file.size();
-
-    // 位置指示器，以及是否断点续传符号定义
+    QByteArray fileData;
     qint64 startPos = 0;
-    qint64 endPos = fileSize - 1; // 默认读取整个文件
+    qint64 endPos = 0;
+    qint64 fileSize = 0;
     bool isRangeRequest = false;
 
     // 获取请求头，检查是否为 Range 请求（断点续传）
@@ -100,36 +85,33 @@ QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &requ
         QRegularExpressionMatch match = re.match(rangeHeader);
 
         if (match.hasMatch()) {
+            // 有断点续传请求
             isRangeRequest = true;
             startPos = match.captured(1).toLongLong();
             if (!match.captured(2).isEmpty()) {
                 endPos = match.captured(2).toLongLong();
-            }
-            // 如果 endPos 大于文件大小，则修正
-            if (endPos >= fileSize) {
-                endPos = fileSize - 1;
-            }
-
-            // 检查范围是否有效
-            if (startPos > endPos || startPos >= fileSize) {
-                QJsonObject jsonObject;
-                jsonObject["error"] = "Requested Range Not Satisfiable";
-                QJsonDocument jsonDoc(jsonObject);
-                QByteArray jsonResponse = jsonDoc.toJson();
-
-                QHttpServerResponse response("application/json", jsonResponse, QHttpServerResponse::StatusCode::RequestRangeNotSatisfiable);
-                response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
-                return response;
+            } else {
+                // 这里暂时不设置 endPos，因为还不知道文件大小
+                // getTargetFile 会在 isRangeRequest 为 true 时处理 endPos
+                // 确保 getTargetFile 能够处理 endPos 未指定的情况
+                endPos = -1; // 使用 -1 作为未指定的标志
             }
         }
     }
 
-    // 设置文件指针位置
-    file.seek(startPos);
-    qint64 bytesToRead = endPos - startPos + 1;
+    bool bSuccess = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getTargetFile(targetMd5, isRangeRequest, fileData, startPos, endPos, fileSize);
 
-    // 分块读取文件
-    QByteArray fileData = file.read(bytesToRead);
+    if (!bSuccess) {
+        QJsonObject jsonObject;
+        jsonObject["success"] = false;
+        jsonObject["message"] = isRangeRequest ? "Requested Range Not Satisfiable" : "File not found or cannot be opened";
+        QJsonDocument jsonDoc(jsonObject);
+        QByteArray jsonResponse = jsonDoc.toJson();
+
+        QHttpServerResponse response("application/json", jsonResponse, isRangeRequest ? QHttpServerResponse::StatusCode::RequestRangeNotSatisfiable : QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
 
     // 设置响应头
     QHttpServerResponse response(fileData, isRangeRequest ? QHttpServerResponse::StatusCode::PartialContent : QHttpServerResponse::StatusCode::Ok);

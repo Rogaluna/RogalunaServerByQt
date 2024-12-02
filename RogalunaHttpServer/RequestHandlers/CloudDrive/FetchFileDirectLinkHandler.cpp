@@ -83,29 +83,31 @@ QHttpServerResponse FetchFileDirectLinkHandler::handleRequest(const QHttpServerR
     // 解析表单数据的结构
     PARSE_MULTIPART_FORM_DATA(bodyParts, contentType, formParts);
 
-    QString filePath;
+    QString targetMd5;
+    QString fileName;
+    // 从解析的 formParts 中提取必要的字段
     for (const MultipartPart &part : formParts) {
-        if (part.name == "filePath") {
-            filePath = QString::fromUtf8(part.data).trimmed();
-            break;
+        if (part.name == "targetMd5") {
+            targetMd5 = QString::fromUtf8(part.data).trimmed();
+            targetMd5 = QUrl::fromPercentEncoding(targetMd5.toUtf8());
+        } else if (part.name == "fileName") {
+            fileName = QString::fromUtf8(part.data).trimmed();
         }
     }
 
-    if (filePath.isEmpty()) {
-        QHttpServerResponse response("Missing file parameter", QHttpServerResponse::StatusCode::BadRequest);
+    if (targetMd5.isEmpty() || fileName.isEmpty()) {
+        QHttpServerResponse response("Missing metadata", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
 
-    filePath = QUrl::fromPercentEncoding(filePath.toUtf8());
-    // 检查 filePath 是否以 '/' 开头，如果是则移除它
-    if (filePath.startsWith('/')) {
-        filePath.remove(0, 1);
-    }
+    // 检查 targetMd5 是否合法
 
-    // 使用安全令牌生成下载 URL，确保 URL 只有短期有效性
+
+    // 使用安全令牌生成下载 token，使用秘密密钥加密保证只能用本服务器解析才能得到目标文件，确保 URL 只有短期有效性
     QList<QPair<QString, QString>> claims = {
-        {"filePath", filePath},
+        {"targetMd5", targetMd5},
+        {"fileName", fileName},
         {"iat", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch())},
         {"exp", QString::number(QDateTime::currentDateTime().addSecs(3600).toSecsSinceEpoch())}
     };

@@ -195,3 +195,48 @@ std::optional<CloudDrive::FFileMetadata> RogalunaCloudDriveServer::getMetadataFr
     return metadataDao.getMetadataFromPath(path, userId);
 }
 
+bool RogalunaCloudDriveServer::getTargetFile(const QString &targetMd5, bool isRangeRequest, QByteArray &fileData, qint64 &startPos, qint64 &endPos, qint64 &fileSize)
+{
+    // 获取文件路径
+    QString filePath = storageServer->absoluteFilePath(root + QDir::separator() + targetMd5);
+    QFile file(filePath);
+
+    // 检查文件是否存在并尝试打开
+    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+
+    // 获取文件大小
+    fileSize = file.size();
+
+    if (isRangeRequest) {
+        // 假设 startPos 和 endPos 已由调用者解析并传递
+        // 那么不再解析 Range 头，而是使用传入的 startPos 和 endPos
+        // 需要确保调用者已经正确设置了 startPos 和 endPos
+        if (startPos > endPos || startPos >= fileSize) {
+            // 无效的范围
+            return false;
+        }
+        // 修正 endPos 不超过文件大小
+        if (endPos >= fileSize) {
+            endPos = fileSize - 1;
+        }
+    } else {
+        // 非 Range 请求，读取整个文件
+        startPos = 0;
+        endPos = fileSize - 1;
+    }
+
+    // 设置文件指针位置并读取数据
+    file.seek(startPos);
+    qint64 bytesToRead = endPos - startPos + 1;
+    fileData = file.read(bytesToRead);
+
+    // 检查读取是否成功
+    if (fileData.size() != bytesToRead) {
+        return false;
+    }
+
+    return true;
+}
+
