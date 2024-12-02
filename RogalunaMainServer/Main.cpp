@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
 
     // 账户服务
     defaultConfig["Account"] = {
-        {"root", "account"}
+        {"root", "account"},
+        {"saltRounds", 10}
     };
 
     // 云盘服务
@@ -173,7 +174,8 @@ int main(int argc, char *argv[])
     RogalunaAccountServer accountServer(
         &rss,
         &dbServer,
-        configData["Account"].value("root").toString());
+        configData["Account"].value("root").toString(),
+        configData["Account"].value("saltRounds").toInt());
 
     // 初始化云盘服务
     RogalunaCloudDriveServer cloudDriveServer(

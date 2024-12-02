@@ -3,10 +3,11 @@
 #include <bcrypt.h>
 #include <Database/Account/UsersDAO.h>
 
-RogalunaAccountServer::RogalunaAccountServer(RogalunaStorageServer *storageServer, RogalunaDatabaseServer *databaseServer, const QString &root)
+RogalunaAccountServer::RogalunaAccountServer(RogalunaStorageServer *storageServer, RogalunaDatabaseServer *databaseServer, const QString &root, int saltRounds)
     : root(root)
     , storageServer(storageServer)
     , databaseServer(databaseServer)
+    , saltRounds(saltRounds)
 {
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
@@ -18,12 +19,20 @@ RogalunaAccountServer::RogalunaAccountServer(RogalunaStorageServer *storageServe
 QJsonObject RogalunaAccountServer::registerAccount(const QString &username, const QString &password)
 {
     // bcrypt 进行加密
-    int saltRounds = 10;
     QString hashedPassword = QString::fromStdString(bcrypt::generateHash(password.toStdString(), saltRounds));
 
     Account::UserDAO userDAO(databaseServer->getDatabase());
 
     return userDAO.registerUser(username, hashedPassword);
+}
+
+bool RogalunaAccountServer::verifyPassword(int userId, const QString &password)
+{
+    Account::UserDAO userDAO(databaseServer->getDatabase());
+    QJsonObject user = userDAO.getUserById(userId);
+
+    // 获取了加密密码，使用 bcrypt 验证密码
+    return bcrypt::validatePassword(password.toStdString(), user["password"].toString().toStdString());
 }
 
 QJsonObject RogalunaAccountServer::loginAccount(const QString &usernameOrId, const QString &password)
@@ -63,10 +72,25 @@ QJsonObject RogalunaAccountServer::loginAccount(const QString &usernameOrId, con
     return result;
 }
 
-QJsonObject RogalunaAccountServer::getUserInfo(const QString &targetId)
+QJsonObject RogalunaAccountServer::getAccountInfo(const QString &targetId)
 {
     Account::UserDAO userDAO(databaseServer->getDatabase());
     QJsonObject result = userDAO.getUserById(targetId.toInt());
     result.remove("password");
     return result;
+}
+
+bool RogalunaAccountServer::updateAccountInfo(const QString &targetId, const QString &username, const QString &password)
+{
+    // 将 password 转为哈希密码
+    // bcrypt 进行加密
+    QString hashedPassword = QString::fromStdString(bcrypt::generateHash(password.toStdString(), saltRounds));
+
+    Account::UserDAO userDAO(databaseServer->getDatabase());
+    QJsonObject result = userDAO.updateUser(targetId.toInt(), username, hashedPassword);
+    if (!result.isEmpty()) {
+        return true;
+    }
+
+    return false;
 }

@@ -9,16 +9,22 @@
 class ROGALUNAACCOUNTSERVER_EXPORT RogalunaAccountServer
 {
 public:
-    RogalunaAccountServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root);
+    RogalunaAccountServer(RogalunaStorageServer* storageServer, RogalunaDatabaseServer* databaseServer, const QString &root, int saltRounds = 10);
 
     // 注册账户
     QJsonObject registerAccount(const QString &username, const QString &password);
+
+    // 验证密码
+    bool verifyPassword(int userId, const QString &password);
 
     // 登录账户
     QJsonObject loginAccount(const QString &usernameOrId, const QString &password);
 
     // 查询账户信息
-    QJsonObject getUserInfo(const QString &targetId);
+    QJsonObject getAccountInfo(const QString &targetId);
+
+    // 更新账户信息
+    bool updateAccountInfo(const QString &targetId, const QString &username, const QString &password);
 
 public:
     QString root;                    ///< 文件存储的根目录。
@@ -26,6 +32,8 @@ public:
 private:
     RogalunaStorageServer* storageServer;
     RogalunaDatabaseServer* databaseServer;
+
+    int saltRounds;
 };
 
 #endif // ROGALUNAACCOUNTSERVER_H

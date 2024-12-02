@@ -12,8 +12,9 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    RequestHandlers/Account/GetUserInfoHandler.cpp \
+    RequestHandlers/Account/GetAccountInfoHandler.cpp \
     RequestHandlers/Account/LoginHandler.cpp \
+    RequestHandlers/Account/ModifyAccountInfoHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.cpp \
     RequestHandlers/DefaultOptionsHandler.cpp \
@@ -54,8 +55,9 @@ HEADERS += \
     Macro/MD5HashGenerator.h \
     Macro/RequestBodyParser.h \
     Macro/TokenGV.h \
-    RequestHandlers/Account/GetUserInfoHandler.h \
+    RequestHandlers/Account/GetAccountInfoHandler.h \
     RequestHandlers/Account/LoginHandler.h \
+    RequestHandlers/Account/ModifyAccountInfoHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.h \
     RequestHandlers/DefaultOptionsHandler.h \

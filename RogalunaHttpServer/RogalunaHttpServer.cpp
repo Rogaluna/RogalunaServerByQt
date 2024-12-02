@@ -21,8 +21,9 @@
 #include <RequestHandlers/CloudDrive/MergeFileHandler.h>
 #include <RequestHandlers/CloudDrive/PostFileHandler.h>
 
-#include <RequestHandlers/Account/GetUserInfoHandler.h>
+#include <RequestHandlers/Account/GetAccountInfoHandler.h>
 #include <RequestHandlers/Account/LoginHandler.h>
+#include <RequestHandlers/Account/ModifyAccountInfoHandler.h>
 #include <RequestHandlers/Account/RegisterHandler.h>
 
 #include <RequestHandlers/Library/GetCategoriesHandler.h>
@@ -108,7 +109,8 @@ bool RogalunaHttpServer::start()
 
     REGISTER_ROUTE(server, "/api/account/register", QHttpServerRequest::Method::Post, RegisterHandler);
     REGISTER_ROUTE(server, "/api/account/login", QHttpServerRequest::Method::Post, LoginHandler);
-    REGISTER_ROUTE(server, "/api/account/getUserInfo", QHttpServerRequest::Method::Get, GetUserInfoHandler);
+    REGISTER_ROUTE(server, "/api/account/getAccountInfo", QHttpServerRequest::Method::Get, GetAccountInfoHandler);
+    REGISTER_ROUTE(server, "/api/account/modifyAccountInfo", QHttpServerRequest::Method::Post, ModifyAccountInfoHandler);
 
     qDebug() << "||||||||||||||||||||       Library       ||||||||||||||||||||";
 

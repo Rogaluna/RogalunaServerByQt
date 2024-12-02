@@ -1,4 +1,4 @@
-#include "GetUserInfoHandler.h"
+#include "GetAccountInfoHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -6,7 +6,7 @@
 
 #include <Macro/TokenGV.h>
 
-QHttpServerResponse GetUserInfoHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetAccountInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -64,15 +64,24 @@ QHttpServerResponse GetUserInfoHandler::handleRequest(const QHttpServerRequest &
     // 提取查询的 id
     QString targetId;
     if (query.hasQueryItem("id")) {
+        // 传入了 targetId
         targetId = query.queryItemValue("id");
+
+        // // 查询 userId 的权限
+        // QString authoriry;
+
+        // if (authoriry != "admin") {
+        //     // 用户权限不是管理员
+        //     QHttpServerResponse response("No permission", QHttpServerResponse::StatusCode::BadRequest);
+        //     response.setHeader("Access-Control-Allow-Origin", "*");
+        //     return response;
+        // }
     } else {
-        // 如果没有 id 参数，返回错误响应
-        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
-        return response;
+        // 如果没有 id 参数，则使用 token 中的用户 id
+        targetId = userId;
     }
 
-    QJsonObject result = RogalunaHttpConfig::getInstance().getAccountServer()->getUserInfo(targetId);
+    QJsonObject result = RogalunaHttpConfig::getInstance().getAccountServer()->getAccountInfo(targetId);
 
     if (result.isEmpty()) {
         // 获取数据失败
