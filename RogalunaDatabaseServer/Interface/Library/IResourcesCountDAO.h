@@ -15,14 +15,14 @@ public:
     // 获取资源计数
     virtual int getResourceCount(const QString &resId) = 0;
 
-    // 获取资源类型
-    virtual QString getResourceType(const QString &resId) = 0;
+    // 修改资源计数
+    virtual bool insertResourceCount(const QString &resId, int count) = 0;
 
-    // 增加资源计数
-    virtual QPair<bool, QStringList> addResourceCount(const QStringList &added) = 0;
+    // 删除资源行
+    virtual bool deleteResourceCount(const QString &resId) = 0;
 
-    // 减少资源计数
-    virtual QPair<bool, QStringList> removeResourceCount(const QStringList &removed) = 0;
+    // 修改资源计数
+    virtual bool modifyResourceCount(const QString &resId, int count) = 0;
 };
 
 }

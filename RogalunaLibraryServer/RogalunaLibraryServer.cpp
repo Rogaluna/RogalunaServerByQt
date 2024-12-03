@@ -21,8 +21,8 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     int maxSingleResSize,
     int categoryRootId)
     : root(root)
-    , bookDirName("")
-    , resDirName("")
+    , bookDirName(bookDirName)
+    , resDirName(resDirName)
     , storageServer(storageServer)
     , databaseServer(databaseServer)
     , categoryRootId(categoryRootId)
@@ -48,14 +48,37 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     }
 }
 
-QVector<FileInfoStruct> RogalunaLibraryServer::getDirFiles(const QString &driveName, const QString &targetPath)
+QString RogalunaLibraryServer::getChapterFilePath(const QString &bookId, const QString &chapterIndex)
 {
-    QString dirPath = root \
-                      + (driveName.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + driveName \
-                      + (targetPath.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + targetPath;
+    Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+    // 获取对应的文件名称
+    QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());
+    if (result.isEmpty()) {
+        return "";
+    }
+    const QString &fileName = result["file_name"].toString();
 
-    return storageServer->listFiles(dirPath);
+    return storageServer->absoluteFilePath(
+            root + QDir::separator() +
+            bookDirName + QDir::separator() +
+            bookId + QDir::separator() +
+            fileName
+        );
 }
+
+QString RogalunaLibraryServer::getResFolderPath()
+{
+    return root + QDir::separator() + resDirName;
+}
+
+// QVector<FileInfoStruct> RogalunaLibraryServer::getDirFiles(const QString &driveName, const QString &targetPath)
+// {
+//     QString dirPath = root \
+//                       + (driveName.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + driveName \
+//                       + (targetPath.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + targetPath;
+
+//     return storageServer->listFiles(dirPath);
+// }
 
 QJsonObject RogalunaLibraryServer::getCategories(int parentCategoryId)
 {
@@ -166,6 +189,7 @@ bool RogalunaLibraryServer::registerChapter(const QString &bookId, int chapterIn
                 storageServer->absoluteFilePath(
                     root + QDir::separator() +
                     bookDirName + QDir::separator() +
+                    bookId + QDir::separator() +
                     fileName),
                 QByteArray())) {
             return false;
@@ -173,6 +197,64 @@ bool RogalunaLibraryServer::registerChapter(const QString &bookId, int chapterIn
 
         return true;
     });
+}
+
+bool RogalunaLibraryServer::getChapterFile(const QString &bookId, int chapterIndex, bool isRangeRequest, QByteArray &fileData, qint64 &startPos, qint64 &endPos, qint64 &fileSize, QString &chapterName)
+{
+    Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
+    // 获取对应的文件名称
+    QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex);
+    if (result.isEmpty()) {
+        return false;
+    }
+    const QString &fileName = result["file_name"].toString();
+    chapterName = result["title"].toString();
+
+    // 获取文件路径
+    QString filePath = storageServer->absoluteFilePath(
+        root + QDir::separator() +
+        bookDirName + QDir::separator() +
+        bookId + QDir::separator() +
+        fileName);
+    QFile file(filePath);
+
+    // 检查文件是否存在并尝试打开
+    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+
+    // 获取文件大小
+    fileSize = file.size();
+
+    if (isRangeRequest) {
+        // 假设 startPos 和 endPos 已由调用者解析并传递
+        // 那么不再解析 Range 头，而是使用传入的 startPos 和 endPos
+        // 需要确保调用者已经正确设置了 startPos 和 endPos
+        if (startPos > endPos || startPos >= fileSize) {
+            // 无效的范围
+            return false;
+        }
+        // 修正 endPos 不超过文件大小
+        if (endPos >= fileSize) {
+            endPos = fileSize - 1;
+        }
+    } else {
+        // 非 Range 请求，读取整个文件
+        startPos = 0;
+        endPos = fileSize - 1;
+    }
+
+    // 设置文件指针位置并读取数据
+    file.seek(startPos);
+    qint64 bytesToRead = endPos - startPos + 1;
+    fileData = file.read(bytesToRead);
+
+    // 检查读取是否成功
+    if (fileData.size() != bytesToRead) {
+        return false;
+    }
+
+    return true;
 }
 
 QJsonObject RogalunaLibraryServer::getBookReadProgress(const QString &bookId, const QString &userId)
@@ -207,6 +289,7 @@ bool RogalunaLibraryServer::updateChapterContent(
                 storageServer->absoluteFilePath(
                     root + QDir::separator() +
                     bookDirName + QDir::separator() +
+                    bookId + QDir::separator() +
                     fileName),
                 chapterContent.toUtf8())) {
             return false;
@@ -263,6 +346,7 @@ bool RogalunaLibraryServer::deleteChapter(const QString &bookId, const QString &
         if(!storageServer->deleteFile(storageServer->absoluteFilePath(
                 root + QDir::separator() +
                 bookDirName + QDir::separator() +
+                bookId + QDir::separator() +
                 fileName))) {
             return false;
         }
@@ -294,6 +378,7 @@ bool RogalunaLibraryServer::deleteBook(const QString &bookId)
             if(!storageServer->deleteFile(storageServer->absoluteFilePath(
                     root + QDir::separator() +
                     bookDirName + QDir::separator() +
+                    bookId + QDir::separator() +
                     fileName))) {
                 return false;
             }
@@ -307,6 +392,34 @@ int RogalunaLibraryServer::queryResCount(const QString &resId)
 {
     Library::ResourcesCountDAO resourcesCountDAO(databaseServer->getDatabase());
     return resourcesCountDAO.getResourceCount(resId);
+}
+
+bool RogalunaLibraryServer::modifyResCount(const QString &resId, int count)
+{
+    return databaseServer->executeTransaction([&]() {
+        Library::ResourcesCountDAO resourcesCountDAO(databaseServer->getDatabase());
+        int currentCount = resourcesCountDAO.getResourceCount(resId);
+        if (currentCount == 0) {
+            // 计数为 0 ，需要插入
+            if (count > 0) {
+                return resourcesCountDAO.insertResourceCount(resId, count);
+            } else {
+                return false;
+            }
+        } else {
+            // 计数非 0 ，需要计算
+            int countResult = currentCount + count;
+            if (countResult > 0) {
+                return resourcesCountDAO.modifyResourceCount(resId, countResult);
+            } else {
+                return resourcesCountDAO.deleteResourceCount(resId);
+            }
+        }
+
+        return true;
+    });
+
+
 }
 
 bool RogalunaLibraryServer::uplaodLibraryTempFile(const QString tempDirName, const QString &type, const QByteArray &data, const QString &md5)
@@ -327,22 +440,25 @@ QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &m
         resDirName + QDir::separator() +
         md5);
 
-    QFile storageFile(storageResPath);
+    QDir storageResDir(storageResPath);
 
-    if (storageFile.exists()) {
-        // 如果持久存储中有这个文件，那么去查找数据库中 id 为此 md5 值的 row ，获取到它的文件类型。
-        FileReadResult readResult = storageServer->readFile(
-            storageFile,
-            0, maxSingleResSize
-            );
+    // 在资源目录内，MD5值标识的是一个文件夹，这个文件夹内部有一个以类型名命名的文件
+    if (storageResDir.exists()) {
+        // 如果持久存储中有这个目录，那么去获取此 md5 值目录下的首个文件。
+        QStringList files = storageResDir.entryList(QDir::Files);
+        if (!files.isEmpty()) {
+            const QString &storageFilePath = storageResPath + QDir::separator() + files.first();
+            QFile storageFile(storageFilePath);
 
-        if (readResult.success) {
-            Library::ResourcesCountDAO resourcesCountDAO(databaseServer->getDatabase());
-            const QString &resType =resourcesCountDAO.getResourceType(md5);
+            if (storageFile.open(QIODevice::ReadOnly)) {
+                QByteArray fileData = storageFile.readAll();
+                storageFile.close();
 
-            return qMakePair(readResult.data, resType);
+                // 文件名作为类型名
+                QString resType = QFileInfo(storageFile).baseName(); // 文件名（不含扩展名）
+                return qMakePair(fileData, resType);
+            }
         }
-
     } else {
         // 如果持久存储中没有这个文件，那么去临时文件夹中寻找
         const QString &tempDirPath = storageServer->absoluteFilePath(
@@ -367,11 +483,48 @@ QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &m
                 }
             }
         }
-        // 在临时文件夹内，MD5值标识的是一个文件夹，这个文件夹内部有一个以类型名命名的文件，获取这个文件
     }
 
     // 如果未找到资源，返回空结果
     return qMakePair(QByteArray(), QString());
+}
+
+bool RogalunaLibraryServer::isResPersExist(const QString &md5)
+{
+    // 检查持久存储中是否有对应的资源
+    const QString &storageResPath = storageServer->absoluteFilePath(
+        root + QDir::separator() +
+        resDirName + QDir::separator() +
+        md5);
+
+    QDir storageResDir(storageResPath);
+
+    if (storageResDir.exists()) {
+        QStringList files = storageResDir.entryList(QDir::Files);
+        if (!files.isEmpty()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool RogalunaLibraryServer::isResTempExist(const QString &md5)
+{
+    // 检查临时存储中是否有对应的资源
+    const QString &storageResPath = storageServer->absoluteFilePath(
+        md5, storageServer->temp);
+
+    QDir storageResDir(storageResPath);
+
+    if (storageResDir.exists()) {
+        QStringList files = storageResDir.entryList(QDir::Files);
+        if (!files.isEmpty()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

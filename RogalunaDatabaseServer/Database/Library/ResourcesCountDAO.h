@@ -17,14 +17,14 @@ public:
     // 获取资源计数
     int getResourceCount(const QString &resId) override;
 
-    // 获取资源类型
-    QString getResourceType(const QString &resId) override;
+    // 插入资源行
+    bool insertResourceCount(const QString &resId, int count) override;
 
-    // 增加资源计数
-    QPair<bool, QStringList> addResourceCount(const QStringList &added) override;
+    // 删除资源行
+    bool deleteResourceCount(const QString &resId) override;
 
-    // 减少资源计数
-    QPair<bool, QStringList> removeResourceCount(const QStringList &removed) override;
+    // 修改资源计数
+    bool modifyResourceCount(const QString &resId, int count) override;
 };
 
 }

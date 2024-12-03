@@ -22,7 +22,10 @@ public:
 
 public:
     // Storage
-    QVector<FileInfoStruct> getDirFiles(const QString &driveName, const QString &targetPath);
+    // QVector<FileInfoStruct> getDirFiles(const QString &driveName, const QString &targetPath);
+
+    QString getChapterFilePath(const QString &bookId, const QString &chapterIndex);
+    QString getResFolderPath();
 
     // Database
 
@@ -41,7 +44,7 @@ public:
     // 获取书籍类别
     QJsonObject getBookCategories(const QString &bookId);
 
-    // 获取书籍的章节信息
+    // 获取书籍的章节列表
     QJsonArray getChapterList(const QString &bookId);
 
     // 获取章节信息
@@ -49,6 +52,9 @@ public:
 
     // 注册新章节，会创建一个 0 字节的文件到文件系统
     bool registerChapter(const QString &bookId, int chapterIndex, const QString &chapterName, const QString &groupName, const QString &fileName);
+
+    // 获取章节文件，得到章节内容
+    bool getChapterFile(const QString &bookId, int chapterIndex, bool isRangeRequest, QByteArray& fileData, qint64 &startPos, qint64 &endPos, qint64 &fileSize, QString &chapterName);
 
     // 获取用户选择的书籍进度
     QJsonObject getBookReadProgress(const QString &bookId, const QString &userId);
@@ -76,11 +82,23 @@ public:
     // 查询资源计数
     int queryResCount(const QString &resId);
 
+    // 修改资源计数
+    bool modifyResCount(const QString &resId, int count);
+
     // 上传图书馆资源
     bool uplaodLibraryTempFile(const QString tempDirName, const QString &type, const QByteArray &data, const QString &md5 = "");
 
     // 获取图书馆资源
     QPair<QByteArray, QString> getLibraryRes(const QString &md5);
+    bool isResPersExist(const QString &md5);
+    bool isResTempExist(const QString &md5);
+
+// private:
+//     QStringList splitStringByLines(const QString &input);
+//     QStringList splitFileByLines(const QString &filePath);
+
+//     // Myers 行差异比较，得到新增(+)、删除(-)和修改的行
+//     myersDiffCompute(const QStringList &o, const QStringList &n);
 
 public:
     QString root;                    ///< 文件存储的根目录。
