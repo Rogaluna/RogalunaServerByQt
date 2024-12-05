@@ -5,6 +5,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace Library {
+
 
 QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -150,4 +152,6 @@ QHttpServerResponse GetChapterContentHandler::handleRequest(const QHttpServerReq
     // response.setHeader("Content-Length", QString::number(fileData.size()).toUtf8());
     // response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     // return response;
+}
+
 }

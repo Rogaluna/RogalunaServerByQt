@@ -10,6 +10,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace CloudDrive {
+
 QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 遍历头部列表，查找 "Authorization" 头
@@ -112,4 +114,6 @@ QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &
     response.setHeader("Access-Control-Allow-Origin", "*");
 
     return response;
+}
+
 }

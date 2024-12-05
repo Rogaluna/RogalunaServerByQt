@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace MusicStation {
+
 
 class MergeMusicHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // MERGEMUSICHANDLER_H

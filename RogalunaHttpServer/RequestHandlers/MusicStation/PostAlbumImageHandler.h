@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace MusicStation {
+
 
 class PostAlbumImageHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // POSTALBUMIMAGEHANDLER_H

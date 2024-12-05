@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace CloudDrive {
+
 
 class GetParentFolderHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // GETPARENTFOLDERHANDLER_H

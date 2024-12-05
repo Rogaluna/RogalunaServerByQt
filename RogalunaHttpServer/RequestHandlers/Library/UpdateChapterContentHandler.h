@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace Library {
+
 
 class UpdateChapterContentHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // UPDATECHAPTERCONTENTHANDLER_H

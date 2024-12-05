@@ -6,6 +6,7 @@ TEMPLATE = lib
 DEFINES += ROGALUNAHTTPSERVER_LIBRARY
 
 CONFIG += c++17
+CONFIG += object_parallel_to_source # 编译配置，设置了这个选项，o文件将依照项目目录生成
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -36,6 +37,7 @@ SOURCES += \
     RequestHandlers/Library/GetChapterContentHandler.cpp \
     RequestHandlers/Library/GetChapterInfoHandler.cpp \
     RequestHandlers/Library/GetChapterListHandler.cpp \
+    RequestHandlers/Library/GetCoverHandler.cpp \
     RequestHandlers/Library/GetLibraryResourceHandler.cpp \
     RequestHandlers/Library/NewBookHandler.cpp \
     RequestHandlers/Library/NewChapterHandler.cpp \
@@ -43,7 +45,9 @@ SOURCES += \
     RequestHandlers/Library/UpdateBookReadProgressHandler.cpp \
     RequestHandlers/Library/UpdateChapterContentHandler.cpp \
     RequestHandlers/Library/UpdateChapterInfoHandler.cpp \
+    RequestHandlers/Library/UploadCoverHandler.cpp \
     RequestHandlers/Library/UploadLibraryResourceHandler.cpp \
+    RequestHandlers/MusicStation/GetAlbumImageHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RequestHandlers/MusicStation/MergeMusicHandler.cpp \
@@ -79,6 +83,7 @@ HEADERS += \
     RequestHandlers/Library/GetChapterContentHandler.h \
     RequestHandlers/Library/GetChapterInfoHandler.h \
     RequestHandlers/Library/GetChapterListHandler.h \
+    RequestHandlers/Library/GetCoverHandler.h \
     RequestHandlers/Library/GetLibraryResourceHandler.h \
     RequestHandlers/Library/NewBookHandler.h \
     RequestHandlers/Library/NewChapterHandler.h \
@@ -86,7 +91,9 @@ HEADERS += \
     RequestHandlers/Library/UpdateBookReadProgressHandler.h \
     RequestHandlers/Library/UpdateChapterContentHandler.h \
     RequestHandlers/Library/UpdateChapterInfoHandler.h \
+    RequestHandlers/Library/UploadCoverHandler.h \
     RequestHandlers/Library/UploadLibraryResourceHandler.h \
+    RequestHandlers/MusicStation/GetAlbumImageHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/MusicStation/MergeMusicHandler.h \

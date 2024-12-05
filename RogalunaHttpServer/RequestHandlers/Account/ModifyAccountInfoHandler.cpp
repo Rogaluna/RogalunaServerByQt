@@ -7,6 +7,8 @@
 #include <Macro/TokenGV.h>
 #include <Macro/RequestBodyParser.h>
 
+namespace Account {
+
 QHttpServerResponse ModifyAccountInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -150,4 +152,6 @@ QHttpServerResponse ModifyAccountInfoHandler::handleRequest(const QHttpServerReq
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

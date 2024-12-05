@@ -3,6 +3,7 @@
 
 #include <QHttpServerResponse>
 
+namespace Account {
 
 class RegisterHandler
 {
@@ -11,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // REGISTERHANDLER_H

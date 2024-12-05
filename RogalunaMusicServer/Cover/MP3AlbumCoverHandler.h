@@ -7,7 +7,7 @@ class MP3AlbumCoverHandler : public AlbumCoverHandler
 {
 public:
     MP3AlbumCoverHandler() = default;
-    QByteArray getAlbumCover(QFile &file) override;
+    QByteArray extractAlbumCover(QFile &file) override;
 };
 
 #endif // MP3ALBUMCOVERHANDLER_H

@@ -6,6 +6,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace Library {
+
 QHttpServerResponse GetChapterInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -96,4 +98,6 @@ QHttpServerResponse GetChapterInfoHandler::handleRequest(const QHttpServerReques
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

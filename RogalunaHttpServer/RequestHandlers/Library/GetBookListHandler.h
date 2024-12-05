@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace Library {
+
 class GetBookListHandler
 {
 public:
@@ -10,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // GETBOOKLISTHANDLER_H

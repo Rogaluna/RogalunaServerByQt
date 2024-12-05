@@ -7,6 +7,8 @@
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
 
+namespace CloudDrive {
+
 QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 遍历头部列表，查找 "Authorization" 头
@@ -126,4 +128,6 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

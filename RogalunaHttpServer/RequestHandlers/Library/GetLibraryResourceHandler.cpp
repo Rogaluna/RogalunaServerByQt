@@ -6,7 +6,8 @@
 #include <RogalunaLibraryServer.h>
 
 #include <Macro/TokenGV.h>
-// 先查找持久文件夹中是否有指定的资源，没有的话，再去临时文件夹中找，再没有的话，就返回未找到。
+
+namespace Library {
 
 QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -98,4 +99,6 @@ QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRe
     response.setHeader("Content-Length", QString::number(fileData.size()).toUtf8());
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

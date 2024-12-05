@@ -7,7 +7,7 @@ class FLACAlbumCoverHandler : public AlbumCoverHandler
 {
 public:
     FLACAlbumCoverHandler() = default;
-    QByteArray getAlbumCover(QFile &file) override;
+    QByteArray extractAlbumCover(QFile &file) override;
 };
 
 #endif // FLACALBUMCOVERHANDLER_H

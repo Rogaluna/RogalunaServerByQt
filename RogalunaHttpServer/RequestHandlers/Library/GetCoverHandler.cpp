@@ -1,4 +1,4 @@
-#include "DeleteChapterHandler.h"
+#include "GetCoverHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -8,16 +8,25 @@
 
 namespace Library {
 
-QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetCoverHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
-    // 遍历头部列表，查找 "Authorization" 头
+    // 遍历头部列表，查找 "Cookie" 头中的 "token" ，实际上它就是 "authorization"
     QByteArray authorizationValue;
     for (const QPair<QByteArray, QByteArray> &header : headers) {
-        if (header.first.toLower() == "authorization") {
-            authorizationValue = header.second;
-            break;
+        // if (header.first.toLower() == "authorization") {
+        //     authorizationValue = header.second;
+        //     break;
+        // }
+        if (header.first.toLower() == "cookie") {
+            QStringList cookies = QString(header.second).split("; ");
+            for (const QString &cookie : cookies) {
+                if (cookie.startsWith("token=")) {
+                    authorizationValue = cookie.section('=', 1).toUtf8();
+                    break;
+                }
+            }
         }
     }
 
@@ -61,34 +70,6 @@ QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest
 
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
-
-    QUrlQuery query = request.query();
-    // 提取书籍 id 以及章节 index
-    QString bookId;
-    QString chapterIndex;
-    if (query.hasQueryItem("id") || query.hasQueryItem("index")) {
-        bookId = query.queryItemValue("id");
-        chapterIndex = query.queryItemValue("index");
-    } else {
-        // 如果没有 id 参数，返回错误响应
-        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
-        return response;
-    }
-
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapter(bookId, chapterIndex);
-
-    // 返回 JSON 响应
-    QJsonObject jsonResponse;
-    jsonResponse["success"] = bSuccess;
-
-    QJsonDocument jsonDoc(jsonResponse);
-    QByteArray jsonResponseData = jsonDoc.toJson();
-
-    // 返回带有 CORS 头的 JSON 响应
-    QHttpServerResponse response("application/json", jsonResponseData);
-    response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-    return response;
 }
 
 }

@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace CloudDrive {
+
 class FetchFileDirectLinkHandler
 {
 public:
@@ -10,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // FETCHFILEDIRECTLINKHANDLER_H

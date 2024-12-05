@@ -7,11 +7,12 @@
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 
-#include <Cover/AlbumCoverHandler.h>
-#include <Cover/FLACAlbumCoverHandler.h>
-#include <Cover/MP3AlbumCoverHandler.h>
+#include <AlbumCoverHandler.h>
 
 #include <QJsonArray>
+
+#include <Cover/FLACAlbumCoverHandler.h>
+#include <Cover/MP3AlbumCoverHandler.h>
 
 RogalunaMusicServer::RogalunaMusicServer(
     RogalunaStorageServer* storageServer,
@@ -166,9 +167,9 @@ QString RogalunaMusicServer::mergeChunks(
 
     // 在数据库完整写入后，导入专辑封面到指定位置
     // 查找目标位置是否存在专辑图片，如果已经存在了，则不写入，否则写入
-    QFile coverFile(storageServer->absoluteFilePath(coverDirPath + QDir::separator() + targetMd5));
+    QFile coverFile(storageServer->absoluteFilePath(coverDirPath + QDir::separator() + uuid));
     if (!coverFile.exists()) {
-        QByteArray albumCover = getAlbumCover(mergedFile, fileType);
+        QByteArray albumCover = extractAlbumCover(mergedFile, fileType);
         if (!albumCover.isEmpty()) {
             if (coverFile.open(QIODevice::WriteOnly)) {  // 打开文件以写入模式
                 if (storageServer->writeFile(coverFile, albumCover)) {
@@ -199,6 +200,18 @@ bool RogalunaMusicServer::saveAlbumCover(const QString &musicUid, const QByteArr
         storageServer->absoluteFilePath(coverDirPath + QDir::separator() + musicUid),
         cover
         );
+}
+
+QByteArray RogalunaMusicServer::getAlbumImage(const QString albumId)
+{
+    QString coverDirPath = root + QDir::separator() + coverDirName;
+
+    FileReadResult result = storageServer->readFile(
+        storageServer->absoluteFilePath(coverDirPath + QDir::separator() + albumId),
+        0);
+    const QByteArray &fileData = result.data;
+
+    return fileData;
 }
 
 QJsonArray RogalunaMusicServer::getMusicMetadata(const QString &uid)
@@ -269,7 +282,7 @@ RogalunaMusicServer::AudioMetadata RogalunaMusicServer::parseAudioFile(QFile &fi
     return metadata;
 }
 
-QByteArray RogalunaMusicServer::getAlbumCover(QFile &file, const QString &type)
+QByteArray RogalunaMusicServer::extractAlbumCover(QFile &file, const QString &type)
 {
     std::unique_ptr<AlbumCoverHandler> handler;
 
@@ -280,7 +293,7 @@ QByteArray RogalunaMusicServer::getAlbumCover(QFile &file, const QString &type)
     }
 
     if (handler) {
-        return handler->getAlbumCover(file);
+        return handler->extractAlbumCover(file);
     }
     return QByteArray();
 }

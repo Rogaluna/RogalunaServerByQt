@@ -6,6 +6,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace Library {
+
 QHttpServerResponse GetBookInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -93,4 +95,6 @@ QHttpServerResponse GetBookInfoHandler::handleRequest(const QHttpServerRequest &
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

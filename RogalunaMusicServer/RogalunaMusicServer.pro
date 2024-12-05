@@ -12,12 +12,14 @@ CONFIG += c++17
 SOURCES += \
     Cover/FLACAlbumCoverHandler.cpp \
     Cover/MP3AlbumCoverHandler.cpp \
+    QFileStream.cpp \
     RogalunaMusicServer.cpp
 
 HEADERS += \
-    Cover/AlbumCoverHandler.h \
+    AlbumCoverHandler.h \
     Cover/FLACAlbumCoverHandler.h \
     Cover/MP3AlbumCoverHandler.h \
+    QFileStream.h \
     RogalunaMusicServer_global.h \
     RogalunaMusicServer.h
 

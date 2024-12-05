@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace Library {
+
 
 class GetLibraryResourceHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // GETLIBRARYRESOURCEHANDLER_H

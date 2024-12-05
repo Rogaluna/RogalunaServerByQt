@@ -5,6 +5,8 @@
 #include <RogalunaCloudDriveServer.h>
 #include <Macro/TokenGV.h>
 
+namespace CloudDrive {
+
 QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 从请求的 URL 获取查询参数
@@ -126,4 +128,6 @@ QHttpServerResponse GetFileHandler::handleRequest(const QHttpServerRequest &requ
     response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
 
     return response;
+}
+
 }

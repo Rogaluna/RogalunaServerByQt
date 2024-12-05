@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace Account {
+
 
 class ModifyAccountInfoHandler
 {
@@ -11,5 +13,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // MODIFYACCOUNTINFOHANDLER_H

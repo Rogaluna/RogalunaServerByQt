@@ -1,19 +1,19 @@
-#ifndef NEWBOOKHANDLER_H
-#define NEWBOOKHANDLER_H
+#ifndef UPLOADCOVERHANDLER_H
+#define UPLOADCOVERHANDLER_H
 
 #include <QHttpServerResponse>
 
 namespace Library {
 
 
-class NewBookHandler
+class UploadCoverHandler
 {
 public:
-    NewBookHandler() = default;
+    UploadCoverHandler() = default;
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
 
 }
 
-#endif // NEWBOOKHANDLER_H
+#endif // UPLOADCOVERHANDLER_H

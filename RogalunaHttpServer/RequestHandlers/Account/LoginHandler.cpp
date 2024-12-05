@@ -7,6 +7,8 @@
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
 
+namespace Account {
+
 QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 检查是否为 multipart form-data 类型
@@ -76,4 +78,6 @@ QHttpServerResponse LoginHandler::handleRequest(const QHttpServerRequest &reques
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

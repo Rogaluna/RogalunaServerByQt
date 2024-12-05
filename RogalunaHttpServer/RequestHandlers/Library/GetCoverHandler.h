@@ -1,19 +1,19 @@
-#ifndef NEWBOOKHANDLER_H
-#define NEWBOOKHANDLER_H
+#ifndef GETCOVERHANDLER_H
+#define GETCOVERHANDLER_H
 
 #include <QHttpServerResponse>
 
 namespace Library {
 
 
-class NewBookHandler
+class GetCoverHandler
 {
 public:
-    NewBookHandler() = default;
+    GetCoverHandler() = default;
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
 
 }
 
-#endif // NEWBOOKHANDLER_H
+#endif // GETCOVERHANDLER_H

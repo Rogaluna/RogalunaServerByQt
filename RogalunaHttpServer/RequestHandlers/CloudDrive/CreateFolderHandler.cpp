@@ -9,6 +9,8 @@
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
 
+namespace CloudDrive {
+
 QHttpServerResponse CreateFolderHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -115,4 +117,6 @@ QHttpServerResponse CreateFolderHandler::handleRequest(const QHttpServerRequest 
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

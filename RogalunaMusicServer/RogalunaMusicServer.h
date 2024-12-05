@@ -92,6 +92,14 @@ public:
     bool saveAlbumCover(const QString &musicUid, const QByteArray &cover);
 
     /**
+     * @brief 获取专辑图片
+     *
+     * @param albumId 专辑 uid
+     * @return 图片数据，类型
+     */
+    QByteArray getAlbumImage(const QString albumId);
+
+    /**
      * @brief 获取音乐元数据
      *
      * @param uid 音乐的 UID
@@ -149,7 +157,7 @@ private:
     };
 
     AudioMetadata parseAudioFile(QFile &file);
-    QByteArray getAlbumCover(QFile &file, const QString &type); // 弃用
+    QByteArray extractAlbumCover(QFile &file, const QString &type);
 
 public:
     QString root;                    ///< 文件存储的根目录。

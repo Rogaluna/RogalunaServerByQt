@@ -43,11 +43,13 @@
 #include <RequestHandlers/Library/DeleteBookHandler.h>
 #include <RequestHandlers/Library/GetLibraryResourceHandler.h>
 #include <RequestHandlers/Library/UploadLibraryResourceHandler.h>
+#include <RequestHandlers/Library/GetCoverHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
 #include <RequestHandlers/MusicStation/MergeMusicHandler.h>
 #include <RequestHandlers/MusicStation/PostMusicHandler.h>
+#include <RequestHandlers/MusicStation/GetAlbumImageHandler.h>
 
 RogalunaHttpServer::RogalunaHttpServer(
     const QString &_webRootPath,
@@ -96,51 +98,53 @@ bool RogalunaHttpServer::start()
 
     qDebug() << "||||||||||||||||||||      CloudDrive     ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/cloudDrive/getFileList", QHttpServerRequest::Method::Get, GetFileListHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/postFile", QHttpServerRequest::Method::Post, PostFileHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/mergeFile", QHttpServerRequest::Method::Post, MergeFileHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/fetchFileDirectLink", QHttpServerRequest::Method::Post, FetchFileDirectLinkHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/getFile", QHttpServerRequest::Method::Get, GetFileHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/createFolder", QHttpServerRequest::Method::Post, CreateFolderHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/getParentFolder", QHttpServerRequest::Method::Get, GetParentFolderHandler);
-    REGISTER_ROUTE(server, "/api/cloudDrive/getUidFromPath", QHttpServerRequest::Method::Get, GetUidFromPathHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getFileList", QHttpServerRequest::Method::Get, CloudDrive::GetFileListHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/postFile", QHttpServerRequest::Method::Post, CloudDrive::PostFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/mergeFile", QHttpServerRequest::Method::Post, CloudDrive::MergeFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/fetchFileDirectLink", QHttpServerRequest::Method::Post, CloudDrive::FetchFileDirectLinkHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getFile", QHttpServerRequest::Method::Get, CloudDrive::GetFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/createFolder", QHttpServerRequest::Method::Post, CloudDrive::CreateFolderHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getParentFolder", QHttpServerRequest::Method::Get, CloudDrive::GetParentFolderHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/getUidFromPath", QHttpServerRequest::Method::Get, CloudDrive::GetUidFromPathHandler);
 
     qDebug() << "||||||||||||||||||||       Account       ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/account/register", QHttpServerRequest::Method::Post, RegisterHandler);
-    REGISTER_ROUTE(server, "/api/account/login", QHttpServerRequest::Method::Post, LoginHandler);
-    REGISTER_ROUTE(server, "/api/account/getAccountInfo", QHttpServerRequest::Method::Get, GetAccountInfoHandler);
-    REGISTER_ROUTE(server, "/api/account/modifyAccountInfo", QHttpServerRequest::Method::Post, ModifyAccountInfoHandler);
+    REGISTER_ROUTE(server, "/api/account/register", QHttpServerRequest::Method::Post, Account::RegisterHandler);
+    REGISTER_ROUTE(server, "/api/account/login", QHttpServerRequest::Method::Post, Account::LoginHandler);
+    REGISTER_ROUTE(server, "/api/account/getAccountInfo", QHttpServerRequest::Method::Get, Account::GetAccountInfoHandler);
+    REGISTER_ROUTE(server, "/api/account/modifyAccountInfo", QHttpServerRequest::Method::Post, Account::ModifyAccountInfoHandler);
 
     qDebug() << "||||||||||||||||||||       Library       ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/library/getCategories", QHttpServerRequest::Method::Get, GetCategoriesHandler);
-    REGISTER_ROUTE(server, "/api/library/getBookList", QHttpServerRequest::Method::Get, GetBookListHandler);
-    REGISTER_ROUTE(server, "/api/library/getBookInfo", QHttpServerRequest::Method::Get, GetBookInfoHandler);
-    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, GetBookCategoriesHandler);
-    REGISTER_ROUTE(server, "/api/library/getChapterList", QHttpServerRequest::Method::Get, GetChapterListHandler);
-    REGISTER_ROUTE(server, "/api/library/getChapterContent", QHttpServerRequest::Method::Get, GetChapterContentHandler);
-    REGISTER_ROUTE(server, "/api/library/getChapterInfo", QHttpServerRequest::Method::Get, GetChapterInfoHandler);
-    REGISTER_ROUTE(server, "/api/library/getBookReadProgress", QHttpServerRequest::Method::Get, GetBookReadProgressHandler);
+    REGISTER_ROUTE(server, "/api/library/getCategories", QHttpServerRequest::Method::Get, Library::GetCategoriesHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookList", QHttpServerRequest::Method::Get, Library::GetBookListHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookInfo", QHttpServerRequest::Method::Get, Library::GetBookInfoHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookCategories", QHttpServerRequest::Method::Get, Library::GetBookCategoriesHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterList", QHttpServerRequest::Method::Get, Library::GetChapterListHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterContent", QHttpServerRequest::Method::Get, Library::GetChapterContentHandler);
+    REGISTER_ROUTE(server, "/api/library/getChapterInfo", QHttpServerRequest::Method::Get, Library::GetChapterInfoHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookReadProgress", QHttpServerRequest::Method::Get, Library::GetBookReadProgressHandler);
 
-    REGISTER_ROUTE(server, "/api/library/newBook", QHttpServerRequest::Method::Post, NewBookHandler);
-    REGISTER_ROUTE(server, "/api/library/newChapter", QHttpServerRequest::Method::Post, NewChapterHandler);
-    REGISTER_ROUTE(server, "/api/library/updateBookInfo", QHttpServerRequest::Method::Post, UpdateBookInfoHandler);
-    REGISTER_ROUTE(server, "/api/library/updateChapterContent", QHttpServerRequest::Method::Post, UpdateChapterContentHandler);
-    REGISTER_ROUTE(server, "/api/library/updateChapterInfo", QHttpServerRequest::Method::Post, UpdateChapterInfoHandler);
+    REGISTER_ROUTE(server, "/api/library/newBook", QHttpServerRequest::Method::Post, Library::NewBookHandler);
+    REGISTER_ROUTE(server, "/api/library/newChapter", QHttpServerRequest::Method::Post, Library::NewChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/updateBookInfo", QHttpServerRequest::Method::Post, Library::UpdateBookInfoHandler);
+    REGISTER_ROUTE(server, "/api/library/updateChapterContent", QHttpServerRequest::Method::Post, Library::UpdateChapterContentHandler);
+    REGISTER_ROUTE(server, "/api/library/updateChapterInfo", QHttpServerRequest::Method::Post, Library::UpdateChapterInfoHandler);
 
-    REGISTER_ROUTE(server, "/api/library/deleteChapter", QHttpServerRequest::Method::Delete, DeleteChapterHandler);
-    REGISTER_ROUTE(server, "/api/library/deleteBook", QHttpServerRequest::Method::Delete, DeleteBookHandler);
+    REGISTER_ROUTE(server, "/api/library/deleteChapter", QHttpServerRequest::Method::Delete, Library::DeleteChapterHandler);
+    REGISTER_ROUTE(server, "/api/library/deleteBook", QHttpServerRequest::Method::Delete, Library::DeleteBookHandler);
 
-    REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, UploadLibraryResourceHandler);
-    REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, GetLibraryResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, Library::UploadLibraryResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, Library::GetLibraryResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/cover", QHttpServerRequest::Method::Get, Library::GetCoverHandler);
 
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 
-    REGISTER_ROUTE(server, "/api/musicStation/getMusic", QHttpServerRequest::Method::Get, GetMusicHandler);
-    REGISTER_ROUTE(server, "/api/musicStation/getMusicList", QHttpServerRequest::Method::Get, GetMusicListHandler);
-    REGISTER_ROUTE(server, "/api/musicStation/postMusic", QHttpServerRequest::Method::Post, PostMusicHandler);
-    REGISTER_ROUTE(server, "/api/musicStation/mergeMusic", QHttpServerRequest::Method::Post, MergeMusicHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/getMusic", QHttpServerRequest::Method::Get, MusicStation::GetMusicHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/getMusicList", QHttpServerRequest::Method::Get, MusicStation::GetMusicListHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/postMusic", QHttpServerRequest::Method::Post, MusicStation::PostMusicHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/mergeMusic", QHttpServerRequest::Method::Post, MusicStation::MergeMusicHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/getAlbumImage", QHttpServerRequest::Method::Get, MusicStation::GetAlbumImageHandler);
 
     qDebug() << "||||||||||||||||||||  ***ROUTERS END***  ||||||||||||||||||||";
 

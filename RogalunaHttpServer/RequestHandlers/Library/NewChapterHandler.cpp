@@ -8,6 +8,8 @@
 #include <Macro/RequestBodyParser.h>
 #include <Macro/TokenGV.h>
 
+namespace Library {
+
 
 QHttpServerResponse NewChapterHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -127,4 +129,6 @@ QHttpServerResponse NewChapterHandler::handleRequest(const QHttpServerRequest &r
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

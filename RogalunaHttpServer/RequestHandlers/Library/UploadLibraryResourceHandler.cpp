@@ -7,7 +7,7 @@
 #include <Macro/TokenGV.h>
 #include <Macro/RequestBodyParser.h>
 
-// 它上传到临时文件夹中。
+namespace Library {
 
 QHttpServerResponse UploadLibraryResourceHandler::handleRequest(const QHttpServerRequest &request)
 {
@@ -135,4 +135,6 @@ QHttpServerResponse UploadLibraryResourceHandler::handleRequest(const QHttpServe
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

@@ -2,13 +2,21 @@
 
 #include <taglib/flac/flacfile.h>
 
-QByteArray FLACAlbumCoverHandler::getAlbumCover(QFile &file)
+#include <QFileStream.h>
+
+QByteArray FLACAlbumCoverHandler::extractAlbumCover(QFile &file)
 {
-    QByteArray albumCover;
-    TagLib::FLAC::File flacFile(file.fileName().toUtf8().data());
-    if (flacFile.isValid() && flacFile.pictureList().size() > 0) {
-        TagLib::FLAC::Picture *picture = flacFile.pictureList().front();
-        albumCover = QByteArray::fromRawData(picture->data().data(), picture->data().size());
+    TagLib::IOStream *stream = new QFileStream(file);
+    TagLib::FLAC::File flacFile(stream, false);
+    QByteArray imageData;
+
+    const auto &pictureList = flacFile.pictureList();
+    if (!pictureList.isEmpty()) {
+        TagLib::FLAC::Picture *pic = pictureList.front();
+        TagLib::ByteVector data = pic->data();
+        imageData = QByteArray(data.data(), data.size());
     }
-    return albumCover;
+
+    delete stream;
+    return imageData;
 }

@@ -8,6 +8,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace MusicStation {
+
 QHttpServerResponse GetMusicHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 遍历头部列表，查找 "Authorization" 头
@@ -180,4 +182,6 @@ QHttpServerResponse GetMusicHandler::handleRequest(const QHttpServerRequest &req
     response.setHeader("Access-Control-Allow-Origin", "*");
 
     return response;
+}
+
 }

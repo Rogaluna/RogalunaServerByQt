@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace CloudDrive {
+
 class GetUidFromPathHandler
 {
 public:
@@ -10,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // GETUIDFROMPATHHANDLER_H

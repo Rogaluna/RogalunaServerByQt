@@ -6,6 +6,8 @@
 
 #include <Macro/TokenGV.h>
 
+namespace Library {
+
 QHttpServerResponse DeleteBookHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -85,4 +87,6 @@ QHttpServerResponse DeleteBookHandler::handleRequest(const QHttpServerRequest &r
     QHttpServerResponse response("application/json", jsonResponseData);
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
+}
+
 }

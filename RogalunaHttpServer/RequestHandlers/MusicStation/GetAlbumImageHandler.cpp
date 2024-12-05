@@ -1,23 +1,32 @@
-#include "DeleteChapterHandler.h"
+#include "GetAlbumImageHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaLibraryServer.h>
+#include <RogalunaMusicServer.h>
 
 #include <Macro/TokenGV.h>
 
-namespace Library {
+namespace MusicStation {
 
-QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetAlbumImageHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
-    // 遍历头部列表，查找 "Authorization" 头
+    // 遍历头部列表，查找 "Cookie" 头中的 "token" ，实际上它就是 "authorization"
     QByteArray authorizationValue;
     for (const QPair<QByteArray, QByteArray> &header : headers) {
-        if (header.first.toLower() == "authorization") {
-            authorizationValue = header.second;
-            break;
+        // if (header.first.toLower() == "authorization") {
+        //     authorizationValue = header.second;
+        //     break;
+        // }
+        if (header.first.toLower() == "cookie") {
+            QStringList cookies = QString(header.second).split("; ");
+            for (const QString &cookie : cookies) {
+                if (cookie.startsWith("token=")) {
+                    authorizationValue = cookie.section('=', 1).toUtf8();
+                    break;
+                }
+            }
         }
     }
 
@@ -63,30 +72,24 @@ QHttpServerResponse DeleteChapterHandler::handleRequest(const QHttpServerRequest
     QString userId = jwtObj.value("id").toString();
 
     QUrlQuery query = request.query();
-    // 提取书籍 id 以及章节 index
-    QString bookId;
-    QString chapterIndex;
-    if (query.hasQueryItem("id") || query.hasQueryItem("index")) {
-        bookId = query.queryItemValue("id");
-        chapterIndex = query.queryItemValue("index");
+    // 提取资源 id
+    QString id;
+    if (query.hasQueryItem("id")) {
+        id = query.queryItemValue("id");
     } else {
         // 如果没有 id 参数，返回错误响应
-        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        QHttpServerResponse response("Missing query parameters", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
         return response;
     }
 
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapter(bookId, chapterIndex);
-
-    // 返回 JSON 响应
-    QJsonObject jsonResponse;
-    jsonResponse["success"] = bSuccess;
-
-    QJsonDocument jsonDoc(jsonResponse);
-    QByteArray jsonResponseData = jsonDoc.toJson();
+    // 获取文件
+    QByteArray result = RogalunaHttpConfig::getInstance().getMusicServer()->getAlbumImage(id);
 
     // 返回带有 CORS 头的 JSON 响应
-    QHttpServerResponse response("application/json", jsonResponseData);
+    QHttpServerResponse response(result, QHttpServerResponse::StatusCode::Ok);
+    response.setHeader("Content-Type", "image/*");
+    response.setHeader("Content-Length", QString::number(result.size()).toUtf8());
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
 }

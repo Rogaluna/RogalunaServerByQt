@@ -3,6 +3,8 @@
 
 #include <QHttpServerResponse>
 
+namespace CloudDrive {
+
 class GetFileListHandler
 {
 public:
@@ -10,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // GETFILELISTHANDLER_H

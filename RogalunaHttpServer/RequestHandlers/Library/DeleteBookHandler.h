@@ -3,6 +3,7 @@
 
 #include <QHttpServerResponse>
 
+namespace Library {
 
 class DeleteBookHandler
 {
@@ -11,5 +12,7 @@ public:
 
     static QHttpServerResponse handleRequest(const QHttpServerRequest &request);
 };
+
+}
 
 #endif // DELETEBOOKHANDLER_H
