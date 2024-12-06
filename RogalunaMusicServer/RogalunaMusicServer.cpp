@@ -202,22 +202,22 @@ bool RogalunaMusicServer::saveAlbumCover(const QString &musicUid, const QByteArr
         );
 }
 
-QByteArray RogalunaMusicServer::getAlbumImage(const QString albumId)
+QByteArray RogalunaMusicServer::getCoverImage(const QString id)
 {
     QString coverDirPath = root + QDir::separator() + coverDirName;
 
     FileReadResult result = storageServer->readFile(
-        storageServer->absoluteFilePath(coverDirPath + QDir::separator() + albumId),
-        0);
+        storageServer->absoluteFilePath(coverDirPath + QDir::separator() + id),
+        0, 1024 * 1024 * 10);
     const QByteArray &fileData = result.data;
 
     return fileData;
 }
 
-QJsonArray RogalunaMusicServer::getMusicMetadata(const QString &uid)
+QJsonArray RogalunaMusicServer::getMusicMetadata(const QStringList &uids)
 {
     MusicStation::MetadataDAO metadataDao(databaseServer->getDatabase());
-    return metadataDao.getMetadataByUid(uid);
+    return metadataDao.getMetadataByUid(uids);
 }
 
 RogalunaMusicServer::AudioMetadata RogalunaMusicServer::parseAudioFile(QFile &file)

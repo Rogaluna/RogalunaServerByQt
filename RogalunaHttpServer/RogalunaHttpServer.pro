@@ -47,7 +47,7 @@ SOURCES += \
     RequestHandlers/Library/UpdateChapterInfoHandler.cpp \
     RequestHandlers/Library/UploadCoverHandler.cpp \
     RequestHandlers/Library/UploadLibraryResourceHandler.cpp \
-    RequestHandlers/MusicStation/GetAlbumImageHandler.cpp \
+    RequestHandlers/MusicStation/GetMusicCoverHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
     RequestHandlers/MusicStation/MergeMusicHandler.cpp \
@@ -93,7 +93,7 @@ HEADERS += \
     RequestHandlers/Library/UpdateChapterInfoHandler.h \
     RequestHandlers/Library/UploadCoverHandler.h \
     RequestHandlers/Library/UploadLibraryResourceHandler.h \
-    RequestHandlers/MusicStation/GetAlbumImageHandler.h \
+    RequestHandlers/MusicStation/GetMusicCoverHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \
     RequestHandlers/MusicStation/MergeMusicHandler.h \

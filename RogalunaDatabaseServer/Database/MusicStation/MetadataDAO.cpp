@@ -44,12 +44,25 @@ QString MusicStation::MetadataDAO::insertMetadata(
     return QString();
 }
 
-QJsonArray MetadataDAO::getMetadataByUid(const QString &uid)
+QJsonArray MetadataDAO::getMetadataByUid(const QStringList &uids)
 {
+    if (uids.isEmpty()) {
+        return QJsonArray();  // 如果 uid 列表为空，直接返回空数组
+    }
+
     QSqlQuery query(database);
-    QString sql = QString("SELECT * FROM %1 WHERE uid = :uid").arg(fullTableName());
+    // 构建占位符字符串
+    QStringList quotedUids;
+    for (const QString &uid : uids) {
+        quotedUids << QString("'%1'").arg(uid);  // 给每个 uid 加上单引号
+    }
+    QString placeholders = quotedUids.join(", ");  // 用逗号连接带引号的 uid
+    QString sql = QString("SELECT * FROM %1 WHERE uid IN (%2)").arg(fullTableName(), placeholders);
     query.prepare(sql);
-    query.bindValue(":uid", uid);
+    // 绑定每个 uid 到占位符
+    for (int i = 0; i < uids.size(); ++i) {
+        query.bindValue(i, uids.at(i));
+    }
 
     if (!query.exec()) {
         qWarning() << "Failed to execute query:" << query.lastError().text();

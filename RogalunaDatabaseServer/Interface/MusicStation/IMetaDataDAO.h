@@ -66,10 +66,10 @@ public:
     /**
      * @brief 根据 UID 获取元数据。
      *
-     * @param uid 要获取的元数据的 UID。
+     * @param uids 要获取的元数据的 UID 数组。
      * @return 如果找到则返回元数据，否则返回 std::nullopt。
      */
-    virtual QJsonArray getMetadataByUid(const QString& uid) = 0;
+    virtual QJsonArray getMetadataByUid(const QStringList &uids) = 0;
 
     /**
      * @brief 获取随机元数据记录。

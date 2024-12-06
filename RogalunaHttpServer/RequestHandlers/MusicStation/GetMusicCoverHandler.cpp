@@ -1,6 +1,7 @@
-#include "GetAlbumImageHandler.h"
+#include "GetMusicCoverHandler.h"
 
 #include <QHttpServerRequest>
+#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaMusicServer.h>
 
@@ -8,7 +9,7 @@
 
 namespace MusicStation {
 
-QHttpServerResponse GetAlbumImageHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetMusicCoverHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -83,8 +84,18 @@ QHttpServerResponse GetAlbumImageHandler::handleRequest(const QHttpServerRequest
         return response;
     }
 
-    // 获取文件
-    QByteArray result = RogalunaHttpConfig::getInstance().getMusicServer()->getAlbumImage(id);
+    // 获取文件，如果 id 可以找到其封面，使用它，否则寻找专辑 id ，如果能够找到专辑 id 则获取对应封面，如果本身就是专辑 id ，那么确认无封面
+    QByteArray result = RogalunaHttpConfig::getInstance().getMusicServer()->getCoverImage(id);
+    if (result.isEmpty()) {
+        // 查找 id 对应的专辑信息
+        const QJsonArray &albums = RogalunaHttpConfig::getInstance().getMusicServer()->getMusicMetadata({id});
+        if (albums.first().isObject()) {
+            // 能够找到专辑信息，使用专辑 id 指向的图片
+            QJsonObject album = albums.first().toObject();
+
+            result = RogalunaHttpConfig::getInstance().getMusicServer()->getCoverImage(album.value("album_id").toString());
+        }
+    }
 
     // 返回带有 CORS 头的 JSON 响应
     QHttpServerResponse response(result, QHttpServerResponse::StatusCode::Ok);

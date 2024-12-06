@@ -92,20 +92,21 @@ public:
     bool saveAlbumCover(const QString &musicUid, const QByteArray &cover);
 
     /**
-     * @brief 获取专辑图片
+     * @brief 获取封面图片
      *
      * @param albumId 专辑 uid
      * @return 图片数据，类型
      */
-    QByteArray getAlbumImage(const QString albumId);
+    QByteArray getCoverImage(const QString id);
+
 
     /**
      * @brief 获取音乐元数据
      *
-     * @param uid 音乐的 UID
+     * @param uids 音乐的 UID 数组
      * @return 如果找到则返回 Metadata 对象，否则返回 std::nullopt
      */
-    QJsonArray getMusicMetadata(const QString& uid);
+    QJsonArray getMusicMetadata(const QStringList& uids);
 
     /**
      * @brief 处理音乐文件的下载请求

@@ -68,15 +68,15 @@ QHttpServerResponse GetMusicHandler::handleRequest(const QHttpServerRequest &req
     QString musicId = "";
 
     // 获取 musicId 参数
-    if (query.hasQueryItem("musicId")) {
-        musicId = QUrl::fromPercentEncoding(query.queryItemValue("musicId").toUtf8());
+    if (query.hasQueryItem("id")) {
+        musicId = QUrl::fromPercentEncoding(query.queryItemValue("id").toUtf8());
     }
 
     // 根据 musicId 获取音乐元数据
     QString musicPath = "";
     QString musicName = "";
     QString fileType = "";
-    QJsonArray results = RogalunaHttpConfig::getInstance().getMusicServer()->getMusicMetadata(musicId);
+    QJsonArray results = RogalunaHttpConfig::getInstance().getMusicServer()->getMusicMetadata({musicId});
     if (results.first().isObject()) {
         QJsonObject result = results.first().toObject();
         musicPath = result.value("content_md5").toString();
