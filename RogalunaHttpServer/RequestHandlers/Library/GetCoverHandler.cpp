@@ -70,6 +70,32 @@ QHttpServerResponse GetCoverHandler::handleRequest(const QHttpServerRequest &req
 
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
+
+    QUrlQuery query = request.query();
+    // 提取书籍 id
+    QString bookId;
+    if (query.hasQueryItem("id")) {
+        bookId = query.queryItemValue("id");
+    } else {
+        // 如果没有 id 参数，返回错误响应
+        QHttpServerResponse response("Missing id in query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
+
+    // 获取封面图片数据
+
+    // 返回 JSON 响应
+    QJsonObject jsonResponse;
+    jsonResponse["success"] = true;
+
+    QJsonDocument jsonDoc(jsonResponse);
+    QByteArray jsonResponseData = jsonDoc.toJson();
+
+    // 返回带有 CORS 头的 JSON 响应
+    QHttpServerResponse response("application/json", jsonResponseData);
+    response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+    return response;
 }
 
 }

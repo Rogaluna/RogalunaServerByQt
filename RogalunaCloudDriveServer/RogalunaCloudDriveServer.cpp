@@ -21,7 +21,8 @@ RogalunaCloudDriveServer::RogalunaCloudDriveServer(RogalunaStorageServer* storag
 bool RogalunaCloudDriveServer::uploadChunk(const QString tempDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5)
 {
     // 将块数据写入临时文件夹
-    return storageServer->writeTempFile(tempDirName, chunkIndex, chunkData, chunkMd5);
+    const QString &targetPath = storageServer->absoluteFilePath(tempDirName + QDir::separator() + QString::number(chunkIndex), storageServer->temp);
+    return storageServer->writeFile(targetPath, chunkData, chunkMd5);
 }
 
 QString RogalunaCloudDriveServer::createFolder(int userId, const QString &parentUid, const QString &folderName)

@@ -29,6 +29,14 @@ public:
                         int releaseYear,
                         const QString &genre,
                         const QString &description) override;
+
+    /**
+     * @brief 根据专辑 ID 获取专辑信息。
+     *
+     * @param ids 要查询的专辑 ID 数组。
+     * @return 查询到的专辑信息。
+     */
+    QJsonArray getAlbumsById(const QStringList &ids) override;
 };
 
 }

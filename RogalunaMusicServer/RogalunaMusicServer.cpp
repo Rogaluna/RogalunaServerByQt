@@ -91,7 +91,8 @@ QJsonArray RogalunaMusicServer::getMusicList(const EMusicQueryType &oper, const 
 bool RogalunaMusicServer::uploadChunk(const QString &tempDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5)
 {
     // 将块数据写入临时文件夹
-    return storageServer->writeTempFile(tempDirName, chunkIndex, chunkData, chunkMd5);
+    const QString &targetPath = storageServer->absoluteFilePath(tempDirName + QDir::separator() + QString::number(chunkIndex), storageServer->temp);
+    return storageServer->writeFile(targetPath, chunkData, chunkMd5);
 }
 
 QString RogalunaMusicServer::mergeChunks(
@@ -218,6 +219,12 @@ QJsonArray RogalunaMusicServer::getMusicMetadata(const QStringList &uids)
 {
     MusicStation::MetadataDAO metadataDao(databaseServer->getDatabase());
     return metadataDao.getMetadataByUid(uids);
+}
+
+QJsonArray RogalunaMusicServer::getAlbumsMetadata(const QStringList &ids)
+{
+    MusicStation::AlbumsDAO albumDao(databaseServer->getDatabase());
+    return albumDao.getAlbumsById(ids);
 }
 
 RogalunaMusicServer::AudioMetadata RogalunaMusicServer::parseAudioFile(QFile &file)

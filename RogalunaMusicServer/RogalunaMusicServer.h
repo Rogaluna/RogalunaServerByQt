@@ -104,9 +104,17 @@ public:
      * @brief 获取音乐元数据
      *
      * @param uids 音乐的 UID 数组
-     * @return 如果找到则返回 Metadata 对象，否则返回 std::nullopt
+     * @return 如果找到则返回 Metadata 对象，否则返回空值
      */
     QJsonArray getMusicMetadata(const QStringList& uids);
+
+    /**
+     * @brief 获取专辑元数据
+     *
+     * @param ids 专辑的 ID 数组
+     * @return 如果找到则返回 Metadata 对象，否则返回空值
+     */
+    QJsonArray getAlbumsMetadata(const QStringList& ids);
 
     /**
      * @brief 处理音乐文件的下载请求

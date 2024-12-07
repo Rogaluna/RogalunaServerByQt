@@ -40,60 +40,70 @@ QString RogalunaStorageServer::absoluteFilePath(const QString &relativeFilePath,
     return result;
 }
 
-bool RogalunaStorageServer::writeFile(QFile &file, const QByteArray &data, qint64 bufferSize)
+bool RogalunaStorageServer::writeFile(QFile &file, const QByteArray &data, const QString &expectedMd5, qint64 buffer)
 {
+    if (buffer <= 0) {
+        buffer = this->bufferSize;
+    }
+
     if (!file.isOpen() || !(file.openMode() & QIODevice::WriteOnly)) {
-        return false;  // 文件未打开或未以写入模式打开
+        qWarning() << "File is not open or not in write mode";
+        return false;
     }
 
     qint64 bytesWritten = 0;
     qint64 totalBytes = data.size();
 
+    // 分块写入数据
     while (bytesWritten < totalBytes) {
-        qint64 chunkSize = qMin(bufferSize, totalBytes - bytesWritten);
+        qint64 chunkSize = qMin(buffer, totalBytes - bytesWritten);
         qint64 written = file.write(data.mid(bytesWritten, chunkSize));
         if (written == -1) {
-            return false;  // 写入失败
+            qWarning() << "Error writing to file";
+            return false;
         }
         bytesWritten += written;
     }
 
-    return bytesWritten == totalBytes;
+    // MD5 校验（如果提供了校验码）
+    if (!expectedMd5.isEmpty()) {
+        QCryptographicHash hash(QCryptographicHash::Md5);
+        hash.addData(data);
+        QString calculatedMd5 = hash.result().toHex();
+
+        if (calculatedMd5 != expectedMd5) {
+            qWarning() << "MD5 mismatch for file";
+            file.remove(); // 删除写入失败的文件
+            return false;
+        }
+    }
+
+    return true;
 }
 
-bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &data, qint64 bufferSize)
+bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &data, const QString &expectedMd5, qint64 buffer)
 {
+    if (buffer <= 0) {
+        buffer = this->bufferSize;
+    }
+
     QFile file(path);
 
-    // 检查并创建路径中缺失的目录
+    // 检查并创建路径中的缺失目录
     QDir dir = QFileInfo(file).absoluteDir();
     if (!dir.exists() && !dir.mkpath(".")) {
         qWarning() << "Failed to create directory for file:" << path;
         return false;
     }
 
-    // 打开文件，使用写入模式和覆盖模式，如果文件不存在则创建
+    // 打开文件
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qWarning() << "Failed to open file:" << path;
         return false;
     }
 
-    qint64 bytesWritten = 0;
-    qint64 totalBytes = data.size();
-
-    // 按照指定的缓冲区大小逐块写入数据
-    while (bytesWritten < totalBytes) {
-        qint64 chunkSize = qMin(bufferSize, totalBytes - bytesWritten);
-        qint64 written = file.write(data.mid(bytesWritten, chunkSize));
-        if (written == -1) {
-            qWarning() << "Error writing to file:" << path;
-            return false;  // 写入失败
-        }
-        bytesWritten += written;
-    }
-
-    file.close();
-    return bytesWritten == totalBytes;
+    // 调用 QFile 版本
+    return writeFile(file, data, expectedMd5, buffer);
 }
 
 bool RogalunaStorageServer::deleteFile(const QString &path)
@@ -106,7 +116,12 @@ bool RogalunaStorageServer::deleteFile(const QString &path)
     return false;
 }
 
-FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint64 bufferSize) {
+FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint64 buffer)
+{
+    if (buffer <= 0) {
+        buffer = this->bufferSize;
+    }
+
     FileReadResult result;
 
     if (!file.open(QIODevice::ReadOnly)) {
@@ -122,7 +137,7 @@ FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint6
     }
 
     // 读取文件块
-    result.data = file.read(bufferSize);
+    result.data = file.read(buffer);
     result.success = !result.data.isEmpty();
     result.atEnd = file.atEnd();
 
@@ -133,11 +148,15 @@ FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint6
     return result;
 }
 
-FileReadResult RogalunaStorageServer::readFile(const QString &path, qint64 offset, qint64 bufferSize)
+FileReadResult RogalunaStorageServer::readFile(const QString &path, qint64 offset, qint64 buffer)
 {
+    if (buffer <= 0) {
+        buffer = this->bufferSize;
+    }
+
     QFile file(path);
 
-    FileReadResult result = readFile(file, offset, bufferSize);
+    FileReadResult result = readFile(file, offset, buffer);
 
     file.close();
 
@@ -190,82 +209,6 @@ QVector<FileInfoStruct> RogalunaStorageServer::listFiles(const QString &relative
     }
 
     return entryList;
-}
-
-bool RogalunaStorageServer::writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5)
-{
-    QString tempDirPath = getTempPath() + tempFileDirName;
-    QDir tempDir(tempDirPath);
-    if (!tempDir.exists()) {
-        tempDir.mkpath(".");  // 创建临时文件夹
-    }
-
-    // 每个文件块的临时文件路径
-    QString tempFileChunkPath = tempDirPath + QDir::separator() + tempFilePrefix + QString::number(chunkIndex);
-
-    // 将块保存到临时文件
-    QFile tempFile(tempFileChunkPath);
-    if (!tempFile.open(QIODevice::WriteOnly)) {
-        return false;
-    }
-    tempFile.write(chunkData);
-
-    // 如果有校验码，那么进行校验，如果没有，直接保存
-    if (!chunkMd5.isEmpty()) {
-        QCryptographicHash hash(QCryptographicHash::Md5);
-        hash.addData(&tempFile);
-        QString calculatedMd5 = hash.result().toHex();
-
-        // 验证 MD5 校验是否匹配，如果不匹配，则删除文件
-        if (calculatedMd5 != chunkMd5) {
-            tempFile.close(); // 关闭临时文件
-            tempFile.remove(); // 删除文件块
-
-            return false;
-        }
-    }
-
-    tempFile.close();
-
-    return true;
-}
-
-bool RogalunaStorageServer::writeTempFile(const QString &tempFileDirName, const QString &type, const QByteArray &data, const QString &md5)
-{
-    QString tempDirPath = getTempPath() + tempFileDirName;
-    QDir tempDir(tempDirPath);
-    if (!tempDir.exists()) {
-        tempDir.mkpath(".");  // 创建临时文件夹
-    }
-
-    // 文件数据的临时文件路径
-    QString tempFilePath = tempDirPath + QDir::separator() + type;
-
-    // 将数据保存到临时文件
-    QFile tempFile(tempFilePath);
-    if (!tempFile.open(QIODevice::WriteOnly)) {
-        return false;
-    }
-    tempFile.write(data);
-
-    // 如果有校验码，那么进行校验，如果没有，直接保存
-    if (!md5.isEmpty()) {
-        QCryptographicHash hash(QCryptographicHash::Md5);
-        hash.addData(data);
-        QString calculatedMd5 = hash.result().toHex();
-
-        // 验证 MD5 校验是否匹配，如果不匹配，则删除文件
-        if (calculatedMd5 != md5) {
-            tempFile.close(); // 关闭临时文件
-            tempFile.remove(); // 删除文件块
-
-            return false;
-        }
-    }
-
-    tempFile.close();
-
-    return true;
 }
 
 bool RogalunaStorageServer::mergeTempFile(const QString &tempFileDirName, int totalChunks, const QString &targetDir, const QString &mergeFileName)

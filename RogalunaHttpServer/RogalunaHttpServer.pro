@@ -45,8 +45,9 @@ SOURCES += \
     RequestHandlers/Library/UpdateBookReadProgressHandler.cpp \
     RequestHandlers/Library/UpdateChapterContentHandler.cpp \
     RequestHandlers/Library/UpdateChapterInfoHandler.cpp \
-    RequestHandlers/Library/UploadCoverHandler.cpp \
+    RequestHandlers/Library/UploadBookCoverHandler.cpp \
     RequestHandlers/Library/UploadLibraryResourceHandler.cpp \
+    RequestHandlers/MusicStation/GetAlbumsInfoHandler.cpp \
     RequestHandlers/MusicStation/GetMusicCoverHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
     RequestHandlers/MusicStation/GetMusicListHandler.cpp \
@@ -91,8 +92,9 @@ HEADERS += \
     RequestHandlers/Library/UpdateBookReadProgressHandler.h \
     RequestHandlers/Library/UpdateChapterContentHandler.h \
     RequestHandlers/Library/UpdateChapterInfoHandler.h \
-    RequestHandlers/Library/UploadCoverHandler.h \
+    RequestHandlers/Library/UploadBookCoverHandler.h \
     RequestHandlers/Library/UploadLibraryResourceHandler.h \
+    RequestHandlers/MusicStation/GetAlbumsInfoHandler.h \
     RequestHandlers/MusicStation/GetMusicCoverHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \
     RequestHandlers/MusicStation/GetMusicListHandler.h \

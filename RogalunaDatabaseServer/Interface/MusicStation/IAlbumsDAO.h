@@ -1,6 +1,8 @@
 #ifndef IALBUMSDAO_H
 #define IALBUMSDAO_H
 
+#include <QJsonObject>
+#include <QJsonArray>
 #include <QString>
 
 namespace MusicStation {
@@ -38,12 +40,12 @@ public:
                                 const QString &description) = 0;
 
     /**
-     * @brief 根据专辑ID获取专辑信息。
+     * @brief 根据专辑 ID 获取专辑信息。
      *
-     * @param albumId 要查询的专辑ID。
+     * @param ids 要查询的专辑 ID 数组。
      * @return 查询到的专辑信息。
      */
-    // virtual Album getAlbumById(const QString &albumId) = 0;
+    virtual QJsonArray getAlbumsById(const QStringList &ids) = 0;
 
     /**
      * @brief 更新专辑信息。

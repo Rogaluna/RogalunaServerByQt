@@ -16,6 +16,7 @@ public:
                           const QString &root,
                           const QString &bookDirName,
                           const QString &resDirName,
+                          const QString &coverDirName,
                           int maxRangeSize,
                           int maxSingleResSize,
                           int categoryRootId = 1);
@@ -93,6 +94,9 @@ public:
     bool isResPersExist(const QString &md5);
     bool isResTempExist(const QString &md5);
 
+    // 上传书籍封面图片
+    bool uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5 = "");
+
 // private:
 //     QStringList splitStringByLines(const QString &input);
 //     QStringList splitFileByLines(const QString &filePath);
@@ -104,6 +108,7 @@ public:
     QString root;                    ///< 文件存储的根目录。
     QString bookDirName;             ///< 书籍文件目录名称。
     QString resDirName;              ///< 引用资源目录名称。
+    QString coverDirName;            ///< 封面资源目录名称。
 
 private:
     RogalunaStorageServer* storageServer;

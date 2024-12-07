@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
     defaultConfig["Storage"] = {
         {"root", "storage"},
         {"temp", "temp"},
-        {"tempFilePrefix", "chunk_"}
+        {"tempFilePrefix", "chunk_"},
+        {"bufferSize", 4096}
     };
 
     // 数据库服务
@@ -83,8 +84,9 @@ int main(int argc, char *argv[])
     // 图书馆服务
     defaultConfig["Library"] = {
         {"root", "library"},
-        {"bookDirName", "book"},
+        {"bookDirName", "books"},
         {"resDirName", "res"},
+        {"coverDirName", "covers"},
         {"maxRangeSize", 10},
         {"maxSingleResSize", 10485760},
         {"categoryRootId", 1}
@@ -146,7 +148,8 @@ int main(int argc, char *argv[])
     RogalunaStorageServer rss = RogalunaStorageServer(
         configData["Storage"].value("root").toString(),
         configData["Storage"].value("temp").toString(),
-        configData["Storage"].value("tempFilePrefix").toString());
+        configData["Storage"].value("tempFilePrefix").toString(),
+        configData["Storage"].value("bufferSize").toInt());
 
     //========================================================================================//
 
@@ -190,6 +193,7 @@ int main(int argc, char *argv[])
         configData["Library"].value("root").toString(),
         configData["Library"].value("bookDirName").toString(),
         configData["Library"].value("resDirName").toString(),
+        configData["Library"].value("coverDirName").toString(),
         configData["Library"].value("maxRangeSize").toInt(),
         configData["Library"].value("maxSingleResSize").toInt(),
         configData["Library"].value("categoryRootId").toInt());

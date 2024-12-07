@@ -39,7 +39,7 @@ public:
      * @param tempDir 临时文件存储的目录。
      * @param tempFilePrefix 临时文件的命名前缀。
      */
-    RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix);
+    RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix, qint64 bufferSize);
 
     // 删除拷贝构造函数和赋值操作符，防止实例被拷贝
     RogalunaStorageServer(const RogalunaStorageServer&) = delete;
@@ -61,7 +61,7 @@ public:
      * @param bufferSize 每次写入的缓冲区大小，默认为 4096 字节。
      * @return 如果写入成功返回 true，否则返回 false。
      */
-    bool writeFile(QFile &file, const QByteArray &data, qint64 bufferSize = 4096);
+    bool writeFile(QFile &file, const QByteArray &data, const QString &expectedMd5 = "", qint64 buffer = 4096);
 
     /**
      * @brief 写入数据到指定路径的文件。如果文件已存在，将覆盖；如果不存在，将创建文件。
@@ -70,7 +70,7 @@ public:
      * @param bufferSize 每次写入的缓冲区大小，默认为 4096 字节。
      * @return 如果写入成功返回 true，否则返回 false。
      */
-    bool writeFile(const QString &path, const QByteArray &data, qint64 bufferSize = 4096);
+    bool writeFile(const QString &path, const QByteArray &data, const QString &expectedMd5 = "", qint64 buffer = 4096);
 
     /**
      * @brief 删除指定路径的文件。
@@ -86,7 +86,7 @@ public:
      * @param bufferSize 每次读取的缓冲区大小，默认为 4096 字节。
      * @return 返回包含读取结果的 FileReadResult 对象。
      */
-    FileReadResult readFile(QFile &file, qint64 offset, qint64 bufferSize = 4096);
+    FileReadResult readFile(QFile &file, qint64 offset, qint64 buffer = 4096);
 
     /**
      * @brief 读取指定路径的文件。
@@ -95,7 +95,7 @@ public:
      * @param bufferSize 每次读取的缓冲区大小，默认为 4096 字节。
      * @return 返回包含读取结果的 FileReadResult 对象。
      */
-    FileReadResult readFile(const QString &path, qint64 offset, qint64 bufferSize = 4096);
+    FileReadResult readFile(const QString &path, qint64 offset, qint64 buffer = 4096);
 
     /**
      * @brief 重命名指定路径的文件。
@@ -118,34 +118,6 @@ public:
      * @return 临时文件夹路径的 QString。
      */
     QString getTempPath() const { return temp; };
-
-    /**
-     * @brief 写入临时文件块，如果提供了校验码则进行校验。
-     * @param tempFileDirName 临时文件目录名称。
-     * @param chunkIndex 当前块的索引。
-     * @param chunkData 当前块的数据。
-     * @param chunkMd5 当前块的 MD5 校验码，可选。
-     * @return 如果写入成功返回 true，否则返回 false。
-     */
-    bool writeTempFile(const QString &tempFileDirName, int chunkIndex, const QByteArray &chunkData, const QString &chunkMd5 = "");
-
-    /**
-     * @brief 写入临时文件（使用这个函数不要进行合并），如果提供了校验码则进行校验。
-     * @param tempFileDirName 临时文件目录名称。
-     * @param type 文件的类型。
-     * @param data 文件的数据。
-     * @param md5 文件的 MD5 校验码，可选。
-     * @return 如果写入成功返回 true，否则返回 false。
-     *
-     * @note 很奇怪，不同于上传块，完整文件上传的时候，计算的 md5 值又不同于原文件，见函数实现的
-     *         QCryptographicHash hash(QCryptographicHash::Md5);
-     *         hash.addData(data);
-     *       在上传块的重载内，是使用文件：
-     *         hash.addData(&tempFile);
-     *
-     *       这个问题有待商榷和优化
-     */
-    bool writeTempFile(const QString &tempFileDirName, const QString &type, const QByteArray &data, const QString &md5 = "");
 
     /**
      * @brief 合并临时文件夹中的文件块到目标目录。
@@ -180,6 +152,7 @@ public:
 
 private:                
     QString tempFilePrefix;          ///< 临时文件的命名前缀。
+    qint64 bufferSize;               ///< 每次写入的缓冲大小。
 };
 
 #endif // ROGALUNASTORAGESERVER_H

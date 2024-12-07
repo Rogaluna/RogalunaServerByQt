@@ -1,21 +1,20 @@
-#include "UploadCoverHandler.h"
+#include "GetAlbumsInfoHandler.h"
 
 #include <QHttpServerRequest>
+#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
-#include <RogalunaLibraryServer.h>
+#include <RogalunaMusicServer.h>
 
 #include <Macro/TokenGV.h>
-#include <Macro/RequestBodyParser.h>
 
-namespace Library {
+namespace MusicStation {
 
-QHttpServerResponse UploadCoverHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetAlbumsInfoHandler::handleRequest(const QHttpServerRequest &request)
 {
-    QList<QPair<QByteArray, QByteArray>> headers = request.headers();
-
     // 遍历头部列表，查找 "Authorization" 头
+    QList<QPair<QByteArray, QByteArray>> headers = request.headers();
     QByteArray authorizationValue;
-    for (const QPair<QByteArray, QByteArray> &header : headers) {
+    for (const auto &header : headers) {
         if (header.first.toLower() == "authorization") {
             authorizationValue = header.second;
             break;
@@ -63,21 +62,39 @@ QHttpServerResponse UploadCoverHandler::handleRequest(const QHttpServerRequest &
     // 获取负载数据中包含的用户信息
     QString userId = jwtObj.value("id").toString();
 
-    // 检查是否为 multipart form-data 类型
-    QString contentType;
-    for (const auto &header : headers) {
-        if (header.first.toLower() == "content-type") {
-            contentType = header.second;
-            break;
-        }
-    }
-
-    // 如果不是 multipart/form-data 请求，返回错误
-    if (!contentType.startsWith("multipart/form-data")) {
-        QHttpServerResponse response(QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+    QUrlQuery query = request.query();
+    // 提取 id
+    QStringList ids;
+    if (query.hasQueryItem("id")) {
+        ids.append(query.queryItemValue("id"));
+    } else {
+        // 如果没有 id 参数，返回错误响应
+        QHttpServerResponse response("Missing query parameters", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
         return response;
     }
+
+    QJsonArray result = RogalunaHttpConfig::getInstance().getMusicServer()->getAlbumsMetadata(ids);
+
+    if (result.isEmpty()) {
+        // 如果获取的结果是空的
+        QHttpServerResponse response("Empty data!", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
+
+    // 返回 JSON 响应
+    QJsonObject jsonResponse;
+    jsonResponse["success"] = true;
+    jsonResponse["data"] = result;
+
+    QJsonDocument jsonDoc(jsonResponse);
+    QByteArray jsonResponseData = jsonDoc.toJson();
+
+    // 返回带有 CORS 头的 JSON 响应
+    QHttpServerResponse response("application/json", jsonResponseData);
+    response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+    return response;
 }
 
 }

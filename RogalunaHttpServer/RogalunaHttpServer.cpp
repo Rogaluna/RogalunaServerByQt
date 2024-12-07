@@ -50,6 +50,7 @@
 #include <RequestHandlers/MusicStation/MergeMusicHandler.h>
 #include <RequestHandlers/MusicStation/PostMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicCoverHandler.h>
+#include <RequestHandlers/MusicStation/GetAlbumsInfoHandler.h>
 
 RogalunaHttpServer::RogalunaHttpServer(
     const QString &_webRootPath,
@@ -145,6 +146,7 @@ bool RogalunaHttpServer::start()
     REGISTER_ROUTE(server, "/api/musicStation/postMusic", QHttpServerRequest::Method::Post, MusicStation::PostMusicHandler);
     REGISTER_ROUTE(server, "/api/musicStation/mergeMusic", QHttpServerRequest::Method::Post, MusicStation::MergeMusicHandler);
     REGISTER_ROUTE(server, "/api/musicStation/getCover", QHttpServerRequest::Method::Get, MusicStation::GetMusicCoverHandler);
+    REGISTER_ROUTE(server, "/api/musicStation/getAlbumsInfo", QHttpServerRequest::Method::Get, MusicStation::GetAlbumsInfoHandler);
 
     qDebug() << "||||||||||||||||||||  ***ROUTERS END***  ||||||||||||||||||||";
 

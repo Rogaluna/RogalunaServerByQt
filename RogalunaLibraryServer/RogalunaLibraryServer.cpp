@@ -17,12 +17,14 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     const QString &root,
     const QString &bookDirName,
     const QString &resDirName,
+    const QString &coverDirName,
     int maxRangeSize,
     int maxSingleResSize,
     int categoryRootId)
     : root(root)
     , bookDirName(bookDirName)
     , resDirName(resDirName)
+    , coverDirName(coverDirName)
     , storageServer(storageServer)
     , databaseServer(databaseServer)
     , categoryRootId(categoryRootId)
@@ -45,6 +47,12 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     QDir resDir(resDirPath);
     if (!resDir.exists()) {
         resDir.mkpath("."); // 构造资源目录的路径
+    }
+
+    QString coverDirPath = rootPath + QDir::separator() + coverDirName;
+    QDir coverDir(coverDirPath);
+    if (!coverDir.exists()) {
+        coverDir.mkpath("."); // 构造封面目录的路径
     }
 }
 
@@ -428,7 +436,8 @@ bool RogalunaLibraryServer::uplaodLibraryTempFile(const QString tempDirName, con
         // 文件大小超限
         return false;
     } else {
-        return storageServer->writeTempFile(tempDirName, type, data, md5);
+        const QString &targetPath = storageServer->absoluteFilePath(tempDirName + QDir::separator() + type, storageServer->temp);
+        return storageServer->writeFile(targetPath, data, md5);
     }
 }
 
@@ -525,6 +534,21 @@ bool RogalunaLibraryServer::isResTempExist(const QString &md5)
     }
 
     return false;
+}
+
+bool RogalunaLibraryServer::uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5)
+{
+    if (data.size() > maxSingleResSize) {
+        // 文件大小超限
+        return false;
+    } else {
+        const QString &targetPath = storageServer->absoluteFilePath(
+            root + QDir::separator() +
+            coverDirName + QDir::separator() +
+            bookId + QDir::separator() +
+            resType);
+        return storageServer->writeFile(targetPath, data, md5);
+    }
 }
 
 
