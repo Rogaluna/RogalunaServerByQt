@@ -43,7 +43,8 @@
 #include <RequestHandlers/Library/DeleteBookHandler.h>
 #include <RequestHandlers/Library/GetLibraryResourceHandler.h>
 #include <RequestHandlers/Library/UploadLibraryResourceHandler.h>
-#include <RequestHandlers/Library/GetCoverHandler.h>
+#include <RequestHandlers/Library/GetBookCoverHandler.h>
+#include <RequestHandlers/Library/UploadBookCoverHandler.h>
 
 #include <RequestHandlers/MusicStation/GetMusicHandler.h>
 #include <RequestHandlers/MusicStation/GetMusicListHandler.h>
@@ -137,7 +138,8 @@ bool RogalunaHttpServer::start()
 
     REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, Library::UploadLibraryResourceHandler);
     REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, Library::GetLibraryResourceHandler);
-    REGISTER_ROUTE(server, "/api/library/cover", QHttpServerRequest::Method::Get, Library::GetCoverHandler);
+    REGISTER_ROUTE(server, "/api/library/uploadBookCover", QHttpServerRequest::Method::Post, Library::UploadBookCoverHandler);
+    REGISTER_ROUTE(server, "/api/library/getBookCover", QHttpServerRequest::Method::Get, Library::GetBookCoverHandler);
 
     qDebug() << "||||||||||||||||||||     MusicStation    ||||||||||||||||||||";
 

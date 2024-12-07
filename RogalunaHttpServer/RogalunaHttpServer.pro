@@ -30,6 +30,7 @@ SOURCES += \
     RequestHandlers/Library/DeleteBookHandler.cpp \
     RequestHandlers/Library/DeleteChapterHandler.cpp \
     RequestHandlers/Library/GetBookCategoriesHandler.cpp \
+    RequestHandlers/Library/GetBookCoverHandler.cpp \
     RequestHandlers/Library/GetBookInfoHandler.cpp \
     RequestHandlers/Library/GetBookListHandler.cpp \
     RequestHandlers/Library/GetBookReadProgressHandler.cpp \
@@ -37,7 +38,6 @@ SOURCES += \
     RequestHandlers/Library/GetChapterContentHandler.cpp \
     RequestHandlers/Library/GetChapterInfoHandler.cpp \
     RequestHandlers/Library/GetChapterListHandler.cpp \
-    RequestHandlers/Library/GetCoverHandler.cpp \
     RequestHandlers/Library/GetLibraryResourceHandler.cpp \
     RequestHandlers/Library/NewBookHandler.cpp \
     RequestHandlers/Library/NewChapterHandler.cpp \
@@ -77,6 +77,7 @@ HEADERS += \
     RequestHandlers/Library/DeleteBookHandler.h \
     RequestHandlers/Library/DeleteChapterHandler.h \
     RequestHandlers/Library/GetBookCategoriesHandler.h \
+    RequestHandlers/Library/GetBookCoverHandler.h \
     RequestHandlers/Library/GetBookInfoHandler.h \
     RequestHandlers/Library/GetBookListHandler.h \
     RequestHandlers/Library/GetBookReadProgressHandler.h \
@@ -84,7 +85,6 @@ HEADERS += \
     RequestHandlers/Library/GetChapterContentHandler.h \
     RequestHandlers/Library/GetChapterInfoHandler.h \
     RequestHandlers/Library/GetChapterListHandler.h \
-    RequestHandlers/Library/GetCoverHandler.h \
     RequestHandlers/Library/GetLibraryResourceHandler.h \
     RequestHandlers/Library/NewBookHandler.h \
     RequestHandlers/Library/NewChapterHandler.h \

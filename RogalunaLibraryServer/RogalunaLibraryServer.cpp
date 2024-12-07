@@ -79,15 +79,6 @@ QString RogalunaLibraryServer::getResFolderPath()
     return root + QDir::separator() + resDirName;
 }
 
-// QVector<FileInfoStruct> RogalunaLibraryServer::getDirFiles(const QString &driveName, const QString &targetPath)
-// {
-//     QString dirPath = root \
-//                       + (driveName.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + driveName \
-//                       + (targetPath.startsWith(QDir::separator()) ? QChar::Space : QDir::separator()) + targetPath;
-
-//     return storageServer->listFiles(dirPath);
-// }
-
 QJsonObject RogalunaLibraryServer::getCategories(int parentCategoryId)
 {
     // 获取数据库连接（假设有一个方法可以获取QSqlDatabase）
@@ -549,6 +540,36 @@ bool RogalunaLibraryServer::uplaodBookCover(const QString &bookId, const QString
             resType);
         return storageServer->writeFile(targetPath, data, md5);
     }
+}
+
+QPair<QByteArray, QString> RogalunaLibraryServer::getBookCover(const QString &bookId)
+{
+    // 检查持久存储中是否有对应的资源
+    const QString &storageResPath = storageServer->absoluteFilePath(
+        root + QDir::separator() +
+        coverDirName + QDir::separator() +
+        bookId);
+
+    QDir storageResDir(storageResPath);
+    if (storageResDir.exists()) {
+        // 如果持久存储中有这个目录，那么去获取此 md5 值目录下的首个文件。
+        QStringList files = storageResDir.entryList(QDir::Files);
+        if (!files.isEmpty()) {
+            const QString &storageFilePath = storageResPath + QDir::separator() + files.first();
+            QFile storageFile(storageFilePath);
+
+            if (storageFile.open(QIODevice::ReadOnly)) {
+                QByteArray fileData = storageFile.readAll();
+                storageFile.close();
+
+                // 文件名作为类型名
+                QString resType = QFileInfo(storageFile).baseName(); // 文件名（不含扩展名）
+                return qMakePair(fileData, resType);
+            }
+        }
+    }
+
+    return qMakePair(QByteArray(), "");
 }
 
 

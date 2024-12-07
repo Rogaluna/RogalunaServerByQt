@@ -23,7 +23,6 @@ public:
 
 public:
     // Storage
-    // QVector<FileInfoStruct> getDirFiles(const QString &driveName, const QString &targetPath);
 
     QString getChapterFilePath(const QString &bookId, const QString &chapterIndex);
     QString getResFolderPath();
@@ -96,6 +95,9 @@ public:
 
     // 上传书籍封面图片
     bool uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5 = "");
+
+    // 获取书籍封面图片
+    QPair<QByteArray, QString> getBookCover(const QString &bookId);
 
 // private:
 //     QStringList splitStringByLines(const QString &input);

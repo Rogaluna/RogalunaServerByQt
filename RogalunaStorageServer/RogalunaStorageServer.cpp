@@ -3,10 +3,11 @@
 #include <QDir>
 #include <QFile>
 
-RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix)
+RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix, qint64 bufferSize)
     : root(rootDir)
     , temp(tempDir)
     , tempFilePrefix(tempFilePrefix)
+    , bufferSize(bufferSize)
 {
     if (!root.endsWith(QDir::separator()))
     {

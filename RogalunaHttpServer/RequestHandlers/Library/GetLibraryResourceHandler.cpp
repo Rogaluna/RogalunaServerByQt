@@ -85,7 +85,7 @@ QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRe
     }
 
     // 获取文件
-    QPair<QByteArray, QString> result = RogalunaHttpConfig::getInstance().getLibraryServer()->getLibraryRes(id);
+    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getLibraryRes(id);
 
     const QByteArray &fileData = result.first;
     const QString &fileType = result.second;

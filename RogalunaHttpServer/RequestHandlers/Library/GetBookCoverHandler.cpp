@@ -1,4 +1,4 @@
-#include "GetCoverHandler.h"
+#include "GetBookCoverHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -8,7 +8,7 @@
 
 namespace Library {
 
-QHttpServerResponse GetCoverHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetBookCoverHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -84,16 +84,21 @@ QHttpServerResponse GetCoverHandler::handleRequest(const QHttpServerRequest &req
     }
 
     // 获取封面图片数据
+    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getBookCover(bookId);
 
-    // 返回 JSON 响应
-    QJsonObject jsonResponse;
-    jsonResponse["success"] = true;
+    const QByteArray &fileData = result.first;
+    const QString &fileType = result.second;
 
-    QJsonDocument jsonDoc(jsonResponse);
-    QByteArray jsonResponseData = jsonDoc.toJson();
+    if (fileData.isEmpty() || fileType.isEmpty()) {
+        QHttpServerResponse response("Can't fetch cover!", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
 
     // 返回带有 CORS 头的 JSON 响应
-    QHttpServerResponse response("application/json", jsonResponseData);
+    QHttpServerResponse response(fileData, QHttpServerResponse::StatusCode::Ok);
+    response.setHeader("Content-Type", "image/" + fileType.toUtf8());
+    response.setHeader("Content-Length", QString::number(fileData.size()).toUtf8());
     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
     return response;
 }

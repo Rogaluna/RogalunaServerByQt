@@ -83,6 +83,7 @@ QHttpServerResponse UploadBookCoverHandler::handleRequest(const QHttpServerReque
     QString id;
     QString type;
     QByteArray data;
+    QString md5;
 
     // 获取请求体（FormData）中的数据
     QByteArray bodyParts = request.body();
@@ -97,6 +98,8 @@ QHttpServerResponse UploadBookCoverHandler::handleRequest(const QHttpServerReque
             type = QString::fromUtf8(part.data).trimmed();
         } else if (part.name == "data") {
             data = part.data;
+        } else if (part.name == "md5") {
+            md5 = QString::fromUtf8(part.data).trimmed();
         }
     }
 
@@ -108,7 +111,7 @@ QHttpServerResponse UploadBookCoverHandler::handleRequest(const QHttpServerReque
     }
 
     // 写入图片到持久存储
-    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->uplaodBookCover(id, type, data);
+    bool bSuccess = RogalunaHttpConfig::getInstance().getLibraryServer()->uplaodBookCover(id, type, data, md5);
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;
