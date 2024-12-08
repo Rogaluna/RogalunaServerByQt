@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
     defaultConfig["Library"] = {
         {"root", "library"},
         {"bookDirName", "books"},
-        {"resDirName", "res"},
         {"coverDirName", "covers"},
         {"maxRangeSize", 10},
         {"maxSingleResSize", 10485760},
@@ -192,7 +191,6 @@ int main(int argc, char *argv[])
         &dbServer,
         configData["Library"].value("root").toString(),
         configData["Library"].value("bookDirName").toString(),
-        configData["Library"].value("resDirName").toString(),
         configData["Library"].value("coverDirName").toString(),
         configData["Library"].value("maxRangeSize").toInt(),
         configData["Library"].value("maxSingleResSize").toInt(),

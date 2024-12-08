@@ -14,7 +14,6 @@ public:
                           RogalunaDatabaseServer *databaseServer,
                           const QString &root,
                           const QString &bookDirName,
-                          const QString &resDirName,
                           const QString &coverDirName,
                           int maxRangeSize,
                           int maxSingleResSize,
@@ -106,7 +105,6 @@ private:
 public:
     QString root;                    ///< 文件存储的根目录。
     QString bookDirName;             ///< 书籍文件目录名称。
-    QString resDirName;              ///< 引用资源目录名称。
     QString coverDirName;            ///< 封面资源目录名称。
 
 private:

@@ -19,14 +19,12 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     RogalunaDatabaseServer *databaseServer,
     const QString &root,
     const QString &bookDirName,
-    const QString &resDirName,
     const QString &coverDirName,
     int maxRangeSize,
     int maxSingleResSize,
     int categoryRootId)
     : root(root)
     , bookDirName(bookDirName)
-    , resDirName(resDirName)
     , coverDirName(coverDirName)
     , storageServer(storageServer)
     , databaseServer(databaseServer)
@@ -44,12 +42,6 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     QDir book(bookDirPath);
     if (!book.exists()) {
         book.mkpath("."); // 构造书籍目录的路径
-    }
-
-    QString resDirPath = rootPath + QDir::separator() + resDirName;
-    QDir resDir(resDirPath);
-    if (!resDir.exists()) {
-        resDir.mkpath("."); // 构造资源目录的路径
     }
 
     QString coverDirPath = rootPath + QDir::separator() + coverDirName;
