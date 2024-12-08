@@ -54,7 +54,6 @@ int main(int argc, char *argv[])
     defaultConfig["Storage"] = {
         {"root", "storage"},
         {"temp", "temp"},
-        {"tempFilePrefix", "chunk_"},
         {"bufferSize", 4096}
     };
 
@@ -147,7 +146,6 @@ int main(int argc, char *argv[])
     RogalunaStorageServer rss = RogalunaStorageServer(
         configData["Storage"].value("root").toString(),
         configData["Storage"].value("temp").toString(),
-        configData["Storage"].value("tempFilePrefix").toString(),
         configData["Storage"].value("bufferSize").toInt());
 
     //========================================================================================//

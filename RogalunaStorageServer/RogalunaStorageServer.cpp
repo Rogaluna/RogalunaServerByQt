@@ -3,10 +3,9 @@
 #include <QDir>
 #include <QFile>
 
-RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix, qint64 bufferSize)
+RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QString &tempDir, qint64 bufferSize)
     : root(rootDir)
     , temp(tempDir)
-    , tempFilePrefix(tempFilePrefix)
     , bufferSize(bufferSize)
 {
     if (!root.endsWith(QDir::separator()))
@@ -265,7 +264,7 @@ bool RogalunaStorageServer::mergeTempFile(const QString &tempFileDirName, int to
 
     // 按顺序合并所有块
     for (qint64 i = 0; i < totalChunks; ++i) {
-        QString chunkFilePath = tempDirPath + QDir::separator() + tempFilePrefix + QString::number(i);
+        QString chunkFilePath = tempDirPath + QDir::separator() + QString::number(i);
         QFile chunkFile(chunkFilePath);
         if (!chunkFile.open(QIODevice::ReadOnly)) {
             finalFile.close();

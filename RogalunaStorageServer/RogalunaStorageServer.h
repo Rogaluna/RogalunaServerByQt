@@ -39,7 +39,7 @@ public:
      * @param tempDir 临时文件存储的目录。
      * @param tempFilePrefix 临时文件的命名前缀。
      */
-    RogalunaStorageServer(const QString &rootDir, const QString &tempDir, const QString &tempFilePrefix, qint64 bufferSize);
+    RogalunaStorageServer(const QString &rootDir, const QString &tempDir, qint64 bufferSize);
 
     // 删除拷贝构造函数和赋值操作符，防止实例被拷贝
     RogalunaStorageServer(const RogalunaStorageServer&) = delete;
@@ -152,8 +152,7 @@ public:
     QString root;                    ///< 文件存储的根目录。
     QString temp;                    ///< 临时文件存储的目录。
 
-private:                
-    QString tempFilePrefix;          ///< 临时文件的命名前缀。
+private:
     qint64 bufferSize;               ///< 每次写入的缓冲大小。
 };
 

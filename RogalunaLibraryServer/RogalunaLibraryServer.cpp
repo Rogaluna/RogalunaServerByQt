@@ -438,6 +438,16 @@ bool RogalunaLibraryServer::uplaodBookCover(const QString &bookId, const QString
         // 文件大小超限
         return false;
     } else {
+        // 将原先的封面删掉
+        const QString &storageResPath = storageServer->absoluteFilePath(
+            root + QDir::separator() +
+            coverDirName + QDir::separator() +
+            bookId);
+        QDir storageResDir(storageResPath);
+        if (storageResDir.exists()) {
+            storageServer->deleteFile(storageResDir);
+        }
+
         const QString &targetPath = storageServer->absoluteFilePath(
             root + QDir::separator() +
             coverDirName + QDir::separator() +
