@@ -41,8 +41,8 @@
 #include <RequestHandlers/Library/UpdateChapterInfoHandler.h>
 #include <RequestHandlers/Library/DeleteChapterHandler.h>
 #include <RequestHandlers/Library/DeleteBookHandler.h>
-#include <RequestHandlers/Library/GetLibraryResourceHandler.h>
-#include <RequestHandlers/Library/UploadLibraryResourceHandler.h>
+#include <RequestHandlers/Library/GetChapterResourceHandler.h>
+#include <RequestHandlers/Library/UploadChapterResourceHandler.h>
 #include <RequestHandlers/Library/GetBookCoverHandler.h>
 #include <RequestHandlers/Library/UploadBookCoverHandler.h>
 
@@ -136,8 +136,8 @@ bool RogalunaHttpServer::start()
     REGISTER_ROUTE(server, "/api/library/deleteChapter", QHttpServerRequest::Method::Delete, Library::DeleteChapterHandler);
     REGISTER_ROUTE(server, "/api/library/deleteBook", QHttpServerRequest::Method::Delete, Library::DeleteBookHandler);
 
-    REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, Library::UploadLibraryResourceHandler);
-    REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, Library::GetLibraryResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/uploadResource", QHttpServerRequest::Method::Post, Library::UploadChapterResourceHandler);
+    REGISTER_ROUTE(server, "/api/library/getResource", QHttpServerRequest::Method::Get, Library::GetChapterResourceHandler);
     REGISTER_ROUTE(server, "/api/library/uploadBookCover", QHttpServerRequest::Method::Post, Library::UploadBookCoverHandler);
     REGISTER_ROUTE(server, "/api/library/getBookCover", QHttpServerRequest::Method::Get, Library::GetBookCoverHandler);
 

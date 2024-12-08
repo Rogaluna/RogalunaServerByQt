@@ -6,7 +6,6 @@
 #include <RogalunaDatabaseServer.h>
 #include <RogalunaStorageServer.h>
 
-#include <Database/Library/CategoriesDAO.h>
 
 class ROGALUNALIBRARYSERVER_EXPORT RogalunaLibraryServer
 {
@@ -79,25 +78,23 @@ public:
     // 删除书籍
     bool deleteBook(const QString &bookId);
 
-    // 查询资源计数
-    int queryResCount(const QString &resId);
-
-    // 修改资源计数
-    bool modifyResCount(const QString &resId, int count);
-
-    // 上传图书馆资源
-    bool uplaodLibraryTempFile(const QString tempDirName, const QString &type, const QByteArray &data, const QString &md5 = "");
+    // 上传章节资源
+    bool uplaodChapterResource(const QString &bookId, const QString &chapterName, const QString resName, const QString &type, const QByteArray &data, const QString &md5 = "");
 
     // 获取图书馆资源
-    QPair<QByteArray, QString> getLibraryRes(const QString &md5);
-    bool isResPersExist(const QString &md5);
-    bool isResTempExist(const QString &md5);
+    QPair<QByteArray, QString> getLibraryRes(const QString &bookId, const QString &chapterName, const QString &resName);
 
     // 上传书籍封面图片
     bool uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5 = "");
 
     // 获取书籍封面图片
     QPair<QByteArray, QString> getBookCover(const QString &bookId);
+
+    // 获取被移除的资源引用
+    QStringList findRemovedResources(const QString &oldHtmlContent, const QString &newHtmlContent);
+
+private:
+    QStringList extractHtmlResRef(const QString &htmlContent);
 
 // private:
 //     QStringList splitStringByLines(const QString &input);

@@ -2,6 +2,7 @@
 
 #include <QHttpServerRequest>
 
+#include <QJsonArray>
 #include <RogalunaHttpConfig.h>
 #include <RogalunaLibraryServer.h>
 

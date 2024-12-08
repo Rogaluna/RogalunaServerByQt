@@ -1,4 +1,4 @@
-#include "GetLibraryResourceHandler.h"
+#include "GetChapterResourceHandler.h"
 
 #include <QHttpServerRequest>
 #include <QMimeDatabase>
@@ -9,7 +9,7 @@
 
 namespace Library {
 
-QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse GetChapterResourceHandler::handleRequest(const QHttpServerRequest &request)
 {
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
 
@@ -73,10 +73,10 @@ QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRe
     QString userId = jwtObj.value("id").toString();
 
     QUrlQuery query = request.query();
-    // 提取资源 id
-    QString id;
-    if (query.hasQueryItem("id")) {
-        id = query.queryItemValue("id");
+    // 提取资源 md5 值
+    QString resExtractToken;
+    if (query.hasQueryItem("token")) {
+        resExtractToken = query.queryItemValue("token");
     } else {
         // 如果没有 id 参数，返回错误响应
         QHttpServerResponse response("Missing query parameters", QHttpServerResponse::StatusCode::BadRequest);
@@ -84,8 +84,22 @@ QHttpServerResponse GetLibraryResourceHandler::handleRequest(const QHttpServerRe
         return response;
     }
 
+    auto [isResValid, resHeader, resPayload] = VERIFY_JWT_TOKEN(resExtractToken, *RogalunaHttpConfig::getInstance().getSecretKey());
+    if (!isResValid) {
+        QHttpServerResponse response("Invalid res token", QHttpServerResponse::StatusCode::Unauthorized);
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+        return response;
+    }
+
+    QJsonDocument jwtResDoc = QJsonDocument::fromJson(resPayload.toUtf8());
+    QJsonObject jwtResObj = jwtResDoc.object();
+
+    QString bookId = jwtResObj.value("id").toString();
+    QString chapterName = jwtResObj.value("name").toString();
+    QString md5 = jwtResObj.value("md5").toString();
+
     // 获取文件
-    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getLibraryRes(id);
+    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getLibraryRes(bookId, chapterName, md5);
 
     const QByteArray &fileData = result.first;
     const QString &fileType = result.second;

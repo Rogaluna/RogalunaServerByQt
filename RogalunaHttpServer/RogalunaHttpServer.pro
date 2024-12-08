@@ -38,7 +38,7 @@ SOURCES += \
     RequestHandlers/Library/GetChapterContentHandler.cpp \
     RequestHandlers/Library/GetChapterInfoHandler.cpp \
     RequestHandlers/Library/GetChapterListHandler.cpp \
-    RequestHandlers/Library/GetLibraryResourceHandler.cpp \
+    RequestHandlers/Library/GetChapterResourceHandler.cpp \
     RequestHandlers/Library/NewBookHandler.cpp \
     RequestHandlers/Library/NewChapterHandler.cpp \
     RequestHandlers/Library/UpdateBookInfoHandler.cpp \
@@ -46,7 +46,7 @@ SOURCES += \
     RequestHandlers/Library/UpdateChapterContentHandler.cpp \
     RequestHandlers/Library/UpdateChapterInfoHandler.cpp \
     RequestHandlers/Library/UploadBookCoverHandler.cpp \
-    RequestHandlers/Library/UploadLibraryResourceHandler.cpp \
+    RequestHandlers/Library/UploadChapterResourceHandler.cpp \
     RequestHandlers/MusicStation/GetAlbumsInfoHandler.cpp \
     RequestHandlers/MusicStation/GetMusicCoverHandler.cpp \
     RequestHandlers/MusicStation/GetMusicHandler.cpp \
@@ -85,7 +85,7 @@ HEADERS += \
     RequestHandlers/Library/GetChapterContentHandler.h \
     RequestHandlers/Library/GetChapterInfoHandler.h \
     RequestHandlers/Library/GetChapterListHandler.h \
-    RequestHandlers/Library/GetLibraryResourceHandler.h \
+    RequestHandlers/Library/GetChapterResourceHandler.h \
     RequestHandlers/Library/NewBookHandler.h \
     RequestHandlers/Library/NewChapterHandler.h \
     RequestHandlers/Library/UpdateBookInfoHandler.h \
@@ -93,7 +93,7 @@ HEADERS += \
     RequestHandlers/Library/UpdateChapterContentHandler.h \
     RequestHandlers/Library/UpdateChapterInfoHandler.h \
     RequestHandlers/Library/UploadBookCoverHandler.h \
-    RequestHandlers/Library/UploadLibraryResourceHandler.h \
+    RequestHandlers/Library/UploadChapterResourceHandler.h \
     RequestHandlers/MusicStation/GetAlbumsInfoHandler.h \
     RequestHandlers/MusicStation/GetMusicCoverHandler.h \
     RequestHandlers/MusicStation/GetMusicHandler.h \

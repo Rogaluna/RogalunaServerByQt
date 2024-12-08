@@ -2,13 +2,17 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonWebToken.h>
+
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/HTMLparser.h>
 
 #include <Database/Library/BookCategoriesDAO.h>
 #include <Database/Library/BooksDAO.h>
 #include <Database/Library/CategoriesDAO.h>
 #include <Database/Library/ChaptersDAO.h>
 #include <Database/Library/ReadProgressDAO.h>
-#include <Database/Library/ResourcesCountDAO.h>
 #include <Database/Library/UserCollectionsDAO.h>
 
 RogalunaLibraryServer::RogalunaLibraryServer(
@@ -189,6 +193,7 @@ bool RogalunaLibraryServer::registerChapter(const QString &bookId, int chapterIn
                     root + QDir::separator() +
                     bookDirName + QDir::separator() +
                     bookId + QDir::separator() +
+                    fileName + QDir::separator() +
                     fileName),
                 QByteArray())) {
             return false;
@@ -214,6 +219,7 @@ bool RogalunaLibraryServer::getChapterFile(const QString &bookId, int chapterInd
         root + QDir::separator() +
         bookDirName + QDir::separator() +
         bookId + QDir::separator() +
+        fileName + QDir::separator() +
         fileName);
     QFile file(filePath);
 
@@ -289,6 +295,7 @@ bool RogalunaLibraryServer::updateChapterContent(
                     root + QDir::separator() +
                     bookDirName + QDir::separator() +
                     bookId + QDir::separator() +
+                    fileName + QDir::separator() +
                     fileName),
                 chapterContent.toUtf8())) {
             return false;
@@ -387,62 +394,36 @@ bool RogalunaLibraryServer::deleteBook(const QString &bookId)
     });
 }
 
-int RogalunaLibraryServer::queryResCount(const QString &resId)
-{
-    Library::ResourcesCountDAO resourcesCountDAO(databaseServer->getDatabase());
-    return resourcesCountDAO.getResourceCount(resId);
-}
-
-bool RogalunaLibraryServer::modifyResCount(const QString &resId, int count)
-{
-    return databaseServer->executeTransaction([&]() {
-        Library::ResourcesCountDAO resourcesCountDAO(databaseServer->getDatabase());
-        int currentCount = resourcesCountDAO.getResourceCount(resId);
-        if (currentCount == 0) {
-            // 计数为 0 ，需要插入
-            if (count > 0) {
-                return resourcesCountDAO.insertResourceCount(resId, count);
-            } else {
-                return false;
-            }
-        } else {
-            // 计数非 0 ，需要计算
-            int countResult = currentCount + count;
-            if (countResult > 0) {
-                return resourcesCountDAO.modifyResourceCount(resId, countResult);
-            } else {
-                return resourcesCountDAO.deleteResourceCount(resId);
-            }
-        }
-
-        return true;
-    });
-
-
-}
-
-bool RogalunaLibraryServer::uplaodLibraryTempFile(const QString tempDirName, const QString &type, const QByteArray &data, const QString &md5)
+bool RogalunaLibraryServer::uplaodChapterResource(const QString &bookId, const QString &chapterName, const QString resName, const QString &type, const QByteArray &data, const QString &md5)
 {
     if (data.size() > maxSingleResSize) {
         // 文件大小超限
         return false;
     } else {
-        const QString &targetPath = storageServer->absoluteFilePath(tempDirName + QDir::separator() + type, storageServer->temp);
+        // 根据章节序号获取对应的名称
+        const QString &targetPath = storageServer->absoluteFilePath(
+            root + QDir::separator() +
+            bookDirName + QDir::separator() +
+            bookId + QDir::separator() +
+            chapterName + QDir::separator() +
+            resName + QDir::separator() +
+            type);
+
         return storageServer->writeFile(targetPath, data, md5);
     }
 }
 
-QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &md5)
+QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &bookId, const QString &chapterName, const QString &resName)
 {
     // 检查持久存储中是否有对应的资源
     const QString &storageResPath = storageServer->absoluteFilePath(
         root + QDir::separator() +
-        resDirName + QDir::separator() +
-        md5);
+        bookDirName + QDir::separator() +
+        bookId + QDir::separator() +
+        chapterName + QDir::separator() +
+        resName);
 
     QDir storageResDir(storageResPath);
-
-    // 在资源目录内，MD5值标识的是一个文件夹，这个文件夹内部有一个以类型名命名的文件
     if (storageResDir.exists()) {
         // 如果持久存储中有这个目录，那么去获取此 md5 值目录下的首个文件。
         QStringList files = storageResDir.entryList(QDir::Files);
@@ -459,72 +440,9 @@ QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &m
                 return qMakePair(fileData, resType);
             }
         }
-    } else {
-        // 如果持久存储中没有这个文件，那么去临时文件夹中寻找
-        const QString &tempDirPath = storageServer->absoluteFilePath(
-            md5, storageServer->temp);
-
-        QDir tempDir(tempDirPath);
-
-        if (tempDir.exists()) {
-            // 查找临时文件夹中的文件
-            QStringList files = tempDir.entryList(QDir::Files);
-            if (!files.isEmpty()) {
-                QString tempFilePath = tempDirPath + QDir::separator() + files.first();
-                QFile tempFile(tempFilePath);
-
-                if (tempFile.open(QIODevice::ReadOnly)) {
-                    QByteArray fileData = tempFile.readAll();
-                    tempFile.close();
-
-                    // 文件名作为类型名
-                    QString resType = QFileInfo(tempFile).baseName(); // 文件名（不含扩展名）
-                    return qMakePair(fileData, resType);
-                }
-            }
-        }
     }
-
     // 如果未找到资源，返回空结果
     return qMakePair(QByteArray(), QString());
-}
-
-bool RogalunaLibraryServer::isResPersExist(const QString &md5)
-{
-    // 检查持久存储中是否有对应的资源
-    const QString &storageResPath = storageServer->absoluteFilePath(
-        root + QDir::separator() +
-        resDirName + QDir::separator() +
-        md5);
-
-    QDir storageResDir(storageResPath);
-
-    if (storageResDir.exists()) {
-        QStringList files = storageResDir.entryList(QDir::Files);
-        if (!files.isEmpty()) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool RogalunaLibraryServer::isResTempExist(const QString &md5)
-{
-    // 检查临时存储中是否有对应的资源
-    const QString &storageResPath = storageServer->absoluteFilePath(
-        md5, storageServer->temp);
-
-    QDir storageResDir(storageResPath);
-
-    if (storageResDir.exists()) {
-        QStringList files = storageResDir.entryList(QDir::Files);
-        if (!files.isEmpty()) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 bool RogalunaLibraryServer::uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5)
@@ -570,6 +488,78 @@ QPair<QByteArray, QString> RogalunaLibraryServer::getBookCover(const QString &bo
     }
 
     return qMakePair(QByteArray(), "");
+}
+
+QStringList RogalunaLibraryServer::findRemovedResources(const QString &oldHtmlContent, const QString &newHtmlContent)
+{
+    QStringList oldResources = extractHtmlResRef(oldHtmlContent);
+    QStringList newResources = extractHtmlResRef(newHtmlContent);
+
+    // 转换为 QSet 进行比较
+    QSet<QString> oldSet = QSet<QString>(oldResources.begin(), oldResources.end());
+    QSet<QString> newSet = QSet<QString>(newResources.begin(), newResources.end());
+
+    // 计算差集：旧内容中存在但新内容中不存在的资源
+    QSet<QString> removedSet = oldSet - newSet;
+
+    return QStringList(removedSet.begin(), removedSet.end());
+}
+
+QStringList RogalunaLibraryServer::extractHtmlResRef(const QString &htmlContent)
+{
+    QStringList srcList;  // 用于存储提取的 src 内容
+
+    // 将 QString 转换为 const char*
+    QByteArray htmlData = htmlContent.toUtf8();
+    const char *html = htmlData.constData();
+
+    // 1. 解析HTML文档
+    htmlDocPtr doc = htmlReadMemory(html, htmlData.size(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
+    if (!doc) {
+        qWarning() << "Failed to parse HTML document!";
+        return srcList;
+    }
+
+    // 2. 创建XPath上下文
+    xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+    if (!xpathCtx) {
+        qWarning() << "Failed to create XPath context!";
+        xmlFreeDoc(doc);
+        return srcList;
+    }
+
+    // 3. 提取 img 和 audio 标签的 src 属性
+    const char *xpathExprs[] = {
+        "//img/@src",     // XPath表达式：获取img标签的src属性
+        "//audio/@src"    // XPath表达式：获取audio标签的src属性
+    };
+
+    for (const char *expr : xpathExprs) {
+        xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((const xmlChar *)expr, xpathCtx);
+        if (!xpathObj) {
+            qWarning() << "Failed to evaluate XPath expression!";
+            continue;
+        }
+
+        xmlNodeSetPtr nodes = xpathObj->nodesetval;
+        if (!nodes) continue;
+
+        // 4. 遍历结果，将 src 内容添加到 QStringList
+        for (int i = 0; i < nodes->nodeNr; ++i) {
+            xmlNodePtr node = nodes->nodeTab[i];
+            if (node->type == XML_ATTRIBUTE_NODE && node->children) {
+                srcList.append(QString::fromUtf8((const char *)node->children->content));
+            }
+        }
+
+        xmlXPathFreeObject(xpathObj);
+    }
+
+    // 5. 清理资源
+    xmlXPathFreeContext(xpathCtx);
+    xmlFreeDoc(doc);
+
+    return srcList;  // 返回提取的 src 列表
 }
 
 

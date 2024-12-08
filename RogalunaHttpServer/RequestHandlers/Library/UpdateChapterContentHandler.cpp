@@ -84,9 +84,6 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
     QString chapterIndex;
     QString chapterContent;
 
-    QHash<QString, int> removedIds;
-    QHash<QString, int> addedIds;
-
     // 获取请求体（FormData）中的数据
     QByteArray bodyParts = request.body();
 
@@ -100,10 +97,6 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
             chapterIndex = QString::fromUtf8(part.data).trimmed();
         } else if (part.name == "content") {
             chapterContent = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "removed") {
-            removedIds[QString::fromUtf8(part.data).trimmed()]++;
-        } else if (part.name == "added") {
-            addedIds[QString::fromUtf8(part.data).trimmed()]++;
         }
     }
 
@@ -138,7 +131,7 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
     // 在不到最终操作之前出错造成终止，都需要还原旧的文件
     // ==============================================================================================
 
-    // ======================= 传入修改值和全文的解决办法
+    // ======================= 传入修改值和全文的解决办法 =============================================== 弃用
     // 备份原始文件，执行内容更新操作
     // 计算应用后的数据库中的引用计数，获取会增加的行和会删除的行，得到需要移动的文件
     // 将需要移动的文件依次复制到持久或临时目录
@@ -146,185 +139,29 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
     // 将备份的原始文件全部删除
     // 在不到最终操作之前出错造成终止，都需要还原旧的文件
 
+    // ======================= 章节内使用的资源存放在章节内的解决办法
+    // 获取原章节的全部内容，分离获取引用的资源
+    // 传入新章节的全部内容，分离获取引用的资源
+    // 得到差异资源，进行删除
+    // 更新章节内容
+
     QStringList deleteIds;
     QStringList insertIds;
 
-    const QString &chapterFile = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterFilePath(bookId, chapterIndex);
+    const QString &oldChapterContent = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterFilePath(bookId, chapterIndex);
 
-    if (!QFile::copy(chapterFile, chapterFile + ".copy")) {
-        // 备份原始章节失败
-        QString message = "Backup chapter failed!";
-        QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-        return response;
-    }
+    QStringList removedSrc = RogalunaHttpConfig::getInstance().getLibraryServer()->findRemovedResources(oldChapterContent, chapterContent);
 
-    if (!RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent)) {
-        // 内容更新失败
-        QString message = "Update content failed!";
-        // 删除备份章节
-        if (!QFile::remove(chapterFile + ".copy")) {
-            // 没有正确回滚，非常严重的错误
-            qWarning() << "Rollback fail: backup chapter can't delete.";
-        }
+    // if (!RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent)) {
+    //     // 内容更新失败
+    //     QString message = "Update content failed!";
 
-        QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-        return response;
-    }
+    //     QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
+    //     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+    //     return response;
+    // }
 
-    for (const QString &key : removedIds.keys()) {
-        // 获取键当前的资源引用计数
-        int currentRefCount = RogalunaHttpConfig::getInstance().getLibraryServer()->queryResCount(key);
-        if (currentRefCount - removedIds.value(key) <= 0) {
-            // 引用计数归零，记入删除表
-            deleteIds.append(key);
-        }
-    }
 
-    for (const QString &key : addedIds.keys()) {
-        int currentRefCount = RogalunaHttpConfig::getInstance().getLibraryServer()->queryResCount(key);
-        if (currentRefCount == 0) {
-            // 引用计数非零，记入插入表
-            insertIds.append(key);
-        }
-    }
-
-    // 将标记为删除的 id 文件进行复制
-    for (const QString &id : deleteIds) {
-        if (RogalunaHttpConfig::getInstance().getLibraryServer()->isResPersExist(id)) {
-            // 持久目录下文件存在
-
-            const QString & sourceTarget = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-                RogalunaHttpConfig::getInstance().getLibraryServer()->getResFolderPath() + QDir::separator() + id);
-
-            QDir dir(sourceTarget);
-            QStringList fileList = dir.entryList(QDir::Files);
-
-            const QString &copyTarget = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-                id, RogalunaHttpConfig::getInstance().getStorageServer()->temp);
-            QDir tempDir(copyTarget);
-
-            if (!tempDir.exists()) {
-                tempDir.mkpath("."); // 如果临时文件夹不存在，则创建
-            } else {
-                // 异常目录存在，必须回滚
-                QString message = "Failed: Exist exception directory.";
-                QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-                response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-                return response;
-            }
-
-            QFile::copy(sourceTarget + QDir::separator() + fileList.first(), copyTarget + QDir::separator() + fileList.first());
-        } else {
-            // 资源不存在，必须回滚
-
-            // 替换更新的章节为备份的
-
-            // 将已经复制的资源删除
-
-            QString message = "Failed: The resource does not exist.";
-            QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-            response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-            return response;
-        }
-    }
-
-    for (const QString &id : insertIds) {
-        if (RogalunaHttpConfig::getInstance().getLibraryServer()->isResTempExist(id)) {
-            // 临时目录下文件存在
-
-            const QString & sourceTarget = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-                id, RogalunaHttpConfig::getInstance().getStorageServer()->temp);
-
-            QDir dir(sourceTarget);
-            QStringList fileList = dir.entryList(QDir::Files);
-
-            const QString &copyTarget = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-                RogalunaHttpConfig::getInstance().getLibraryServer()->getResFolderPath() + QDir::separator() + id);
-            QDir tempDir(copyTarget);
-
-            if (!tempDir.exists()) {
-                tempDir.mkpath("."); // 如果临时文件夹不存在，则创建
-            } else {
-                // 异常目录存在，必须回滚
-                QString message = "Failed: Exist exception directory.";
-                QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-                response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-                return response;
-            }
-
-            QFile::copy(sourceTarget + QDir::separator() + fileList.first(), copyTarget + QDir::separator() + fileList.first());
-        } else {
-            // 资源不存在，必须回滚
-
-            // 替换更新的章节为备份的
-
-            // 将已经复制的资源删除
-
-            QString message = "Failed: The resource does not exist.";
-            QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-            response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-            return response;
-        }
-    }
-
-    // 操作数据库，将资源引用计数增加或减少
-    for (const QString &key : removedIds.keys()) {
-        if (!RogalunaHttpConfig::getInstance().getLibraryServer()->modifyResCount(key, -removedIds.value(key))) {
-            // 数据库操作失败，回滚
-
-            // 替换更新的章节为备份的
-
-            // 将已经复制的资源删除
-
-            QString message = "Database operation failed!";
-            QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-            response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-            return response;
-        }
-    }
-    for (const QString &key : addedIds.keys()) {
-        if (!RogalunaHttpConfig::getInstance().getLibraryServer()->modifyResCount(key, addedIds.value(key))) {
-            // 数据库操作失败，回滚
-
-            // 替换更新的章节为备份的
-
-            // 将已经复制的资源删除
-
-            QString message = "Database operation failed!";
-            QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-            response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-            return response;
-        }
-    }
-
-    // 将备份的原始文件全部删除
-    QFile::remove(chapterFile + ".copy");
-
-    for (const QString &id : deleteIds) {
-        // 删除的资源，将备份的文件和原始文件都删除
-        const QString & sourceTarget_1 = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-            id, RogalunaHttpConfig::getInstance().getStorageServer()->temp);
-
-        QDir dir1(sourceTarget_1);
-        dir1.removeRecursively();
-
-        const QString & sourceTarget_2 = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-            RogalunaHttpConfig::getInstance().getLibraryServer()->getResFolderPath() + QDir::separator() + id);
-
-        QDir dir2(sourceTarget_2);
-        dir2.removeRecursively();
-    }
-
-    for (const QString &id : insertIds) {
-        // 新增的资源，将备份的文件删除
-        const QString & sourceTarget = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(
-            id, RogalunaHttpConfig::getInstance().getStorageServer()->temp);
-
-        QDir dir(sourceTarget);
-        dir.removeRecursively();
-    }
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;

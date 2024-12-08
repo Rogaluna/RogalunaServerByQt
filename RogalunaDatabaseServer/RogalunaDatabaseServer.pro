@@ -17,7 +17,6 @@ SOURCES += \
     Database/Library/BooksDAO.cpp \
     Database/Library/ChaptersDAO.cpp \
     Database/Library/ReadProgressDAO.cpp \
-    Database/Library/ResourcesCountDAO.cpp \
     Database/Library/UserCollectionsDAO.cpp \
     Database/MusicStation/AlbumsDAO.cpp \
     Database/MusicStation/ContentDAO.cpp \
@@ -40,7 +39,6 @@ HEADERS += \
     Database/Library/CategoriesDAO.h \
     Database/Library/ChaptersDAO.h \
     Database/Library/ReadProgressDAO.h \
-    Database/Library/ResourcesCountDAO.h \
     Database/Library/UserCollectionsDAO.h \
     Database/MusicStation/AlbumsDAO.h \
     Database/MusicStation/ContentDAO.h \
@@ -55,7 +53,6 @@ HEADERS += \
     Interface/Library/ICategoriesDAO.h \
     Interface/Library/IChaptersDAO.h \
     Interface/Library/IReadProgressDAO.h \
-    Interface/Library/IResourcesCountDAO.h \
     Interface/Library/IUserCollectionsDAO.h \
     Interface/MusicStation/IAlbumsDAO.h \
     Interface/MusicStation/IContentDAO.h \
