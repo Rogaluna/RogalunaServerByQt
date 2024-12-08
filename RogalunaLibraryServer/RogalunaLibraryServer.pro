@@ -39,10 +39,3 @@ else:unix:!macx: LIBS += -L$$OUT_PWD/../RogalunaDatabaseServer/ -lRogalunaDataba
 
 INCLUDEPATH += $$PWD/../RogalunaDatabaseServer
 DEPENDPATH += $$PWD/../RogalunaDatabaseServer
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/release/ -lQJsonWebToken
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QJsonWebToken/debug/ -lQJsonWebToken
-else:unix:!macx: LIBS += -L$$OUT_PWD/../QJsonWebToken/ -lQJsonWebToken
-
-INCLUDEPATH += $$PWD/../QJsonWebToken
-DEPENDPATH += $$PWD/../QJsonWebToken

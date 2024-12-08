@@ -107,7 +107,7 @@ QHttpServerResponse UploadChapterResourceHandler::handleRequest(const QHttpServe
     }
 
     // 检查是否收到了必须的参数
-    if (bookId.isEmpty() || chapterIndex.isEmpty() || type.isEmpty() || data.isEmpty() || md5.isEmpty()) {
+    if (bookId.isEmpty() || chapterIndex.isEmpty() || (chapterIndex.toInt() < 0) || type.isEmpty() || data.isEmpty() || md5.isEmpty()) {
         QHttpServerResponse response("Missing upload metadata", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;

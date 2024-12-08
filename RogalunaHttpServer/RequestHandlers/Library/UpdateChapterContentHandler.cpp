@@ -145,23 +145,63 @@ QHttpServerResponse UpdateChapterContentHandler::handleRequest(const QHttpServer
     // 得到差异资源，进行删除
     // 更新章节内容
 
-    QStringList deleteIds;
-    QStringList insertIds;
+    QByteArray oldChapterContent;
+    qint64 s, e, size;
+    QString title;
+    bool bFetchOldContent = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterFile(
+        bookId,
+        chapterIndex.toInt(),
+        false,
+        oldChapterContent,
+        s, e, size,
+        title);
 
-    const QString &oldChapterContent = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterFilePath(bookId, chapterIndex);
+    if (!bFetchOldContent) {
+        // 旧内容获取失败
+        QString message = "Can't fetch old content!";
+        QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+        return response;
+    }
 
     QStringList removedSrc = RogalunaHttpConfig::getInstance().getLibraryServer()->findRemovedResources(oldChapterContent, chapterContent);
 
-    // if (!RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent)) {
-    //     // 内容更新失败
-    //     QString message = "Update content failed!";
+    if (!RogalunaHttpConfig::getInstance().getLibraryServer()->updateChapterContent(bookId, chapterIndex, chapterContent)) {
+        // 内容更新失败
+        QHttpServerResponse response("Update content failed!", QHttpServerResponse::StatusCode::BadRequest);
+        response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
+        return response;
+    }
 
-    //     QHttpServerResponse response(message, QHttpServerResponse::StatusCode::BadRequest);
-    //     response.setHeader("Access-Control-Allow-Origin", "*");  // 允许跨域请求
-    //     return response;
-    // }
+    // 删除不需要的资源
+    static const QRegularExpression regex("token=([^&]*)");
+    for (const QString &src : removedSrc) {
+        QRegularExpressionMatch match = regex.match(src);
+        if (match.hasMatch()) {
+            // 提取匹配到的内容 (捕获组1)
+            QString resExtractToken = match.captured(1);
 
+            auto [isResValid, resHeader, resPayload] = VERIFY_JWT_TOKEN(resExtractToken, *RogalunaHttpConfig::getInstance().getSecretKey());
+            if (!isResValid) {
+                QHttpServerResponse response("Invalid res token", QHttpServerResponse::StatusCode::Unauthorized);
+                response.setHeader("Access-Control-Allow-Origin", "*"); // 允许跨域
+                return response;
+            }
 
+            QJsonDocument jwtResDoc = QJsonDocument::fromJson(resPayload.toUtf8());
+            QJsonObject jwtResObj = jwtResDoc.object();
+
+            QString chapterName = jwtResObj.value("name").toString();
+            QString md5 = jwtResObj.value("md5").toString();
+
+            if (!RogalunaHttpConfig::getInstance().getLibraryServer()->deleteChapterResource(bookId, chapterName, md5)) {
+                qWarning() << "Delete file fail!";
+            }
+
+        } else {
+            qWarning() << "No token found!";
+        }
+    }
 
     // 返回 JSON 响应
     QJsonObject jsonResponse;

@@ -73,11 +73,13 @@ public:
     bool writeFile(const QString &path, const QByteArray &data, const QString &expectedMd5 = "", qint64 buffer = 4096);
 
     /**
-     * @brief 删除指定路径的文件。
-     * @param filePath 要删除的文件路径。
+     * @brief 删除指定路径的文件或文件夹。
+     * @param path 要删除的资源路径。
      * @return 如果删除成功返回 true，否则返回 false。
      */
-    bool deleteFile(const QString &filePath);
+    bool deleteFile(const QString &path);
+    bool deleteFile(QFile &file);
+    bool deleteFile(QDir &dir);
 
     /**
      * @brief 读取 QFile 对象中的数据。

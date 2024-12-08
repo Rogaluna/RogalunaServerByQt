@@ -23,9 +23,6 @@ public:
 public:
     // Storage
 
-    QString getChapterFilePath(const QString &bookId, const QString &chapterIndex);
-    QString getResFolderPath();
-
     // Database
 
     // 获取类别
@@ -81,8 +78,11 @@ public:
     // 上传章节资源
     bool uplaodChapterResource(const QString &bookId, const QString &chapterName, const QString resName, const QString &type, const QByteArray &data, const QString &md5 = "");
 
-    // 获取图书馆资源
-    QPair<QByteArray, QString> getLibraryRes(const QString &bookId, const QString &chapterName, const QString &resName);
+    // 获取章节资源
+    QPair<QByteArray, QString> getChapterResource(const QString &bookId, const QString &chapterName, const QString &resName);
+
+    // 删除章节资源
+    bool deleteChapterResource(const QString &bookId, const QString &chapterName, const QString &resName);
 
     // 上传书籍封面图片
     bool uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5 = "");

@@ -2,7 +2,6 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonWebToken.h>
 
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -58,29 +57,6 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     if (!coverDir.exists()) {
         coverDir.mkpath("."); // 构造封面目录的路径
     }
-}
-
-QString RogalunaLibraryServer::getChapterFilePath(const QString &bookId, const QString &chapterIndex)
-{
-    Library::ChaptersDAO chaptersDAO(databaseServer->getDatabase());
-    // 获取对应的文件名称
-    QJsonObject result = chaptersDAO.getChapterDetails(bookId, chapterIndex.toInt());
-    if (result.isEmpty()) {
-        return "";
-    }
-    const QString &fileName = result["file_name"].toString();
-
-    return storageServer->absoluteFilePath(
-            root + QDir::separator() +
-            bookDirName + QDir::separator() +
-            bookId + QDir::separator() +
-            fileName
-        );
-}
-
-QString RogalunaLibraryServer::getResFolderPath()
-{
-    return root + QDir::separator() + resDirName;
 }
 
 QJsonObject RogalunaLibraryServer::getCategories(int parentCategoryId)
@@ -413,7 +389,7 @@ bool RogalunaLibraryServer::uplaodChapterResource(const QString &bookId, const Q
     }
 }
 
-QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &bookId, const QString &chapterName, const QString &resName)
+QPair<QByteArray, QString> RogalunaLibraryServer::getChapterResource(const QString &bookId, const QString &chapterName, const QString &resName)
 {
     // 检查持久存储中是否有对应的资源
     const QString &storageResPath = storageServer->absoluteFilePath(
@@ -443,6 +419,25 @@ QPair<QByteArray, QString> RogalunaLibraryServer::getLibraryRes(const QString &b
     }
     // 如果未找到资源，返回空结果
     return qMakePair(QByteArray(), QString());
+}
+
+bool RogalunaLibraryServer::deleteChapterResource(const QString &bookId, const QString &chapterName, const QString &resName)
+{
+    // 检查持久存储中是否有对应的资源
+    const QString &storageResPath = storageServer->absoluteFilePath(
+        root + QDir::separator() +
+        bookDirName + QDir::separator() +
+        bookId + QDir::separator() +
+        chapterName + QDir::separator() +
+        resName);
+
+    QDir storageResDir(storageResPath);
+    if (storageResDir.exists()) {
+        // 如果有这个资源，则进行删除
+        return storageServer->deleteFile(storageResDir);
+    }
+
+    return false;
 }
 
 bool RogalunaLibraryServer::uplaodBookCover(const QString &bookId, const QString &resType, const QByteArray &data, const QString &md5)

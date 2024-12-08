@@ -109,12 +109,46 @@ bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &dat
 
 bool RogalunaStorageServer::deleteFile(const QString &path)
 {
-    QFile file(path);
-    if (file.exists())
-    {
-        return file.remove();
+    QFileInfo fileInfo(path); // 获取路径信息
+
+    if (!fileInfo.exists()) {
+        qDebug() << "Path does not exist:" << path;
+        return false;
     }
+
+    if (fileInfo.isFile()) {
+        // 如果是文件，调用 QFile 版本重载
+        QFile file(path);
+        return deleteFile(file);
+    } else if (fileInfo.isDir()) {
+        // 如果是目录，调用 QDir 版本重载
+        QDir dir(path);
+        return deleteFile(dir);
+    }
+
     return false;
+}
+
+bool RogalunaStorageServer::deleteFile(QFile &file)
+{
+    if (file.remove()) {
+        qDebug() << "File deleted successfully:" << file.fileName();
+        return true;
+    } else {
+        qDebug() << "Failed to delete file:" << file.fileName();
+        return false;
+    }
+}
+
+bool RogalunaStorageServer::deleteFile(QDir &dir)
+{
+    if (dir.removeRecursively()) {
+        qDebug() << "Directory deleted successfully:" << dir.absolutePath();
+        return true;
+    } else {
+        qDebug() << "Failed to delete directory:" << dir.absolutePath();
+        return false;
+    }
 }
 
 FileReadResult RogalunaStorageServer::readFile(QFile &file, qint64 offset, qint64 buffer)

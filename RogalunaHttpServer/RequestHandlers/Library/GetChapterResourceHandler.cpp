@@ -99,7 +99,7 @@ QHttpServerResponse GetChapterResourceHandler::handleRequest(const QHttpServerRe
     QString md5 = jwtResObj.value("md5").toString();
 
     // 获取文件
-    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getLibraryRes(bookId, chapterName, md5);
+    const QPair<QByteArray, QString> &result = RogalunaHttpConfig::getInstance().getLibraryServer()->getChapterResource(bookId, chapterName, md5);
 
     const QByteArray &fileData = result.first;
     const QString &fileType = result.second;
