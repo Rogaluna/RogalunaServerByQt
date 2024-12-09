@@ -1,4 +1,4 @@
-#include "GetFileListHandler.h"
+#include "DeleteFileHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -9,7 +9,7 @@
 
 namespace CloudDrive {
 
-QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse DeleteFileHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 遍历头部列表，查找 "Authorization" 头
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -65,44 +65,18 @@ QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &
     QUrlQuery query(request.url());
     QString param = "";
 
-    if (query.hasQueryItem("folderUid")) {
-        // 如果查询参数 "folderUid" 存在
-        param = query.queryItemValue("folderUid");
-        param = QUrl::fromPercentEncoding(param.toUtf8());
-
-        // 如果是空值，那么获取用户的根目录 uid
-        if (param.isEmpty()) {
-            param = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getUserRootDirUid(userId.toInt());
-        }
+    if (query.hasQueryItem("id")) {
+        // 如果查询参数 "id" 存在
+        param = query.queryItemValue("id");
     }
 
-    // 调用存储服务器获取文件列表
-    QVector<CloudDrive::FFileMetadata> entries = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getFiles(
-                                       param,
-                                       RogalunaCloudDriveServer::EGetFileOpterator::E_FOLDER).value_or(QVector<CloudDrive::FFileMetadata>());
+    // 将 id 指向的那个资源删除，进行权限检查，确保拥有者是 userId
+    bool bSuccess = RogalunaHttpConfig::getInstance().getCloudDriveServer()->deleteFile(param, userId);
 
-    // 获取路径全称
-    QString fullPath = RogalunaHttpConfig::getInstance().getCloudDriveServer()->getPath(param);
-
-    // 构建 JSON 响应
-    QJsonArray jsonArray;
-    for (const CloudDrive::FFileMetadata &entry : entries) {
-        QJsonObject jsonObject;
-        jsonObject["uid"] = entry.uid;
-        jsonObject["name"] = entry.fileName;
-        jsonObject["contentMd5"] = entry.contentMd5;
-        jsonObject["lastModified"] = entry.updatedAt.toString(Qt::ISODate);
-        jsonObject["type"] = (entry.isDirectory ? "dir" : (entry.fileName.lastIndexOf('.') != -1 ? entry.fileName.mid(entry.fileName.lastIndexOf('.') + 1) : ""));
-        // jsonObject["size"] = entry.size;
-
-        jsonArray.append(jsonObject);
-    }
-
+    // 返回响应
     QJsonObject responseObject;
-    responseObject["success"] = true;
-    responseObject["currentFolderUid"] = param;
-    responseObject["path"] = fullPath;
-    responseObject["data"] = jsonArray;
+    responseObject["success"] = bSuccess;
+
     QJsonDocument jsonDoc(responseObject);
     QByteArray jsonResponse = jsonDoc.toJson();
 
@@ -114,3 +88,4 @@ QHttpServerResponse GetFileListHandler::handleRequest(const QHttpServerRequest &
 }
 
 }
+

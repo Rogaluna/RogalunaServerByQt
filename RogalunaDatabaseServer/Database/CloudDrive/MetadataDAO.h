@@ -23,11 +23,15 @@ public:
 
     std::optional<FFileMetadata> getMetadataFromPath(const QString& path, int userId) override;
 
-    std::optional<QVector<FFileMetadata>> getUserFiles(int userId) override;
+    std::optional<QVector<FFileMetadata>> getMetadataByUserId(int userId) override;
 
-    std::optional<QVector<FFileMetadata>> getUidFile(const QString &uid) override;
+    std::optional<QVector<FFileMetadata>> getMetadataByUid(const QString &uid) override;
 
-    std::optional<QVector<FFileMetadata>> getFolderFiles(const QString &folderUid) override;
+    std::optional<QVector<FFileMetadata>> getMetadataUnderFolder(const QString &folderUid) override;
+
+    bool updateFileName(const QString& uid, const QString &name) override;
+
+    int getRefCount(const QString& field, const QString &value) override;
 };
 
 }

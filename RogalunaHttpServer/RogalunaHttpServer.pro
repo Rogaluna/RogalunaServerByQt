@@ -17,7 +17,10 @@ SOURCES += \
     RequestHandlers/Account/LoginHandler.cpp \
     RequestHandlers/Account/ModifyAccountInfoHandler.cpp \
     RequestHandlers/Account/RegisterHandler.cpp \
+    RequestHandlers/CloudDrive/DeleteFileHandler.cpp \
+    RequestHandlers/CloudDrive/GetFileDetailHandler.cpp \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.cpp \
+    RequestHandlers/CloudDrive/RenameFileHandler.cpp \
     RequestHandlers/DefaultOptionsHandler.cpp \
     RequestHandlers/CloudDrive/CreateFolderHandler.cpp \
     RequestHandlers/CloudDrive/FetchFileDirectLinkHandler.cpp \
@@ -64,7 +67,10 @@ HEADERS += \
     RequestHandlers/Account/LoginHandler.h \
     RequestHandlers/Account/ModifyAccountInfoHandler.h \
     RequestHandlers/Account/RegisterHandler.h \
+    RequestHandlers/CloudDrive/DeleteFileHandler.h \
+    RequestHandlers/CloudDrive/GetFileDetailHandler.h \
     RequestHandlers/CloudDrive/GetUidFromPathHandler.h \
+    RequestHandlers/CloudDrive/RenameFileHandler.h \
     RequestHandlers/DefaultOptionsHandler.h \
     RequestHandlers/CloudDrive/CreateFolderHandler.h \
     RequestHandlers/CloudDrive/FetchFileDirectLinkHandler.h \

@@ -112,6 +112,8 @@ QHttpServerResponse PostFileHandler::handleRequest(const QHttpServerRequest &req
         return response;
     }
 
+    // 如果持久存储中已经存在了 uid 同名文件，那么直接返回，
+
     if(!RogalunaHttpConfig::getInstance().getCloudDriveServer()->uploadChunk(uid, chunkIndex, chunkData, chunkMd5)) {
         QHttpServerResponse response("upload chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -120,7 +122,7 @@ QHttpServerResponse PostFileHandler::handleRequest(const QHttpServerRequest &req
 
     // 返回 JSON 响应，表示该块上传成功
     QJsonObject jsonResponse;
-    jsonResponse["status"] = "success";
+    jsonResponse["success"] = true;
     jsonResponse["uploadedChunkIndex"] = chunkIndex;
     jsonResponse["totalChunks"] = totalChunks;
 

@@ -20,6 +20,8 @@
 #include <RequestHandlers/CloudDrive/GetParentFolderHandler.h>
 #include <RequestHandlers/CloudDrive/MergeFileHandler.h>
 #include <RequestHandlers/CloudDrive/PostFileHandler.h>
+#include <RequestHandlers/CloudDrive/RenameFileHandler.h>
+#include <RequestHandlers/CloudDrive/DeleteFileHandler.h>
 
 #include <RequestHandlers/Account/GetAccountInfoHandler.h>
 #include <RequestHandlers/Account/LoginHandler.h>
@@ -108,6 +110,8 @@ bool RogalunaHttpServer::start()
     REGISTER_ROUTE(server, "/api/cloudDrive/createFolder", QHttpServerRequest::Method::Post, CloudDrive::CreateFolderHandler);
     REGISTER_ROUTE(server, "/api/cloudDrive/getParentFolder", QHttpServerRequest::Method::Get, CloudDrive::GetParentFolderHandler);
     REGISTER_ROUTE(server, "/api/cloudDrive/getUidFromPath", QHttpServerRequest::Method::Get, CloudDrive::GetUidFromPathHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/renameFile", QHttpServerRequest::Method::Post, CloudDrive::RenameFileHandler);
+    REGISTER_ROUTE(server, "/api/cloudDrive/deleteFile", QHttpServerRequest::Method::Delete, CloudDrive::DeleteFileHandler);
 
     qDebug() << "||||||||||||||||||||       Account       ||||||||||||||||||||";
 

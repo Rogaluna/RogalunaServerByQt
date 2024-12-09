@@ -85,50 +85,99 @@ QString RogalunaCloudDriveServer::mergeChunks(const QString &tempDirName, const 
 
 FileReadResult RogalunaCloudDriveServer::downloadFile(const QString &contentMd5)
 {
-    CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
-
-    // 从数据库中获取文件的存储路径
-    QString filePath = contentDao.getContentPath(contentMd5);
-    if (filePath.isEmpty()) {
-        return { QByteArray(), false, "File not found", true };
-    }
-
     // 读取文件内容
-    FileReadResult result = storageServer->readFile(filePath, 0);
-    return result;
+    return storageServer->readFile(
+        storageServer->absoluteFilePath(
+            root + QDir::separator() +
+            contentMd5),
+        0);
 }
 
-bool RogalunaCloudDriveServer::deleteFile(const QString &contentMd5)
+bool RogalunaCloudDriveServer::deleteFile(const QString &uid, const QString& userId)
 {
     return databaseServer->executeTransaction([&]() {
         CloudDrive::ContentDAO contentDao(databaseServer->getDatabase());
         CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
 
-        // 从数据库中获取文件的存储路径
-        QString filePath = contentDao.getContentPath(contentMd5);
-        if (filePath.isEmpty()) {
-            qWarning() << "File not found in database:" << contentMd5;
+        // 根据 uid 获取记录
+        const std::optional<QVector<CloudDrive::FFileMetadata>> &records = metadataDao.getMetadataByUid(uid);
+        if (!records.has_value() || records->isEmpty()) {
+            qWarning() << "Can't find records.";
             return false;
         }
+        const CloudDrive::FFileMetadata &record = records->first();
+        if (!userId.isEmpty()) {
+            // userId 不为空，启用权限检查
+            if (record.userId != userId.toInt()) {
+                // 权限不匹配
 
-        // 删除数据库中的文件记录
-        if (!contentDao.deleteContent(contentMd5)) {
-            qWarning() << "Failed to delete file content.";
-            return false;
+                return false;
+            }
         }
 
-        if (!metadataDao.deleteMetadata(contentMd5)) {
-            qWarning() << "Failed to delete file metadata.";
-            return false;
+        const QString &contentMd5 = record.contentMd5;
+        bool isDir = record.isDirectory;
+
+        // 如果指向的仅是一个单纯的文件
+        if (!isDir) {
+            // 查找对应 md5 值在数据库中的引用记录是否仅存一个
+            int count = metadataDao.getRefCount("content_md5", contentMd5);
+            if (!count) {
+                qWarning() << "Count has a impossible value.";
+                return false;
+            }
+
+            // 如果有多个记录指向此 md5 值，那么仅删除元数据中的记录
+            if (count > 1) {
+                // 删除数据库中的元数据记录
+                if (!metadataDao.deleteMetadata(uid)) {
+                    qWarning() << "Failed to delete metadata.";
+                    return false;
+                }
+            }
+
+            // 否则删除记录的同时，将存储的文件也一并删除
+            else {
+                // 删除数据库中的元数据记录
+                if (!metadataDao.deleteMetadata(uid)) {
+                    qWarning() << "Failed to delete metadata.";
+                    return false;
+                }
+
+                // 删除数据库中的内容记录
+                if (!contentDao.deleteContent(contentMd5)) {
+                    qWarning() << "Failed to delete file content.";
+                    return false;
+                }
+
+                // 删除文件
+                if (!storageServer->deleteFile(storageServer->absoluteFilePath(
+                        root + QDir::separator() + contentMd5))) {
+                    qWarning() << "Failed to delete file.";
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        // 删除文件
-        if (!storageServer->deleteFile(filePath)) {
-            qWarning() << "Failed to delete file:" << filePath;
-            return false;
+        // 如果指向的是一个文件夹，那么还需要查找其内部包含的所有文件
+        else {
+            // 获取此目录下包含的所有子 uid
+
+            // 根据 uid 获取记录
+
+            // 如果记录表示的是目录，再进行查找
+
+            // 删除数据库中的元数据记录
+            if (!metadataDao.deleteMetadata(uid)) {
+                qWarning() << "Failed to delete metadata.";
+                return false;
+            }
+
+            return true;
         }
 
-        return true;
     });
 }
 
@@ -138,17 +187,17 @@ std::optional<QVector<CloudDrive::FFileMetadata>> RogalunaCloudDriveServer::getF
     switch (Operator) {
     case EGetFileOpterator::E_UID: // 通过 uid 查询
     {
-        return metadataDao.getUidFile(query);
+        return metadataDao.getMetadataByUid(query);
     }
         break;
     case EGetFileOpterator::E_USERID: // 通过 userId 查询
     {
-        return metadataDao.getUserFiles(query.toInt());
+        return metadataDao.getMetadataByUserId(query.toInt());
     }
         break;
     case EGetFileOpterator::E_FOLDER: // 通过 文件夹uid 查询
     {
-        return metadataDao.getFolderFiles(query);
+        return metadataDao.getMetadataUnderFolder(query);
     }
         break;
     default:
@@ -171,7 +220,7 @@ QString RogalunaCloudDriveServer::getUserRootDirUid(int userId)
 std::optional<CloudDrive::FFileMetadata> RogalunaCloudDriveServer::getParent(const QString &uid)
 {
     CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
-    QVector<CloudDrive::FFileMetadata> uidObjects = metadataDao.getUidFile(uid).value_or(QVector<CloudDrive::FFileMetadata>());
+    QVector<CloudDrive::FFileMetadata> uidObjects = metadataDao.getMetadataByUid(uid).value_or(QVector<CloudDrive::FFileMetadata>());
 
     if (uidObjects.isEmpty()) {
         // 没有找到对应的 uid 对象，无法寻找到其父对象
@@ -180,7 +229,7 @@ std::optional<CloudDrive::FFileMetadata> RogalunaCloudDriveServer::getParent(con
 
     const CloudDrive::FFileMetadata &uidObject = uidObjects[0];
 
-    QVector<CloudDrive::FFileMetadata> parentObjects = metadataDao.getUidFile(uidObject.parentUid).value_or(QVector<CloudDrive::FFileMetadata>());
+    QVector<CloudDrive::FFileMetadata> parentObjects = metadataDao.getMetadataByUid(uidObject.parentUid).value_or(QVector<CloudDrive::FFileMetadata>());
 
     if (parentObjects.isEmpty()) {
         // 没有找到任何父对象，说明它本身就是根目录
@@ -239,5 +288,11 @@ bool RogalunaCloudDriveServer::getTargetFile(const QString &targetMd5, bool isRa
     }
 
     return true;
+}
+
+bool RogalunaCloudDriveServer::renameFile(const QString &uid, const QString &newName)
+{
+    CloudDrive::MetadataDAO metadataDao(databaseServer->getDatabase());
+    return metadataDao.updateFileName(uid, newName);
 }
 

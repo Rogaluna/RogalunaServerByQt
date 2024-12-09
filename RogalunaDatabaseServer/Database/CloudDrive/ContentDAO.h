@@ -15,8 +15,6 @@ public:
     // 实现 IContentDAO 接口的方法
     bool insertContent(const QString& contentMd5, qint64 size) override;
 
-    QString getContentPath(const QString& contentMd5) override;
-
     bool deleteContent(const QString& contentMd5) override;
 };
 

@@ -1,4 +1,4 @@
-#include "MergeFileHandler.h"
+#include "RenameFileHandler.h"
 
 #include <QHttpServerRequest>
 #include <RogalunaHttpConfig.h>
@@ -9,7 +9,7 @@
 
 namespace CloudDrive {
 
-QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &request)
+QHttpServerResponse RenameFileHandler::handleRequest(const QHttpServerRequest &request)
 {
     // 遍历头部列表，查找 "Authorization" 头
     QList<QPair<QByteArray, QByteArray>> headers = request.headers();
@@ -78,14 +78,12 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
         return response;
     }
 
-    // 解析请求体（FormData）
-    QByteArray bodyParts = request.body();
-
-    // 解析表单数据
+    // 获取请求头中的元数据（如文件名、块索引、总块数等）
     QString uid;
-    QString parentUid;
-    QString fileName;
-    qint64 totalChunks = -1;
+    QString name;
+
+    // 获取请求体（FormData）中的数据
+    QByteArray bodyParts = request.body();
 
     PARSE_MULTIPART_FORM_DATA(bodyParts, contentType, formParts);
 
@@ -93,35 +91,23 @@ QHttpServerResponse MergeFileHandler::handleRequest(const QHttpServerRequest &re
     for (const MultipartPart &part : formParts) {
         if (part.name == "uid") {
             uid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "parentUid") {
-            parentUid = QString::fromUtf8(part.data).trimmed();
-        } else if (part.name == "fileName") {
-            fileName = QUrl::fromPercentEncoding(part.data).trimmed();
-        } else if (part.name == "totalChunks") {
-            totalChunks = part.data.toLongLong();
+        } else if (part.name == "name") {
+            name = QString::fromUtf8(part.data).trimmed();
         }
     }
 
     // 检查是否收到了必须的参数
-    if (uid.isEmpty() || fileName.isEmpty() || totalChunks == -1) {
-        QHttpServerResponse response("Missing merge metadata", QHttpServerResponse::StatusCode::BadRequest);
+    if (uid.isEmpty() || name.isEmpty()) {
+        QHttpServerResponse response("Missing upload metadata", QHttpServerResponse::StatusCode::BadRequest);
         response.setHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
 
-    // 如果持久存储中已经存在了 uid 同名文件，那么跳转至写入数据库
+    bool bSuccess = RogalunaHttpConfig::getInstance().getCloudDriveServer()->renameFile(uid, name);
 
-    QString fileUid = RogalunaHttpConfig::getInstance().getCloudDriveServer()->mergeChunks(uid, fileName, totalChunks, userId.toInt(), parentUid);
-    if(fileUid.isEmpty()) {
-        QHttpServerResponse response("merge chunk Fail!", QHttpServerResponse::StatusCode::BadRequest);
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
-
-    // 合并成功，返回响应
+    // 返回 JSON 响应
     QJsonObject jsonResponse;
-    jsonResponse["success"] = true;
-    jsonResponse["data"] = fileUid;
+    jsonResponse["success"] = bSuccess;
 
     QJsonDocument jsonDoc(jsonResponse);
     QByteArray jsonResponseData = jsonDoc.toJson();

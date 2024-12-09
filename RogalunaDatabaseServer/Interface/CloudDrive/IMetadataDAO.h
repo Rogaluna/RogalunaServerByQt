@@ -86,7 +86,7 @@ public:
      * @param userId 用户的 ID。
      * @return 包含文件或文件夹元数据的可选 QVector 数组，如果用户没有文件或文件夹，则为空。
      */
-    virtual std::optional<QVector<FFileMetadata>> getUserFiles(int userId) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getMetadataByUserId(int userId) = 0;
 
     /**
      * @brief 根据 UID 获取文件或文件夹的元数据（只返回一个元素的数组）。
@@ -94,7 +94,7 @@ public:
      * @param uid 文件或文件夹的 UID。
      * @return 包含该 UID 的文件或文件夹元数据的可选 QVector 数组，如果没有找到则为空。
      */
-    virtual std::optional<QVector<FFileMetadata>> getUidFile(const QString &uid) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getMetadataByUid(const QString &uid) = 0;
 
     /**
      * @brief 获取特定文件夹 UID 下的文件或文件夹。
@@ -102,7 +102,25 @@ public:
      * @param folderUid 文件夹的 UID。
      * @return 包含该文件夹下的文件或文件夹元数据的可选 QVector 数组，如果文件夹为空则返回空。
      */
-    virtual std::optional<QVector<FFileMetadata>> getFolderFiles(const QString &folderUid) = 0;
+    virtual std::optional<QVector<FFileMetadata>> getMetadataUnderFolder(const QString &folderUid) = 0;
+
+    /**
+     * @brief 更新文件/文件夹名。
+     *
+     * @param uid 要进行更新的文件或文件夹的 UID。
+     * @param name 覆写的名称。
+     * @return 如果删除成功返回 true，否则返回 false。
+     */
+    virtual bool updateFileName(const QString& uid, const QString &name) = 0;
+
+    /**
+     * @brief 获取字段相同值的计数。
+     *
+     * @param field 要进行查找的字段名称。
+     * @param value 要进行查找字段的值。
+     * @return 返回记录计数。
+     */
+    virtual int getRefCount(const QString& field, const QString &value) = 0;
 
 };
 

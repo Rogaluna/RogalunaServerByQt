@@ -20,7 +20,7 @@ QString MetadataDAO::insertMetadata(int userId, const QString &fileName, const Q
     insertQuery.bindValue(":version", version);
 
     // 执行插入并获取新生成的 uid
-    if (insertQuery.exec() && insertQuery.next()) {
+    if (executeQuery(insertQuery) && insertQuery.next()) {
         return insertQuery.value(0).toString();  // 返回数据库生成的 uid
     }
 
@@ -46,7 +46,7 @@ QString MetadataDAO::getUserRootDirUid(int userId)
     query.bindValue(":user_id", userId);
 
     // 执行查询
-    if (query.exec() && query.next()) {
+    if (executeQuery(query) && query.next()) {
         // 如果找到记录，则返回该记录的 uid
         return query.value("uid").toString();
     }
@@ -61,7 +61,7 @@ QString MetadataDAO::getUserRootDirUid(int userId)
     insertQuery.bindValue(":file_name", "root"); // 设置根目录名称为 "root"
 
     // 执行插入并获取新生成的 uid
-    if (insertQuery.exec() && insertQuery.next()) {
+    if (executeQuery(insertQuery) && insertQuery.next()) {
         return insertQuery.value("uid").toString();  // 返回数据库生成的 uid
     }
 
@@ -82,7 +82,7 @@ QString MetadataDAO::insertFolder(int userId, const QString &parentUid, const QS
     insertQuery.bindValue(":parent_uid", parentUid);
 
     // 执行插入并获取新生成的 uid
-    if (insertQuery.exec() && insertQuery.next()) {
+    if (executeQuery(insertQuery) && insertQuery.next()) {
         return insertQuery.value("uid").toString();  // 返回数据库生成的 uid
     }
 
@@ -103,7 +103,7 @@ QString MetadataDAO::getPath(const QString &uid)
         query.prepare(sql);
         query.bindValue(":uid", currentUid);
 
-        if (query.exec() && query.next()) {
+        if (executeQuery(query) && query.next()) {
             QString fileName = query.value("file_name").toString();
             QString parentUid = query.value("parent_uid").toString();
 
@@ -149,7 +149,7 @@ std::optional<FFileMetadata> MetadataDAO::getMetadataFromPath(const QString &pat
         query.bindValue(":user_id", userId);  // 限定用户 ID
 
         // 执行查询并获取当前部分的元数据
-        if (query.exec() && query.next()) {
+        if (executeQuery(query) && query.next()) {
             currentUid = query.value("uid").toString();  // 更新当前 UID 为查询到的 UID
         } else {
             qWarning() << "Failed to retrieve metadata for path part:" << part << "with userId:" << userId << query.lastError().text();
@@ -168,7 +168,7 @@ std::optional<FFileMetadata> MetadataDAO::getMetadataFromPath(const QString &pat
     finalQuery.bindValue(":user_id", userId);
 
     // 执行最终查询以获取完整的元数据
-    if (finalQuery.exec() && finalQuery.next()) {
+    if (executeQuery(finalQuery) && finalQuery.next()) {
         FFileMetadata metadata;
         metadata.uid = finalQuery.value("uid").toString();
         metadata.fileName = finalQuery.value("file_name").toString();
@@ -185,7 +185,7 @@ std::optional<FFileMetadata> MetadataDAO::getMetadataFromPath(const QString &pat
     return std::nullopt;
 }
 
-std::optional<QVector<FFileMetadata>> MetadataDAO::getUserFiles(int userId)
+std::optional<QVector<FFileMetadata>> MetadataDAO::getMetadataByUserId(int userId)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -194,7 +194,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getUserFiles(int userId)
     query.prepare(sql);
     query.bindValue(":user_id", userId);
 
-    if (!query.exec()) {
+    if (!executeQuery(query)) {
         return std::nullopt;
     }
 
@@ -225,7 +225,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getUserFiles(int userId)
     return files;
 }
 
-std::optional<QVector<FFileMetadata>> MetadataDAO::getUidFile(const QString &uid)
+std::optional<QVector<FFileMetadata>> MetadataDAO::getMetadataByUid(const QString &uid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -234,7 +234,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getUidFile(const QString &uid
     query.prepare(sql);
     query.bindValue(":uid", uid);
 
-    if (!query.exec()) {
+    if (!executeQuery(query)) {
         return std::nullopt;
     }
 
@@ -265,7 +265,7 @@ std::optional<QVector<FFileMetadata>> MetadataDAO::getUidFile(const QString &uid
     return files;
 }
 
-std::optional<QVector<FFileMetadata> > MetadataDAO::getFolderFiles(const QString &folderUid)
+std::optional<QVector<FFileMetadata> > MetadataDAO::getMetadataUnderFolder(const QString &folderUid)
 {
     QSqlQuery query(database);
     QString sql = QString("SELECT uid, user_id, file_name, content_md5, parent_uid, is_directory, version, created_at, updated_at "
@@ -274,7 +274,7 @@ std::optional<QVector<FFileMetadata> > MetadataDAO::getFolderFiles(const QString
     query.prepare(sql);
     query.bindValue(":parent_uid", folderUid);
 
-    if (!query.exec()) {
+    if (!executeQuery(query)) {
         return std::nullopt;
     }
 
@@ -303,6 +303,54 @@ std::optional<QVector<FFileMetadata> > MetadataDAO::getFolderFiles(const QString
     }
 
     return files;
+}
+
+bool MetadataDAO::updateFileName(const QString &uid, const QString &name)
+{
+    QSqlQuery query(database);
+    QString sql = QString("UPDATE %1 SET file_name = :file_name, updated_at = :updated_at WHERE uid = :uid")
+                      .arg(fullTableName());
+
+    query.prepare(sql);
+    query.bindValue(":file_name", name);
+    query.bindValue(":updated_at", QDateTime::currentDateTime());
+    query.bindValue(":uid", uid);
+
+    // 执行更新操作，如果失败返回 false
+    if (!executeQuery(query)) {
+        return false;
+    }
+
+    // 检查受影响的行数，如果没有更新任何行，表示更新失败
+    if (query.numRowsAffected() == 0) {
+        return false;
+    }
+
+    return true;
+}
+
+int MetadataDAO::getRefCount(const QString &field, const QString &value)
+{
+    QSqlQuery query(database);
+
+    // 使用占位符构建 SQL 查询
+    QString sql = QString("SELECT COUNT(*) FROM %1 WHERE %2 = :value").arg(fullTableName(), field);
+
+    query.prepare(sql);
+    query.bindValue(":value", value);
+
+    // 执行查询，如果失败返回 -1 表示出错
+    if (!query.exec()) {
+        return -1;
+    }
+
+    // 解析查询结果
+    if (query.next()) {
+        return query.value(0).toInt(); // 返回计数值
+    }
+
+    // 如果查询结果为空，返回 0
+    return 0;
 }
 
 

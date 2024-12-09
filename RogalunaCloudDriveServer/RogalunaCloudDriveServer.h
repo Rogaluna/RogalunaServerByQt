@@ -34,8 +34,8 @@ public:
     /* 注：这个函数实际上没有被使用过，预计会在获取文件的地方调用它，之后的修改可以酌情参考 */
     FileReadResult downloadFile(const QString &contentMd5);
 
-    // 删除文件，通过 MD5 删除文件和数据库记录
-    bool deleteFile(const QString &contentMd5);
+    // 删除文件，通过 uid 删除文件和数据库记录，如果传入的 userId 是空值，则不进行权限检查
+    bool deleteFile(const QString &uid, const QString& userId = "");
 
     // 获取某个用户拥有的文件（选项：特定uid、特定userId、特定文件夹uid）
     std::optional<QVector<CloudDrive::FFileMetadata>> getFiles(const QString &query, const EGetFileOpterator &Operator);
@@ -54,6 +54,9 @@ public:
 
     // 获取目标文件，得到文件数据等信息
     bool getTargetFile(const QString &targetMd5, bool isRangeRequest, QByteArray& fileData, qint64 &startPos, qint64 &endPos, qint64 &fileSize);
+
+    // 重命名文件/文件夹名称
+    bool renameFile(const QString &uid, const QString &newName);
 
 public:
     QString root;                    ///< 文件存储的根目录。
