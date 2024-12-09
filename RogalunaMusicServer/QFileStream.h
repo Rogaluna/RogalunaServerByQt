@@ -19,21 +19,21 @@ public:
 
     virtual void writeBlock(const TagLib::ByteVector &data) override;
 
-    virtual void insert(const TagLib::ByteVector &data, long long start, size_t replace) override;
+    virtual void insert(const TagLib::ByteVector &data, TagLib::offset_t start, size_t replace) override;
 
-    virtual void removeBlock(long long start, size_t length) override;
+    virtual void removeBlock(TagLib::offset_t start, size_t length) override;
 
     virtual bool readOnly() const override;
 
     virtual bool isOpen() const override;
 
-    virtual void seek(long long offset, Position p = Beginning) override;
+    virtual void seek(TagLib::offset_t offset, Position p = Beginning) override;
 
-    virtual long long tell() const override;
+    virtual TagLib::offset_t tell() const override;
 
-    virtual long long length() override;
+    virtual TagLib::offset_t length() override;
 
-    virtual void truncate(long long length) override;
+    virtual void truncate(TagLib::offset_t length) override;
 
     void clear() override;
 

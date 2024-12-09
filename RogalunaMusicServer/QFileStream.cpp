@@ -35,7 +35,7 @@ void QFileStream::writeBlock(const TagLib::ByteVector &data)
     }
 }
 
-void QFileStream::insert(const TagLib::ByteVector &data, long long start, size_t replace)
+void QFileStream::insert(const TagLib::ByteVector &data, TagLib::offset_t start, size_t replace)
 {
     // 插入数据需要在文件中间进行操作，这在 QFile 中不是直接支持的
     // 需要读取文件内容，修改后再写回
@@ -51,7 +51,7 @@ void QFileStream::insert(const TagLib::ByteVector &data, long long start, size_t
     qfile.write(newData);
 }
 
-void QFileStream::removeBlock(long long start, size_t length)
+void QFileStream::removeBlock(TagLib::offset_t start, size_t length)
 {
     // 与 insert 类似，需要修改文件内容
     QByteArray originalData = qfile.readAll();
@@ -74,7 +74,7 @@ bool QFileStream::isOpen() const
     return qfile.isOpen();
 }
 
-void QFileStream::seek(long long offset, Position p)
+void QFileStream::seek(TagLib::offset_t offset, Position p)
 {
     if (p == Beginning) {
         qfile.seek(offset);
@@ -85,17 +85,17 @@ void QFileStream::seek(long long offset, Position p)
     }
 }
 
-long long QFileStream::tell() const
+TagLib::offset_t QFileStream::tell() const
 {
     return qfile.pos();
 }
 
-long long QFileStream::length()
+TagLib::offset_t QFileStream::length()
 {
     return qfile.size();
 }
 
-void QFileStream::truncate(long long length)
+void QFileStream::truncate(TagLib::offset_t length)
 {
     qfile.resize(length);
 }
