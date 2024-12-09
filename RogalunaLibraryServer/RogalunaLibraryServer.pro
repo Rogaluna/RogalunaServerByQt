@@ -24,7 +24,7 @@ unix {
 !isEmpty(target.path): INSTALLS += target
 
 INCLUDEPATH += $$PWD/../thirdparty/libxml2/include
-LIBS += -L$$PWD/../thirdparty/libxml2/lib -lxml2.dll
+LIBS += -L$$PWD/../thirdparty/libxml2/lib -lxml2
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/release/ -lRogalunaStorageServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../RogalunaStorageServer/debug/ -lRogalunaStorageServer
