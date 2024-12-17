@@ -35,19 +35,19 @@ RogalunaLibraryServer::RogalunaLibraryServer(
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
     if (!rootDir.exists()) {
-        rootDir.mkpath(".");  // 创建根文件夹
+        rootDir.mkpath(QDir::separator());  // 创建根文件夹
     }
 
     QString bookDirPath = rootPath + QDir::separator() + bookDirName;
     QDir book(bookDirPath);
     if (!book.exists()) {
-        book.mkpath("."); // 构造书籍目录的路径
+        book.mkpath(QDir::separator()); // 构造书籍目录的路径
     }
 
     QString coverDirPath = rootPath + QDir::separator() + coverDirName;
     QDir coverDir(coverDirPath);
     if (!coverDir.exists()) {
-        coverDir.mkpath("."); // 构造封面目录的路径
+        coverDir.mkpath(QDir::separator()); // 构造封面目录的路径
     }
 }
 

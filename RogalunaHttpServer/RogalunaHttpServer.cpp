@@ -262,6 +262,6 @@ void RogalunaHttpServer::postInitialization()
     QString rootPath = RogalunaHttpConfig::getInstance().getStorageServer()->absoluteFilePath(webRootPath);
     QDir rootDir(rootPath);
     if (!rootDir.exists()) {
-        rootDir.mkpath(".");  // 创建根文件夹
+        rootDir.mkpath(QDir::separator());  // 创建根文件夹
     }
 }

@@ -30,7 +30,7 @@
 
 #define VERIFY_JWT_TOKEN(strToken, strSecret) \
 [&]() -> std::tuple<bool, QString, QString> { \
-        QStringList listJwtParts = strToken.split("."); \
+        QStringList listJwtParts = strToken.split(QDir::separator()); \
         if (listJwtParts.count() != 3) { \
             qDebug() << "Invalid JWT Token: Incorrect format"; \
             return std::make_tuple(false, "", ""); \

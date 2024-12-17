@@ -29,19 +29,19 @@ RogalunaMusicServer::RogalunaMusicServer(
     QString rootPath = storageServer->absoluteFilePath(root);
     QDir rootDir(rootPath);
     if (!rootDir.exists()) {
-        rootDir.mkpath(".");  // 创建根文件夹
+        rootDir.mkpath(QDir::separator());  // 创建根文件夹
     }
 
     QString musicDirPath = rootPath + QDir::separator() + musicDirName;
     QDir musicDir(musicDirPath);
     if (!musicDir.exists()) {
-        musicDir.mkpath("."); // 构造音乐目录的路径
+        musicDir.mkpath(QDir::separator()); // 构造音乐目录的路径
     }
 
     QString coverDirPath = rootPath + QDir::separator() + coverDirName;
     QDir coverDir(coverDirPath);
     if (!coverDir.exists()) {
-        coverDir.mkpath("."); // 构造封面目录的路径
+        coverDir.mkpath(QDir::separator()); // 构造封面目录的路径
     }
 }
 

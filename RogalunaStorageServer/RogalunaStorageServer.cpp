@@ -15,7 +15,7 @@ RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QStri
 
     QDir targetRootDir(root);
     if (!targetRootDir.exists()) {
-        targetRootDir.mkpath(".");  // 创建根文件夹
+        targetRootDir.mkpath(QDir::separator());  // 创建根文件夹
     }
 
     if (!temp.endsWith(QDir::separator()))
@@ -25,7 +25,7 @@ RogalunaStorageServer::RogalunaStorageServer(const QString &rootDir, const QStri
 
     QDir targetTempDir(temp);
     if (!targetTempDir.exists()) {
-        targetTempDir.mkpath(".");  // 创建临时文件夹
+        targetTempDir.mkpath(QDir::separator());  // 创建临时文件夹
     }
 }
 
@@ -91,7 +91,7 @@ bool RogalunaStorageServer::writeFile(const QString &path, const QByteArray &dat
 
     // 检查并创建路径中的缺失目录
     QDir dir = QFileInfo(file).absoluteDir();
-    if (!dir.exists() && !dir.mkpath(".")) {
+    if (!dir.exists() && !dir.mkpath(QDir::separator())) {
         qWarning() << "Failed to create directory for file:" << path;
         return false;
     }
@@ -225,7 +225,7 @@ QVector<FileInfoStruct> RogalunaStorageServer::listFiles(const QString &relative
     QString dirPath = absoluteFilePath(relativeDirPath);
     QDir dir(dirPath);
     if (!dir.exists()) {
-        dir.mkpath(".");  // 创建目标文件夹
+        dir.mkpath(QDir::separator());  // 创建目标文件夹
     }
 
     QVector<FileInfoStruct> entryList;
