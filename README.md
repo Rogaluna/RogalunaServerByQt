@@ -2,6 +2,8 @@
 
 提供给 [rogaluna-web](https://github.com/Rogaluna/rogaluna-web) 的服务程序，使用 mingw 编译，支持 Windows 和 Linux 平台。需要配置Postgre数据库，可在运行后编辑自动生成的db_config.ini文件进行配置。
 
+======== 已弃用，最新见[RogalunaServer](https://github.com/Rogaluna/RogalunaServer) ========
+
 ## 数据库
 
 未提供
